@@ -1,0 +1,120 @@
+from tabulate import tabulate
+import dimod
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
+    """Print some information about the CQM model
+
+    Args:
+        cqm: a dimod cqm model (dimod.cqm)
+
+    """
+    if not isinstance(cqm, dimod.ConstrainedQuadraticModel):
+        raise ValueError("input instance should be a dimod CQM model")
+    num_binaries = sum(cqm.vartype(v) is dimod.BINARY for v in cqm.variables)
+    num_integers = sum(cqm.vartype(v) is dimod.INTEGER for v in cqm.variables)
+    num_continuous = sum(cqm.vartype(v) is dimod.REAL for v in cqm.variables)
+    num_discretes = len(cqm.discrete)
+    num_linear_constraints = sum(
+        constraint.lhs.is_linear() for constraint in cqm.constraints.values())
+    num_quadratic_constraints = sum(
+        not constraint.lhs.is_linear() for constraint in
+        cqm.constraints.values())
+    num_le_inequality_constraints = sum(
+        constraint.sense is dimod.sym.Sense.Le for constraint in
+        cqm.constraints.values())
+    num_ge_inequality_constraints = sum(
+        constraint.sense is dimod.sym.Sense.Ge for constraint in
+        cqm.constraints.values())
+    num_equality_constraints = sum(
+        constraint.sense is dimod.sym.Sense.Eq for constraint in
+        cqm.constraints.values())
+
+    assert (num_binaries + num_integers + num_continuous == len(cqm.variables))
+
+    assert (num_quadratic_constraints + num_linear_constraints ==
+            len(cqm.constraints))
+
+    print(" \n" + "=" * 35 + "MODEL INFORMATION" + "=" * 35)
+    print(
+        ' ' * 10 + 'Variables' + " " * 20 + 'Constraints' + " " * 15 +
+        'Sensitivity')
+    print('-' * 30 + " " + '-' * 28 + ' ' + '-' * 18)
+    print(tabulate([["Binary", "Integer", "Continuous",  "Quad", "Linear", "One-hot", "EQ  ",
+                     "LT", "GT"],
+                    [num_binaries, num_integers, num_continuous,
+                     num_quadratic_constraints,
+                     num_linear_constraints, num_discretes,
+                     num_equality_constraints,
+                     num_le_inequality_constraints,
+                     num_ge_inequality_constraints]],
+                   headers="firstrow"))
+
+
+def cuboid_data2(o, size=(1, 1, 1)):
+    X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
+         [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
+         [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
+         [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
+         [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
+         [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]]]
+    X = np.array(X).astype(float)
+    for i in range(3):
+        X[:, :, i] *= size[i]
+    X += np.array(o)
+    return X
+
+
+def plotCubeAt2(positions, sizes=None, colors=None, **kwargs):
+    if not isinstance(colors, (list, np.ndarray)): colors = ["C0"] * len(
+        positions)
+    if not isinstance(sizes, (list, np.ndarray)): sizes = [(1, 1, 1)] * len(
+        positions)
+    g = []
+    for p, s, c in zip(positions, sizes, colors):
+        g.append(cuboid_data2(p, size=s))
+    return Poly3DCollection(np.concatenate(g),
+                            facecolors=colors, **kwargs)
+
+
+def plot_cuboid(positions, sizes, L, W, H):
+    colors = [[tuple(list(np.random.rand(3)) + [0.1])] * 6 for i in range(len(positions))]
+    colors = np.vstack(colors)
+
+    ax = plt.axes(projection='3d')
+    pc = plotCubeAt2(positions, sizes, colors=colors, edgecolor="k")
+    ax.add_collection3d(pc)
+
+    ax.set_xlim([0, L * 1.1])
+    ax.set_ylim([0, W * 1.1])
+    ax.set_zlim([0, H * 1.1])
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_box_aspect((L, W, H))
+    return ax
+
+
+def plot_cuboids(sample, vars, cases, pallets, origins):
+    ox, oy, oz = origins
+    nc = cases.num_items
+    np = pallets.num_pallets
+    positions = []
+    sizes = []
+    for i in range(nc):
+        positions.append((vars.x[i].energy(sample), vars.y[i].energy(sample),
+                          vars.z[i].energy(sample)))
+        sizes.append((ox[i].energy(sample),
+                     oy[i].energy(sample),
+                    cases.h[i]))
+    ax = plot_cuboid(positions, sizes, pallets.l * np, pallets.w, pallets.h)
+    for i in range(np):
+        ax.plot([pallets.l * (i + 1)] * 2, [0, pallets.w], [0, 0], linewidth=4,
+                color='r')
+    for angle in range(0, 360, 30):
+        ax.view_init(30, angle)
+        plt.savefig(f'res_{angle}.png')
+        plt.pause(.001)
