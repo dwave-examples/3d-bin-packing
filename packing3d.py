@@ -1,7 +1,9 @@
-import dimod
+import os
+import time
 from itertools import combinations
 import numpy as np
-import time
+import dimod
+
 from utils import print_cqm_stats, plot_cuboids
 
 # todo: remove this before launch
@@ -13,45 +15,69 @@ else:
 
 
 class Cases:
-    def __init__(self, case_dim_lower, case_dim_higher, num_items):
-        self.l = np.array([np.random.randint(case_dim_lower, case_dim_higher)
-                           for _ in range(num_items)])
-        self.w = np.array([np.random.randint(case_dim_lower, case_dim_higher)
-                           for _ in range(num_items)])
-        self.h = np.array([np.random.randint(case_dim_lower, case_dim_higher)
-                           for _ in range(num_items)])
-        self.num_items = num_items
-        print(f'Number of cases: {self.num_items}')
+    """Class for representing cuboid item data in a 3d-bin packing problem.
+
+    Args:
+        filepath: Specifies file to load comma-delimited data from.
+            See sample_data.txt for format.
+    
+    """
+    def __init__(self, filepath: str):
+        path = os.path.join(os.path.dirname(__file__), filepath)
+        data = np.genfromtxt(path, delimiter=",", names=True, dtype=np.int32)
+        self.case_ids = data["case_id"]
+        self.num_cases = np.sum(data["quantity"], dtype=np.int32)      
+        self.lengths = np.repeat(data["length"], data["quantity"])
+        self.widths = np.repeat(data["width"], data["quantity"])
+        self.heights = np.repeat(data["height"], data["quantity"])
+        print(f'Number of cases: {self.num_cases}')
 
 
-class Pallet:
-    def __init__(self, length, width, height, num_pallets, cases):
-        self.l = length
-        self.w = width
-        self.h = height
+class Pallets:
+    """Class for representing cuboid container data in a 3d-bin packing problem.
+
+    Args:
+        length: Length of container(s).
+        width: Width of container(s).
+        height: Height of container(s).
+        num_pallets: Number of containers.
+        cases: Instance of ``Cases``, representing items packed into containers.
+
+    """
+    def __init__(self, length: int, width: int, height: int, num_pallets: int, cases: Cases):
+        self.length = length
+        self.width = width
+        self.height = height
         self.num_pallets = num_pallets
         self.lowest_num_pallet = np.ceil(
-            np.sum(cases.l * cases.w * cases.h) / (length * width * height))
+            np.sum(cases.lengths * cases.widths * cases.heights) / (length * width * height))
         assert self.lowest_num_pallet <= num_pallets, \
             f'number of pallets is at least {self.lowest_num_pallet}'
         print(f'Minimum Number of pallets required: {self.lowest_num_pallet}')
 
 
 class Variables:
-    def __init__(self, cases, pallets):
-        nc = cases.num_items
+    """Class that collects all CQM model variables for the 3d-bin packing problem.
+
+    Args:
+        cases: Instance of ``Cases``, representing items packed into containers.
+        pallets: Instance of ``Pallets``, representing containers to pack items into.
+    
+    """
+    def __init__(self, cases: Cases, pallets: Pallets):
+        nc = cases.num_cases
         pc = pallets.num_pallets
         self.x = {i: dimod.Real(f'x_{i}',
                                 lower_bound=0,
-                                upper_bound=pallets.l * pallets.num_pallets)
+                                upper_bound=pallets.length * pallets.num_pallets)
                   for i in range(nc)}
-        self.y = {i: dimod.Real(f'y_{i}', lower_bound=0, upper_bound=pallets.w)
+        self.y = {i: dimod.Real(f'y_{i}', lower_bound=0, upper_bound=pallets.width)
                   for i in range(nc)}
-        self.z = {i: dimod.Real(f'z_{i}', lower_bound=0, upper_bound=pallets.h)
+        self.z = {i: dimod.Real(f'z_{i}', lower_bound=0, upper_bound=pallets.height)
                   for i in range(nc)}
 
         self.zH = {
-            j: dimod.Real(label=f'upper_bound_{j}', upper_bound=pallets.h)
+            j: dimod.Real(label=f'upper_bound_{j}', upper_bound=pallets.height)
             for j in range(pc)}
 
         self.pallet_loc = {(i, j): dimod.Binary(f'x{i}_IN_{j}')
@@ -69,7 +95,7 @@ class Variables:
 
 
 def add_pallet_on_constraint(cqm, vars, pallets, cases):
-    nc = cases.num_items
+    nc = cases.num_cases
     pc = pallets.num_pallets
     for j in range(pc):
         cqm.add_constraint((1 - vars.pallet_on[j]) * dimod.quicksum(
@@ -77,20 +103,20 @@ def add_pallet_on_constraint(cqm, vars, pallets, cases):
 
 
 def define_case_dimensions(vars, cases):
-    nc = cases.num_items
+    nc = cases.num_cases
     ox = {}
     oy = {}
     oz = {}
     for i in range(nc):
-        ox[i] = cases.l[i] * vars.o[i] + cases.w[i] * (1 - vars.o[i])
-        oy[i] = cases.w[i] * vars.o[i] + cases.l[i] * (1 - vars.o[i])
-        oz[i] = cases.h
+        ox[i] = cases.lengths[i] * vars.o[i] + cases.widths[i] * (1 - vars.o[i])
+        oy[i] = cases.widths[i] * vars.o[i] + cases.lengths[i] * (1 - vars.o[i])
+        oz[i] = cases.heights
 
     return [ox, oy, oz]
 
 
 def add_positional_constraints(cqm, vars, pallets, cases, origins):
-    nc = cases.num_items
+    nc = cases.num_cases
     pc = pallets.num_pallets
     sx, sy, sz = origins
     for i, j in combinations(range(nc), r=2):
@@ -98,32 +124,32 @@ def add_positional_constraints(cqm, vars, pallets, cases, origins):
                          label=f'discrete_{i}_{j}')
 
         cqm.add_constraint(
-            -(1 - vars.selector[i, j, 0]) * pc * pallets.l +
+            -(1 - vars.selector[i, j, 0]) * pc * pallets.length +
             (vars.x[i] + sx[i] - vars.x[j]) <= 0,
             label=f'overlap_{i}_{j}_0')
 
         cqm.add_constraint(
-            -(1 - vars.selector[i, j, 1]) * pallets.w +
+            -(1 - vars.selector[i, j, 1]) * pallets.width +
             (vars.y[i] + sy[i] - vars.y[j]) <= 0,
             label=f'overlap_{i}_{j}_1')
 
         cqm.add_constraint(
-            -(1 - vars.selector[i, j, 2]) * pallets.h +
-            (vars.z[i] + cases.h[i] - vars.z[j]) <= 0,
+            -(1 - vars.selector[i, j, 2]) * pallets.height +
+            (vars.z[i] + cases.heights[i] - vars.z[j]) <= 0,
             label=f'overlap_{i}_{j}_2')
 
         cqm.add_constraint(
-            -(1 - vars.selector[i, j, 3]) * pc * pallets.l +
+            -(1 - vars.selector[i, j, 3]) * pc * pallets.length +
             (vars.x[j] + sx[j] - vars.x[i]) <= 0,
             label=f'overlap_{i}_{j}_3')
         cqm.add_constraint(
-            -(1 - vars.selector[i, j, 4]) * pallets.w +
+            -(1 - vars.selector[i, j, 4]) * pallets.width +
             (vars.y[j] + sy[j] - vars.y[i]) <= 0,
             label=f'overlap_{i}_{j}_4')
 
         cqm.add_constraint(
-            -(1 - vars.selector[i, j, 5]) * pallets.h +
-            (vars.z[j] + cases.h[j] - vars.z[i]) <= 0,
+            -(1 - vars.selector[i, j, 5]) * pallets.height +
+            (vars.z[j] + cases.heights[j] - vars.z[i]) <= 0,
             label=f'overlap_{i}_{j}_5')
 
     if pc > 1:
@@ -133,35 +159,35 @@ def add_positional_constraints(cqm, vars, pallets, cases, origins):
 
 
 def add_boundary_constraints(cqm, vars, pallets, cases, origins):
-    nc = cases.num_items
+    nc = cases.num_cases
     pc = pallets.num_pallets
     sx, sy, sz = origins
     for i in range(nc):
         for j in range(pc):
-            cqm.add_constraint(vars.z[i] + cases.h[i] - vars.zH[j] <= 0,
+            cqm.add_constraint(vars.z[i] + cases.heights[i] - vars.zH[j] <= 0,
                                label=f'maxx_height_{i}_{j}')
 
-            cqm.add_constraint(vars.x[i] + sx[i] - pallets.l * (j + 1)
-                               - (1 - vars.pallet_loc[i, j]) * pc * pallets.l <= 0,
+            cqm.add_constraint(vars.x[i] + sx[i] - pallets.length * (j + 1)
+                               - (1 - vars.pallet_loc[i, j]) * pc * pallets.length <= 0,
                                label=f'maxx_{i}_{j}_less')
-            cqm.add_constraint(vars.x[i] - pallets.l * j * vars.pallet_loc[i, j] >= 0,
+            cqm.add_constraint(vars.x[i] - pallets.length * j * vars.pallet_loc[i, j] >= 0,
                                label=f'maxx_{i}_{j}_greater')
             cqm.add_constraint(
-                (vars.y[i] + sy[i] - pallets.w) -
-                (1 - vars.pallet_loc[i, j]) * pallets.w <= 0,
+                (vars.y[i] + sy[i] - pallets.width) -
+                (1 - vars.pallet_loc[i, j]) * pallets.width <= 0,
                 label=f'maxy_{i}_{j}_less')
             cqm.add_constraint(
-                (vars.z[i] + cases.h[i] - pallets.h) -
-                (1 - vars.pallet_loc[i, j]) * pallets.h <= 0,
+                (vars.z[i] + cases.heights[i] - pallets.height) -
+                (1 - vars.pallet_loc[i, j]) * pallets.height <= 0,
                 label=f'maxz_{i}_{j}_less')
 
 
 def define_objective(cqm, vars, cases, pallets):
     pallet_count = dimod.quicksum(vars.pallet_on.values())
-    nc = cases.num_items
+    nc = cases.num_cases
     pc = pallets.num_pallets
     case_height = dimod.quicksum(vars.z[i] +
-                                 cases.h[i] for i in range(nc)) / nc
+                                 cases.heights[i] for i in range(nc)) / nc
     cqm.set_objective(dimod.quicksum(vars.zH[j] for j in range(pc))
                       + case_height + 100 * pallet_count)
 
@@ -180,7 +206,7 @@ def call_cqm_solver(cqm, time_limit):
 
 
 def print_results(cqm, vars, sample, cases, pallets, origins):
-        nc = cases.num_items
+        nc = cases.num_cases
         pc = pallets.num_pallets
         sx, sy, sz = origins
         print(f'Objective: {cqm.objective.energy(sample)}')
@@ -189,7 +215,7 @@ def print_results(cqm, vars, sample, cases, pallets, origins):
               np.round(vars.z[i].energy(sample), 2),
               np.round(sx[i].energy(sample), 2),
               np.round(sy[i].energy(sample), 2),
-              cases.h[i])
+              cases.heights[i])
               for i in range(nc) for j in range(pc)}
         solution_height = vars.zH[0].energy(sample)
         for k, v in vs.items():
@@ -198,10 +224,9 @@ def print_results(cqm, vars, sample, cases, pallets, origins):
 
 
 if __name__ == '__main__':
-    np.random.seed(111)
     # Get length, width and height of the boxes
-    cases = Cases(case_dim_lower=5, case_dim_higher=50, num_items=20)
-    pallets = Pallet(length=100, width=100, height=110, num_pallets=1,
+    cases = Cases("sample_data.txt")
+    pallets = Pallets(length=100, width=100, height=110, num_pallets=1,
                      cases=cases)
     time_limit = 20
     vars = Variables(cases, pallets)

@@ -100,7 +100,7 @@ def plot_cuboid(positions, sizes, L, W, H):
 
 def plot_cuboids(sample, vars, cases, pallets, origins):
     ox, oy, oz = origins
-    nc = cases.num_items
+    nc = cases.num_cases
     np = pallets.num_pallets
     positions = []
     sizes = []
@@ -109,10 +109,10 @@ def plot_cuboids(sample, vars, cases, pallets, origins):
                           vars.z[i].energy(sample)))
         sizes.append((ox[i].energy(sample),
                      oy[i].energy(sample),
-                    cases.h[i]))
-    ax = plot_cuboid(positions, sizes, pallets.l * np, pallets.w, pallets.h)
+                    cases.heights[i]))
+    ax = plot_cuboid(positions, sizes, pallets.length * np, pallets.width, pallets.height)
     for i in range(np):
-        ax.plot([pallets.l * (i + 1)] * 2, [0, pallets.w], [0, 0], linewidth=4,
+        ax.plot([pallets.length * (i + 1)] * 2, [0, pallets.width], [0, 0], linewidth=4,
                 color='r')
     for angle in range(0, 360, 30):
         ax.view_init(30, angle)
