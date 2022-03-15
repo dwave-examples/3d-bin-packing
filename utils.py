@@ -1,12 +1,15 @@
-from tabulate import tabulate
-import dimod
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
+from tabulate import tabulate
+from typing import TYPE_CHECKING
+import dimod
 
+if TYPE_CHECKING:
+    from packing3d import Cases, Pallets, Variables
 
 def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
-    """Print some information about the CQM model
+    """Print some information about the CQM model defining the 3D bin packing problem.
 
     Args:
         cqm: a dimod cqm model (dimod.cqm)
@@ -54,7 +57,7 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
                    headers="firstrow"))
 
 
-def cuboid_data2(o, size=(1, 1, 1)):
+def _cuboid_data2(o, size=(1, 1, 1)):
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
          [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
@@ -68,24 +71,24 @@ def cuboid_data2(o, size=(1, 1, 1)):
     return X
 
 
-def plotCubeAt2(positions, sizes=None, colors=None, **kwargs):
+def _plotCubeAt2(positions, sizes=None, colors=None, **kwargs):
     if not isinstance(colors, (list, np.ndarray)): colors = ["C0"] * len(
         positions)
     if not isinstance(sizes, (list, np.ndarray)): sizes = [(1, 1, 1)] * len(
         positions)
     g = []
     for p, s, c in zip(positions, sizes, colors):
-        g.append(cuboid_data2(p, size=s))
+        g.append(_cuboid_data2(p, size=s))
     return Poly3DCollection(np.concatenate(g),
                             facecolors=colors, **kwargs)
 
 
-def plot_cuboid(positions, sizes, L, W, H):
+def _plot_cuboid(positions, sizes, L, W, H):
     colors = [[tuple(list(np.random.rand(3)) + [0.1])] * 6 for i in range(len(positions))]
     colors = np.vstack(colors)
 
     ax = plt.axes(projection='3d')
-    num_pallets = plotCubeAt2(positions, sizes, colors=colors, edgecolor="k")
+    num_pallets = _plotCubeAt2(positions, sizes, colors=colors, edgecolor="k")
     ax.add_collection3d(num_pallets)
 
     ax.set_xlim([0, L * 1.1])
@@ -98,7 +101,8 @@ def plot_cuboid(positions, sizes, L, W, H):
     return ax
 
 
-def plot_cuboids(sample, vars, cases, pallets, origins):
+def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases", 
+                 pallets: "Pallets", origins: list):
     ox, oy, oz = origins
     num_cases = cases.num_cases
     np = pallets.num_pallets
@@ -110,7 +114,7 @@ def plot_cuboids(sample, vars, cases, pallets, origins):
         sizes.append((ox[i].energy(sample),
                      oy[i].energy(sample),
                     cases.heights[i]))
-    ax = plot_cuboid(positions, sizes, pallets.length * np, pallets.width, pallets.height)
+    ax = _plot_cuboid(positions, sizes, pallets.length * np, pallets.width, pallets.height)
     for i in range(np):
         ax.plot([pallets.length * (i + 1)] * 2, [0, pallets.width], [0, 0], linewidth=4,
                 color='r')
