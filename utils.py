@@ -85,8 +85,8 @@ def plot_cuboid(positions, sizes, L, W, H):
     colors = np.vstack(colors)
 
     ax = plt.axes(projection='3d')
-    pc = plotCubeAt2(positions, sizes, colors=colors, edgecolor="k")
-    ax.add_collection3d(pc)
+    num_pallets = plotCubeAt2(positions, sizes, colors=colors, edgecolor="k")
+    ax.add_collection3d(num_pallets)
 
     ax.set_xlim([0, L * 1.1])
     ax.set_ylim([0, W * 1.1])
@@ -100,11 +100,11 @@ def plot_cuboid(positions, sizes, L, W, H):
 
 def plot_cuboids(sample, vars, cases, pallets, origins):
     ox, oy, oz = origins
-    nc = cases.num_cases
+    num_cases = cases.num_cases
     np = pallets.num_pallets
     positions = []
     sizes = []
-    for i in range(nc):
+    for i in range(num_cases):
         positions.append((vars.x[i].energy(sample), vars.y[i].energy(sample),
                           vars.z[i].energy(sample)))
         sizes.append((ox[i].energy(sample),
