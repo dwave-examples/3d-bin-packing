@@ -103,6 +103,17 @@ def _plot_cuboid(positions, sizes, L, W, H):
 
 def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases", 
                  pallets: "Pallets", origins: list):
+    """Visualization utility tool to view 3D bin packing solution.
+
+    Args:
+        sample: A ``dimod.SampleSet`` that represents the best feasible solution found.
+        vars: Instance of ``Variables`` that defines the complete set of variables
+            for the 3D bin packing problem.
+        cases: Instance of ``Cases``, representing items packed into containers.
+        pallets: Instance of ``Pallets``, representing containers to pack items into.
+        origins: List of case dimensions based on orientations of cases.
+    
+    """
     ox, oy, oz = origins
     num_cases = cases.num_cases
     np = pallets.num_pallets

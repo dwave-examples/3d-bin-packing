@@ -17,7 +17,7 @@ else:
 
 
 class Cases:
-    """Class for representing cuboid item data in a 3d-bin packing problem.
+    """Class for representing cuboid item data in a 3D bin packing problem.
 
     Args:
         data_filepath: Specifies file to load comma-delimited data from.
@@ -36,7 +36,7 @@ class Cases:
 
 
 class Pallets:
-    """Class for representing cuboid container data in a 3d-bin packing problem.
+    """Class for representing cuboid container data in a 3D bin packing problem.
 
     Args:
         length: Length of container(s).
@@ -59,7 +59,7 @@ class Pallets:
 
 
 class Variables:
-    """Class that collects all CQM model variables for the 3d-bin packing problem.
+    """Class that collects all CQM model variables for the 3D bin packing problem.
 
     Args:
         cases: Instance of ``Cases``, representing items packed into containers.
@@ -258,7 +258,7 @@ def print_results(cqm: dimod.CQM, vars: Variables, sample: dimod.SampleSet,
 
     Args:
         cqm: A ``dimod.CQM`` object that defines the 3D bin packing problem.
-        vars:Instance of ``Variables`` that defines the complete set of variables
+        vars: Instance of ``Variables`` that defines the complete set of variables
             for the 3D bin packing problem.
         sample: A ``dimod.SampleSet`` that represents the best feasible solution found.
         cases: Instance of ``Cases``, representing items packed into containers.
@@ -325,3 +325,5 @@ if __name__ == '__main__':
         print_results(cqm, vars, best_feasible, cases, pallets,
                       origins)
         plot_cuboids(best_feasible, vars, cases, pallets, origins)
+    else:
+        print("No feasible solution found this run.")
