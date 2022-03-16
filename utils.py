@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 from tabulate import tabulate
-from typing import TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 import dimod
 
 if TYPE_CHECKING:
@@ -57,7 +57,7 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
                    headers="firstrow"))
 
 
-def _cuboid_data2(o, size=(1, 1, 1)):
+def _cuboid_data2(o: tuple, size:tuple = (1, 1, 1)):
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
          [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
@@ -71,7 +71,8 @@ def _cuboid_data2(o, size=(1, 1, 1)):
     return X
 
 
-def _plotCubeAt2(positions, sizes=None, colors=None, **kwargs):
+def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None, 
+                 colors: Optional[List[str]] = None, **kwargs):
     if not isinstance(colors, (list, np.ndarray)): colors = ["C0"] * len(
         positions)
     if not isinstance(sizes, (list, np.ndarray)): sizes = [(1, 1, 1)] * len(
@@ -83,7 +84,8 @@ def _plotCubeAt2(positions, sizes=None, colors=None, **kwargs):
                             facecolors=colors, **kwargs)
 
 
-def _plot_cuboid(positions, sizes, L, W, H):
+def _plot_cuboid(positions: List[tuple] , sizes: List[tuple], pallet_length: int, 
+                 pallet_width: int, pallet_height: int) -> plt.Axes:
     colors = [[tuple(list(np.random.rand(3)) + [0.1])] * 6 for i in range(len(positions))]
     colors = np.vstack(colors)
 
@@ -91,13 +93,13 @@ def _plot_cuboid(positions, sizes, L, W, H):
     num_pallets = _plotCubeAt2(positions, sizes, colors=colors, edgecolor="k")
     ax.add_collection3d(num_pallets)
 
-    ax.set_xlim([0, L * 1.1])
-    ax.set_ylim([0, W * 1.1])
-    ax.set_zlim([0, H * 1.1])
+    ax.set_xlim([0, pallet_length * 1.1])
+    ax.set_ylim([0, pallet_width * 1.1])
+    ax.set_zlim([0, pallet_height * 1.1])
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_box_aspect((L, W, H))
+    ax.set_box_aspect((pallet_length, pallet_width, pallet_height))
     return ax
 
 
