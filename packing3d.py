@@ -215,11 +215,6 @@ def _add_boundary_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                 (1 - vars.pallet_loc[i, j]) * pallets.width <= 0,
                 label=f'maxy_{i}_{j}_less')
 
-            cqm.add_constraint(
-                (vars.z[i] + sz[i] - pallets.height) -
-                (1 - vars.pallet_loc[i, j]) * pallets.height <= 0,
-                label=f'maxz_{i}_{j}_less')
-
 
 def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
                       pallets: Pallets, cases: Cases, origins: list):
@@ -232,7 +227,7 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
         vars.z[i] + sz[i] for i in range(num_cases)) / num_cases
 
     # Second term of objective: minimize height of the box at the top of the bin
-    second_obj_term = quicksum(vars.bin_height[j] for j in range(num_pallets))
+    second_obj_term = quicksum(vars.bin_height[j] for j in range(num_pallets)) / num_pallets
 
     # Third term of the objective:
     pallet_available_space = [
@@ -241,12 +236,17 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
     boxes_used_space = [cases.length[i] * cases.width[i] * cases.height[i] *
                         vars.pallet_loc[i, j] for i in range(num_cases)
                         for j in range(num_pallets)]
-    denominator = pallets.height * (pallets.length * pallets.width) ** 2
+    denominator = num_pallets * pallets.height * (pallets.length * pallets.width) ** 2
     third_obj_term = quicksum(
-        (pallet_available_space[j] - boxes_used_space[j]) ** 2 / denominator
-        for j in range(num_pallets))
+        (pallet_available_space[j] - boxes_used_space[j]) ** 2
+        for j in range(num_pallets)) / denominator
+    first_obj_coefficient = 3
+    second_obj_coefficient = 1
+    third_obj_coefficient = 1
+    cqm.set_objective(first_obj_coefficient * first_obj_term +
+                      second_obj_coefficient * second_obj_term +
+                      third_obj_coefficient * third_obj_term)
 
-    cqm.set_objective(first_obj_term + second_obj_term + third_obj_term)
 
 
 def build_cqm(vars: Variables, pallets: Pallets,

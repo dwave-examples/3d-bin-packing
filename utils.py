@@ -119,7 +119,7 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
         origins: List of case dimensions based on orientations of cases.
     
     """
-    ox, oy, oz = origins
+    sx, sy, sz = origins
     num_cases = cases.num_cases
     num_pallets = pallets.num_pallets
     positions = []
@@ -130,8 +130,8 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
             positions.append(
                 (vars.x[i].energy(sample), vars.y[i].energy(sample),
                  vars.z[i].energy(sample)))
-            sizes.append((ox[i].energy(sample),
-                          oy[i].energy(sample),
+            sizes.append((sx[i].energy(sample),
+                          sy[i].energy(sample),
                           cases.height[i]))
     ax = _plot_cuboid(positions, sizes, pallets.length * num_pallets,
                       pallets.width, pallets.height)
