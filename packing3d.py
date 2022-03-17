@@ -1,9 +1,10 @@
-import argparse
-from email.policy import default
-from itertools import combinations, permutations
-import numpy as np
 import os
 import time
+from typing import Tuple
+
+import argparse
+from itertools import combinations, permutations
+import numpy as np
 from dimod import quicksum, ConstrainedQuadraticModel, Real, Binary, SampleSet
 
 from utils import print_cqm_stats, plot_cuboids
@@ -116,17 +117,6 @@ def _add_pallet_on_constraint(cqm: ConstrainedQuadraticModel, vars: Variables,
 
 def _add_orientation_constraints(cqm: ConstrainedQuadraticModel,
                                  vars: Variables, cases: Cases) -> list:
-    """Define case dimensions based on orientations in the length or width dimensions.
-
-    Args:
-        vars: Instance of ``Variables`` that defines the complete set of variables
-            for the 3D bin packing problem.
-        cases: Instance of ``Cases``, representing items packed into containers.
-    
-    Returns:
-        List of case dimensions based on orientations of cases.
-
-    """
     num_cases = cases.num_cases
     ox = {}
     oy = {}
@@ -181,12 +171,13 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                   vars.selector[i, k, 3]) * num_pallets * pallets.length +
                 (vars.x[k] + sx[k] - vars.x[i]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_3')
+
             cqm.add_constraint(
                 -(2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
                   vars.selector[i, k, 4]) * pallets.width +
                 (vars.y[k] + sy[k] - vars.y[i]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_4')
-            #
+
             cqm.add_constraint(
                 -(2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
                   vars.selector[i, k, 5]) * pallets.height +
@@ -235,28 +226,31 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
     num_cases = cases.num_cases
     num_pallets = pallets.num_pallets
     sx, sy, sz = origins
-    case_height = quicksum(
+
+    # First term of objective: minimize average height of boxes
+    first_obj_term = quicksum(
         vars.z[i] + sz[i] for i in range(num_cases)) / num_cases
 
-    pallet_space = [
+    # Second term of objective: minimize height of the box at the top of the bin
+    second_obj_term = quicksum(vars.bin_height[j] for j in range(num_pallets))
+
+    # Third term of the objective:
+    pallet_available_space = [
         pallets.length * pallets.width * pallets.height * vars.pallet_on[j]
         for j in range(num_pallets)]
+    boxes_used_space = [cases.length[i] * cases.width[i] * cases.height[i] *
+                        vars.pallet_loc[i, j] for i in range(num_cases)
+                        for j in range(num_pallets)]
+    denominator = pallets.height * (pallets.length * pallets.width) ** 2
+    third_obj_term = quicksum(
+        (pallet_available_space[j] - boxes_used_space[j]) ** 2 / denominator
+        for j in range(num_pallets))
 
-    pallet_box_volume = [
-        quicksum(cases.length[i] * cases.width[i] * cases.height[i] *
-                 vars.pallet_loc[i, j]
-                 for i in range(num_cases)) for j in range(num_pallets)]
-
-    cqm.set_objective(
-        case_height +
-        quicksum(vars.bin_height[j] +
-                 ((pallet_space[j] - pallet_box_volume[j]) / (
-                         pallets.length * pallets.width)) ** 2 / pallets.height
-                 for j in range(num_pallets)))
+    cqm.set_objective(first_obj_term + second_obj_term + third_obj_term)
 
 
-def build_cqm(vars: Variables, pallets: Pallets, cases: Cases) -> {
-    ConstrainedQuadraticModel, list}:
+def build_cqm(vars: Variables, pallets: Pallets,
+              cases: Cases) -> Tuple[ConstrainedQuadraticModel, list]:
     """Builds the CQM model from the problem variables and data.
 
     Args:
@@ -359,14 +353,14 @@ if __name__ == '__main__':
                              " seconds.",
                         default=20)
     args = parser.parse_args()
-
+    time_limit = args.time_limit
     cases = Cases(args.data_filepath)
     pallets = Pallets(length=args.pallet_length,
                       width=args.pallet_width,
                       height=args.pallet_height,
                       num_pallets=args.num_pallets,
                       cases=cases)
-    time_limit = 20
+
     vars = Variables(cases, pallets)
 
     cqm, origins = build_cqm(vars, pallets, cases)
