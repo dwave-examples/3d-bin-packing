@@ -8,6 +8,7 @@ import dimod
 if TYPE_CHECKING:
     from packing3d import Cases, Pallets, Variables
 
+
 def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
     """Print some information about the CQM model defining the 3D bin packing problem.
 
@@ -46,8 +47,8 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
         ' ' * 10 + 'Variables' + " " * 20 + 'Constraints' + " " * 15 +
         'Sensitivity')
     print('-' * 30 + " " + '-' * 28 + ' ' + '-' * 18)
-    print(tabulate([["Binary", "Integer", "Continuous",  "Quad", "Linear", "One-hot", "EQ  ",
-                     "LT", "GT"],
+    print(tabulate([["Binary", "Integer", "Continuous", "Quad", "Linear",
+                     "One-hot", "EQ  ", "LT", "GT"],
                     [num_binaries, num_integers, num_continuous,
                      num_quadratic_constraints,
                      num_linear_constraints, num_discretes,
@@ -57,7 +58,7 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
                    headers="firstrow"))
 
 
-def _cuboid_data2(o: tuple, size:tuple = (1, 1, 1)):
+def _cuboid_data2(o: tuple, size: tuple = (1, 1, 1)):
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
          [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
@@ -71,7 +72,7 @@ def _cuboid_data2(o: tuple, size:tuple = (1, 1, 1)):
     return X
 
 
-def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None, 
+def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None,
                  colors: Optional[List[str]] = None, **kwargs):
     if not isinstance(colors, (list, np.ndarray)): colors = ["C0"] * len(
         positions)
@@ -84,9 +85,11 @@ def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None,
                             facecolors=colors, **kwargs)
 
 
-def _plot_cuboid(positions: List[tuple] , sizes: List[tuple], pallet_length: int, 
+def _plot_cuboid(positions: List[tuple], sizes: List[tuple],
+                 pallet_length: int,
                  pallet_width: int, pallet_height: int) -> plt.Axes:
-    colors = [[tuple(list(np.random.rand(3)) + [0.1])] * 6 for i in range(len(positions))]
+    colors = [[tuple(list(np.random.rand(3)) + [0.1])] * 6 for i in
+              range(len(positions))]
     colors = np.vstack(colors)
 
     ax = plt.axes(projection='3d')
@@ -103,7 +106,7 @@ def _plot_cuboid(positions: List[tuple] , sizes: List[tuple], pallet_length: int
     return ax
 
 
-def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases", 
+def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
                  pallets: "Pallets", origins: list):
     """Visualization utility tool to view 3D bin packing solution.
 
@@ -118,18 +121,23 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
     """
     ox, oy, oz = origins
     num_cases = cases.num_cases
-    np = pallets.num_pallets
+    num_pallets = pallets.num_pallets
     positions = []
     sizes = []
     for i in range(num_cases):
-        positions.append((vars.x[i].energy(sample), vars.y[i].energy(sample),
-                          vars.z[i].energy(sample)))
-        sizes.append((ox[i].energy(sample),
-                     oy[i].energy(sample),
-                    cases.heights[i]))
-    ax = _plot_cuboid(positions, sizes, pallets.length * np, pallets.width, pallets.height)
-    for i in range(np):
-        ax.plot([pallets.length * (i + 1)] * 2, [0, pallets.width], [0, 0], linewidth=4,
+        if sum(vars.pallet_loc[i, j].energy(sample) for j in
+               range(num_pallets)):
+            positions.append(
+                (vars.x[i].energy(sample), vars.y[i].energy(sample),
+                 vars.z[i].energy(sample)))
+            sizes.append((ox[i].energy(sample),
+                          oy[i].energy(sample),
+                          cases.height[i]))
+    ax = _plot_cuboid(positions, sizes, pallets.length * num_pallets,
+                      pallets.width, pallets.height)
+    for i in range(num_pallets):
+        ax.plot([pallets.length * (i + 1)] * 2, [0, pallets.width], [0, 0],
+                linewidth=4,
                 color='r')
     for angle in range(0, 360, 30):
         ax.view_init(30, angle)
