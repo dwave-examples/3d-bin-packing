@@ -1,5 +1,4 @@
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import plotly.graph_objects as go
 import numpy as np
 from tabulate import tabulate
 from typing import List, Optional, TYPE_CHECKING
@@ -73,41 +72,41 @@ def _cuboid_data2(o: tuple, size: tuple = (1, 1, 1)):
 
 
 def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None,
-                 colors: Optional[List[str]] = None, **kwargs):
+                 colors: Optional[List[str]] = None, **kwargs) -> list:
     if not isinstance(colors, (list, np.ndarray)): colors = ["C0"] * len(
         positions)
     if not isinstance(sizes, (list, np.ndarray)): sizes = [(1, 1, 1)] * len(
         positions)
     g = []
     for p, s, c in zip(positions, sizes, colors):
-        g.append(_cuboid_data2(p, size=s))
-    return Poly3DCollection(np.concatenate(g),
-                            facecolors=colors, **kwargs)
+        box_points = _cuboid_data2(p, size=s)
+        # Get all unique vertices for 3d Mesh
+        x, y, z = np.unique(np.vstack(box_points), axis=0).T
+        g.append(go.Mesh3d(x=x, y=y, z=z, **kwargs))
+    
+    return g
 
 
 def _plot_cuboid(positions: List[tuple], sizes: List[tuple],
                  pallet_length: int,
-                 pallet_width: int, pallet_height: int) -> plt.Axes:
+                 pallet_width: int, pallet_height: int, **kwargs) -> go.Figure:
     colors = [[tuple(list(np.random.rand(3)) + [0.1])] * 6 for i in
               range(len(positions))]
     colors = np.vstack(colors)
 
-    ax = plt.axes(projection='3d')
-    num_pallets = _plotCubeAt2(positions, sizes, colors=colors, edgecolor="k")
-    ax.add_collection3d(num_pallets)
+    num_pallets = _plotCubeAt2(positions, sizes, **kwargs)
+    fig = go.Figure(data=num_pallets)
+    fig.update_layout(scene=dict(
+        xaxis=dict(range=[0,pallet_length*1.1]),
+        yaxis=dict(range=[0,pallet_width*1.1]),
+        zaxis=dict(range=[0,pallet_height*1.1])
+    ))
 
-    ax.set_xlim([0, pallet_length * 1.1])
-    ax.set_ylim([0, pallet_width * 1.1])
-    ax.set_zlim([0, pallet_height * 1.1])
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.set_box_aspect((pallet_length, pallet_width, pallet_height))
-    return ax
+    return fig
 
 
 def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
-                 pallets: "Pallets", origins: list):
+                 pallets: "Pallets", origins: list, **kwargs) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
     Args:
@@ -117,6 +116,9 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
         cases: Instance of ``Cases``, representing items packed into containers.
         pallets: Instance of ``Pallets``, representing containers to pack items into.
         origins: List of case dimensions based on orientations of cases.
+    
+    Returns:
+        ``plotly.graph_objects.Figure`` with all items packed according to CQM results.
     
     """
     sx, sy, sz = origins
@@ -133,13 +135,7 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
             sizes.append((sx[i].energy(sample),
                           sy[i].energy(sample),
                           cases.height[i]))
-    ax = _plot_cuboid(positions, sizes, pallets.length * num_pallets,
-                      pallets.width, pallets.height)
-    for i in range(num_pallets):
-        ax.plot([pallets.length * (i + 1)] * 2, [0, pallets.width], [0, 0],
-                linewidth=4,
-                color='r')
-    for angle in range(0, 360, 30):
-        ax.view_init(30, angle)
-        plt.savefig(f'res_{angle}.png')
-        plt.pause(.001)
+    fig = _plot_cuboid(positions, sizes, pallets.length*num_pallets, 
+                       pallets.width, pallets.height, **kwargs)
+
+    return fig
