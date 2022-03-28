@@ -137,5 +137,10 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
                           cases.height[i]))
     fig = _plot_cuboid(positions, sizes, pallets.length*num_pallets, 
                        pallets.width, pallets.height, **kwargs)
+    for i in range(num_pallets):
+        fig.add_trace(
+            go.Scatter3d(x=[pallets.length * (i+1)]*2, y=[0, pallets.width],
+                         z=[0,0], mode='lines', name=f"Bin Boundary {i}")
+        )
 
     return fig
