@@ -371,9 +371,10 @@ if __name__ == '__main__':
     if len(best_feasible) > 0:
         print_results(cqm, vars, best_feasible, cases, pallets,
                       origins)
-        plotly_kwargs = dict(alphahull=0, opacity=0.75, flatshading=True)
-        fig = plot_cuboids(best_feasible, vars, cases, 
+        plotly_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
+        fig = plot_cuboids(best_feasible, vars, cases,
                            pallets, origins, **plotly_kwargs)
+        fig.show()
         fig.write_html("result.html")
     else:
         print("No feasible solution found this run.")
