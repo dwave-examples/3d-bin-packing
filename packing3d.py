@@ -1,8 +1,7 @@
+import argparse
 import os
 import time
 from typing import Tuple
-
-import argparse
 from itertools import combinations, permutations
 import numpy as np
 from dimod import quicksum, ConstrainedQuadraticModel, Real, Binary, SampleSet
@@ -333,22 +332,22 @@ def print_results(cqm: ConstrainedQuadraticModel, vars: Variables,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("data_filepath", type=str, nargs="?",
+    parser.add_argument("--data_filepath", type=str, nargs="?",
                         help="Filepath to bin-packing data file.",
                         default="input/sample_data.txt")
-    parser.add_argument("pallet_length", type=int, nargs="?",
+    parser.add_argument("--pallet_length", type=int, nargs="?",
                         help="Length dimension of pallet.",
                         default=100)
-    parser.add_argument("pallet_width", type=int, nargs="?",
+    parser.add_argument("--pallet_width", type=int, nargs="?",
                         help="Width dimension of pallet.",
                         default=100)
-    parser.add_argument("pallet_height", type=int, nargs="?",
+    parser.add_argument("--pallet_height", type=int, nargs="?",
                         help="Height dimension of pallet.",
                         default=110)
-    parser.add_argument("num_pallets", type=int, nargs="?",
+    parser.add_argument("--num_pallets", type=int, nargs="?",
                         help="Specify number of pallets to pack.",
                         default=1)
-    parser.add_argument("time_limit", type=float, nargs="?",
+    parser.add_argument("--time_limit", type=float, nargs="?",
                         help="Time limit for the hybrid CQM Solver to run in"
                              " seconds.",
                         default=20)
@@ -372,6 +371,10 @@ if __name__ == '__main__':
     if len(best_feasible) > 0:
         print_results(cqm, vars, best_feasible, cases, pallets,
                       origins)
-        plot_cuboids(best_feasible, vars, cases, pallets, origins)
+        plotly_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
+        fig = plot_cuboids(best_feasible, vars, cases,
+                           pallets, origins, **plotly_kwargs)
+        fig.show()
+        fig.write_html("result.html")
     else:
         print("No feasible solution found this run.")
