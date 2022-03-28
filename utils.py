@@ -72,19 +72,19 @@ def _cuboid_data2(o: tuple, size: tuple = (1, 1, 1)):
 
 
 def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None,
-                 colors: Optional[List[str]] = None, **kwargs) -> list:
-    if not isinstance(colors, (list, np.ndarray)): colors = ["C0"] * len(
-        positions)
+                 **kwargs)-> list:
     if not isinstance(sizes, (list, np.ndarray)): sizes = [(1, 1, 1)] * len(
         positions)
-    g = []
-    for p, s, c in zip(positions, sizes, colors):
+    item_data = []
+    for p, s in zip(positions, sizes):
         box_points = _cuboid_data2(p, size=s)
         # Get all unique vertices for 3d Mesh
         x, y, z = np.unique(np.vstack(box_points), axis=0).T
-        g.append(go.Mesh3d(x=x, y=y, z=z, **kwargs))
+        item_data.append(go.Mesh3d(x=x, y=y, z=z, 
+                                   name=f"item_{s[0]}x{s[1]}x{s[2]}", 
+                                   **kwargs))
     
-    return g
+    return item_data
 
 
 def _plot_cuboid(positions: List[tuple], sizes: List[tuple],
@@ -94,8 +94,8 @@ def _plot_cuboid(positions: List[tuple], sizes: List[tuple],
               range(len(positions))]
     colors = np.vstack(colors)
 
-    num_pallets = _plotCubeAt2(positions, sizes, **kwargs)
-    fig = go.Figure(data=num_pallets)
+    item_data = _plotCubeAt2(positions, sizes, **kwargs)
+    fig = go.Figure(data=item_data)
     fig.update_layout(scene=dict(
         xaxis=dict(range=[0,pallet_length*1.1]),
         yaxis=dict(range=[0,pallet_width*1.1]),
