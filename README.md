@@ -125,23 +125,23 @@ Our objective contains three terms:
 The first term is to minimize the average height of the boxes in a bin which ensures
 that boxes are packed down.
 
-![eq1](_static/eq1.PNG)   
+![eq1](_static/eq1.PNG)
 
 The second term in the objective ensures that the height of the box at top of the bin is minimized.
 
-![eq2](_static/eq2.PNG)   
+![eq2](_static/eq2.PNG)
 
 Our third objective function ensures that total free space in each bin is minimized. 
 We squared this term to ensure that the boxes are distributed more evenly between bins.
 
-![eq3](_static/eq3.PNG)  
+![eq3](_static/eq3.PNG)
 
 However, this term does not have same unit or magnitude as previous terms. 
 Assuming that the unit of height is meter, the first and second objective terms are
 in meter, but the third term unit is m^6. 
 The contribution of this term to the objective, in meter to the objective is.
 
-![eq4](_static/eq4.PNG)  
+![eq4](_static/eq4.PNG)
 
 The total objective value is summation of all these terms. 
 
@@ -149,24 +149,24 @@ The total objective value is summation of all these terms.
 #### Orientation constraints
 Each box has exactly one orientation:
 
-![eq5](_static/eq5.PNG)  
+![eq5](_static/eq5.PNG)
 
 Orientation defines the effective length, width, and height of the boxes along x, w, and z axis.
-![eq6](_static/eq6.PNG)  
 
+![eq6](_static/eq6.PNG)
 
 Each box goes to exactly one container  
 
-![eq7](_static/eq7.PNG)  
+![eq7](_static/eq7.PNG)
 
 Only assign boxes to bins that are open. 
 
-![eq8](_static/eq8.PNG)  
+![eq8](_static/eq8.PNG)
 
 Ensure that bins are added in order, i.e., bin `j` is opened
 before bin `j + 1`.
 
-![eq10](_static/eq10.PNG) 
+![eq9](_static/eq9.PNG)
 
 #### Geometric constraints
 Geometric constraints are applied to prevent overlaps between boxes.
@@ -174,38 +174,38 @@ These constraints are only applied when `i`, `j` belong to a bin.
 
 b_(i,k,0)=1 then box i is behind box k:
 
-![eq11](_static/eq11.PNG) 
+![eq10](_static/eq10.PNG)
 
 b_(i,k,1)=1 then box i is on the left of box k:
 
-![eq12](_static/eq12.PNG) 
+![eq11](_static/eq11.PNG)
 
 b_(i,k,2)=1 then box i is bellow box k:
-![eq13](_static/eq13.PNG) 
+![eq12](_static/eq12.PNG) 
 
 b_(i,k,3)=1 then box k is behind box i :
 
-![eq14](_static/eq14.PNG)
+![eq13](_static/eq13.PNG)
 
 b_(i,k,4)=1 then box k is to the left of box i:
 
-![eq15](_static/eq15.PNG) 
+![eq14](_static/eq14.PNG)
 
 b_(i,k,5)=1 then box k is to bellow box i:
 
-![eq16](_static/eq16.PNG) 
+![eq15](_static/eq15.PNG)
 
 #### Bin boundary constraints:
 Ensure that box `i` is not placed beyond the last bin length.
 When `u_(i,j)` is `0` this constraint is free.  
 
-![eq17](_static/eq17.PNG) 
+![eq16](_static/eq16.PNG)
 
-![eq18](_static/eq18.PNG) 
+![eq17](_static/eq17.PNG)
 
-![eq19](_static/eq19.PNG) 
+![eq18](_static/eq18.PNG)
 
-![eq20](_static/eq20.PNG) 
+![eq19](_static/eq19.PNG)
 
 ## References
 

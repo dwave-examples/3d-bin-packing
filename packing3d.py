@@ -5,7 +5,8 @@ from itertools import combinations, permutations
 import numpy as np
 from dimod import quicksum, ConstrainedQuadraticModel, Real, Binary, SampleSet
 
-from utils import print_cqm_stats, plot_cuboids, read_instance, write_solution_to_file
+from utils import print_cqm_stats, plot_cuboids
+from utils import read_instance, write_solution_to_file
 
 # todo: remove this before launch
 use_local = True
@@ -147,7 +148,7 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                 label=f'overlap_{i}_{k}_{j}_0')
 
             cqm.add_constraint(
-                -(2 - cases_on_same_bin - -
+                -(2 - cases_on_same_bin -
                   vars.selector[i, k, 1]) * bins.width +
                 (vars.y[i] + sy[i] - vars.y[k]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_1')
@@ -218,7 +219,8 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
     first_obj_term = quicksum(
         vars.z[i] + sz[i] for i in range(num_cases)) / num_cases
 
-    # Second term of objective: minimize height of the case at the top of the bin
+    # Second term of objective: minimize height of the case at the top of the
+    # bin
     second_obj_term = quicksum(vars.bin_height[j] for j in range(num_bins))
 
     # Third term of the objective:

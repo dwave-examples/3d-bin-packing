@@ -2,11 +2,11 @@ from io import StringIO
 import sys
 import streamlit as st
 from packing3d import (Cases,
-                         Pallets,
+                         Bins,
                          Variables,
                          build_cqm,
                          call_cqm_solver)
-from utils import print_cqm_stats, plot_cuboids
+from utils import print_cqm_stats, plot_cuboids, read_instance
 
 st.set_page_config(layout="wide")
 
@@ -17,24 +17,21 @@ st.markdown(
 
 problem_filepath = st.sidebar.text_input("Problem specification file",
                                          value="input/sample_data.txt")
-pallet_length = st.sidebar.number_input("Pallet length", value=100)
-pallet_width = st.sidebar.number_input("Pallet width", value=100)
-pallet_height = st.sidebar.number_input("Pallet height",value=110)
-num_pallets = st.sidebar.number_input("Number of pallets",value=1)
+bin_length = st.sidebar.number_input("Bin length", value=100)
+bin_width = st.sidebar.number_input("Bin width", value=100)
+bin_height = st.sidebar.number_input("Bin height",value=110)
+num_bins = st.sidebar.number_input("Number of binss",value=1)
 time_limit = st.sidebar.number_input("Hybrid solver time limit (S)",value=20)
 run_button = st.sidebar.button("Run CQM Solver")
 
 if run_button:
-    cases = Cases(problem_filepath)
-    pallets = Pallets(length=pallet_length,
-                    width=pallet_width,
-                    height=pallet_height,
-                    num_pallets=num_pallets,
-                    cases=cases)
+    data = read_instance(problem_filepath)
+    cases = Cases(data)
+    bins = Bins(data, cases=cases)
 
-    model_variables = Variables(cases, pallets)
+    model_variables = Variables(cases, bins)
 
-    cqm, origins = build_cqm(model_variables, pallets, cases)
+    cqm, origins = build_cqm(model_variables, bins, cases)
 
     best_feasible = call_cqm_solver(cqm, time_limit)
 
@@ -42,7 +39,7 @@ if run_button:
     plot_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
 
     plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                            pallets, origins, **plot_kwargs)
+                            bins, origins, **plot_kwargs)
 
     st.plotly_chart(plotly_fig, use_container_width=True)
 
