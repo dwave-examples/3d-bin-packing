@@ -298,8 +298,8 @@ if __name__ == '__main__':
                         help="Filepath to bin-packing data file.",
                         default="input/sample_data.txt")
 
-    parser.add_argument('-os', type=str,
-                        help='path to the output solution file',
+    parser.add_argument('--output_file', type=str,  nargs="?",
+                        help='Path to the output solution file.',
                         default='solution.txt')
 
     parser.add_argument("--time_limit", type=float, nargs="?",
@@ -307,7 +307,7 @@ if __name__ == '__main__':
                              " seconds.",
                         default=20)
     args = parser.parse_args()
-    out_sol_file = args.os
+    out_soln_file = args.output_file
     time_limit = args.time_limit
     data = read_instance(args.data_filepath)
     cases = Cases(data)
@@ -322,7 +322,7 @@ if __name__ == '__main__':
     best_feasible = call_cqm_solver(cqm, time_limit)
 
     if len(best_feasible) > 0:
-        write_solution_to_file(out_sol_file, cqm, vars, best_feasible, cases,
+        write_solution_to_file(out_soln_file, cqm, vars, best_feasible, cases,
                                bins, origins)
 
         plotly_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)

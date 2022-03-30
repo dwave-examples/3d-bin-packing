@@ -89,8 +89,8 @@ def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None,
 
 
 def _plot_cuboid(positions: List[tuple], sizes: List[tuple],
-                 bin_length: int,
-                 bin_width: int, bin_height: int, **kwargs) -> go.Figure:
+                 bin_length: int, bin_width: int,
+                 bin_height: int, **kwargs) -> go.Figure:
 
     case_data = _plotCubeAt2(positions, sizes, **kwargs)
     fig = go.Figure(data=case_data)
@@ -112,7 +112,7 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
         vars: Instance of ``Variables`` that defines the complete set of variables
             for the 3D bin packing problem.
         cases: Instance of ``Cases``, representing cuboid items packed into containers.
-        bins: Instance of ``bins``, representing containers to pack cases into.
+        bins: Instance of ``Bins``, representing containers to pack cases into.
         origins: List of case dimensions based on orientations of cases.
     
     Returns:
@@ -145,12 +145,14 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
 
 
 def read_instance(instance_path: str) -> dict:
-    """A method that reads input instance file
+    """Convert instance input files into raw problem data.
+
     Args:
-        instance_path:  path to the job shop instance file
+        instance_path:  Path to the bin packing problem instance file.
 
     Returns:
-        data: dictionary containing raw information for both bins and cases
+        data: dictionary containing raw information for both bins and cases.
+
     """
 
     data = {"num_bins": 0, "bin_dimensions": [], "quantity": [], "case_ids": [],
@@ -181,18 +183,20 @@ def write_solution_to_file(solution_file_path: str,
                            sample: dimod.SampleSet,
                            cases: "cases",
                            bins: "Bins",
-                           origins: list) -> None:
+                           origins: list):
     """Write solution to a file.
+
     Args:
-        solution_file_path: path to the output solution file. If doesn't exist
-                                a new file is created
+        solution_file_path: path to the output solution file. If doesn't exist,
+            a new file is created.
         cqm: A ``dimod.CQM`` object that defines the 3D bin packing problem.
         vars: Instance of ``Variables`` that defines the complete set of variables
             for the 3D bin packing problem.
         sample: A ``dimod.SampleSet`` that represents the best feasible solution found.
         cases: Instance of ``Cases``, representing cases packed into containers.
-        bins: Instance of ``bins``, representing containers to pack cases into.
+        bins: Instance of ``Bins``, representing containers to pack cases into.
         origins: List of case dimensions based on orientations of cases.
+
     """
 
     num_cases = cases.num_cases
@@ -217,10 +221,10 @@ def write_solution_to_file(solution_file_path: str,
                    np.round(sz[i].energy(sample), 2)])
 
     with open(solution_file_path, 'w') as f:
-        f.write('#Number of bins used: ' + str(int(num_bin_used)) + '\n')
-        f.write('#Number of cases packed: ' + str(int(num_cases)) + '\n')
-        f.write('#objective value: ' + str(np.round(objective_value, 4)) + '\n\n')
+        f.write('# Number of bins used: ' + str(int(num_bin_used)) + '\n')
+        f.write('# Number of cases packed: ' + str(int(num_cases)) + '\n')
+        f.write('# Objective value: ' + str(np.round(objective_value, 3)) + '\n\n')
         f.write(tabulate(vs, headers="firstrow"))
         f.close()
-        print(f'Saved schedule to '
+        print(f'Saved solution to '
               f'{os.path.join(os.getcwd(), solution_file_path)}')
