@@ -1,4 +1,4 @@
-# 3D Bin packing using CQM
+# 3D Bin Packing using CQM
 
 Three-dimensional bin packing [Martello et al. 2000](#Materllo) is an 
 optimization problem where the goal is to use minimum number of bins to pack items with
@@ -64,18 +64,19 @@ These additional parameters can be passed to `packing3d.py`:
 The program produces a solution like this:
 
 ```
-#Number of bins used: 1
-#Number of cases packed: 47
-#objective value: 154.4145
+# Number of bins used: 1
+# Number of cases packed: 47
+# Objective value: 117.266
 
   case-id    bin-location    orientation    x    y    z    x'    y'    z'
 ---------  --------------  -------------  ---  ---  ---  ----  ----  ----
-        0               1              4    9    0    0     5     8     3
-        1               1              3   13   22    0     5     3     8
-        2               1              4   16    8    0     5     8     3
-        3               1              4    0    9   11     5     8     3
-        4               1              1   27    0    0     3     5     8
-        5               1              4   16    0    0     5     8     3
+        0               1              4    0    0    0     3     8     5
+        1               1              1    6    5    0     5     3     8
+        2               1              1    0   23    0     5     3     8
+        3               1              5    3    0    0     8     5     3
+        4               1              3    0   12    0     3     5     8
+        5               1              2   11    0    0     5     8     3
+        ...
 ```
 
 The number under orientation shows the rotation of the case inside bin as follows.

@@ -132,7 +132,7 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
                  vars.z[i].energy(sample)))
             sizes.append((sx[i].energy(sample),
                           sy[i].energy(sample),
-                          cases.height[i]))
+                          sz[i].energy(sample)))
     fig = _plot_cuboid(positions, sizes, bins.length * num_bins,
                        bins.width, bins.height, **kwargs)
     for i in range(num_bins):
@@ -168,10 +168,10 @@ def read_instance(instance_path: str) -> dict:
                 continue
             else:
                 case_info = list(map(int, line.split()))
-                data["quantity"].append(case_info[1])
                 data["case_ids"].append(case_info[0])
-                data["case_width"].append(case_info[2])
-                data["case_length"].append(case_info[3])
+                data["quantity"].append(case_info[1])
+                data["case_length"].append(case_info[2])
+                data["case_width"].append(case_info[3])
                 data["case_height"].append(case_info[4])
 
         return data
