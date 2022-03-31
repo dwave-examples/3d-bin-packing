@@ -12,7 +12,7 @@ packed within the boundaries of the bins, and without overlap with each another,
 There may be additional requirements like stability of the packing, flatness of the top or bottom layers, 
 fragility and weight distribution. 
 
-This example demonstrates a means of formulating and optimizing Three-dimensional multi-bin packing problem
+This example demonstrates a means of formulating and optimizing three-dimensional multi bin packing problem
 using a [constrained quadratic model](
 https://docs.ocean.dwavesys.com/en/stable/concepts/cqm.html#cqm-sdk) (CQM) that
 can be solved using a Leap hybrid CQM solver.
@@ -24,8 +24,7 @@ To run the demo, type:
     streamlit run bin_packing_app.py
 
 The demo program opens an interface where user can define details of a 3d bin packing problem by either importing a file
-or defining the problem through the user interface by adding information for cases and bins. The user interface also
-allows submitting jobs and viewing the results. 
+or defining the problem through the user interface. The user interface also allows submitting jobs and viewing the results. 
 
 Alternatively, one can solve an instance of a problem through the terminal by typing:
 
@@ -51,8 +50,8 @@ This is an example of a 3d bin packing input instance file with 1 bin and 47 cas
 
 
 Note that:
-
-- there are several number of cases of each size defined by `quantity`
+- all bins are of the same size
+- there are several number of cases of each size defined by `quantity`.
 
 These additional parameters can be passed to `packing3d.py`:
 
@@ -89,7 +88,7 @@ The number under orientation shows the rotation of the case inside bin as follow
 
 The following graphic is an illustration of this solution.
 
-![Example Solution](_static/sol_plot.PNG)
+![Example Solution](_static/sol_plot.png)
 
 ## Model and Code Overview
 
@@ -101,8 +100,8 @@ These are the parameters of the problem:
  - `n`: number of bins
  - `I`: set of cases
  - `m` : number of cases
- - `K` : possible orientations `{0, 1, ..., 6}`
- - `Q` : possible relation between every pair of cases `{0, 1, ..., 6}`
+ - `K` : possible orientations `{0, 1, ..., 5}`
+ - `Q` : possible relation between every pair of cases `{0, 1, ..., 5}`
  - `L_j` : length of bin `j`
  - `W_j` : width of bin `j` 
  - `H_j`: height of the bin `j`
@@ -114,7 +113,7 @@ These are the parameters of the problem:
 ### Variables
  - `v_j`:  binary variable that shows if bin `j` is used
  - `u_(i,j)`:  binary variable that shows if case `i` is added to bin `j`
- - `b_(i,k,q)`: binary variable defining geometric relations between box `i` and `k`
+ - `b_(i,k,q)`: binary variable defining geometric relation `q` between box `i` and `k`
  - `s_j`:  optimized height of bin `j`
  - `r_(i,k)`: are binary variables defining `k` orientations for case `i`
  - `x_i`,`y_i`,`z_i`: location of the back lower left corner of case `i` along `x`, `y`, and `z` axis of the bin
@@ -128,26 +127,28 @@ These are the parameters of the problem:
 
 ### Objective
 Our objective contains three terms:
+
 The first term is to minimize the average height of the cases in a bin which ensures
 that cases are packed down.
 
-![eq1](_static/eq1.PNG)
+![eq1](_static/eq1.png)
 
-The second term in the objective ensures that the height of the case at top of the bin is minimized.
+The second term in the objective ensures that the height of the case at top of each bin is minimized. This 
+objective is weekly considered in the first objective term, here we give more importance to it. 
 
-![eq2](_static/eq2.PNG)
+![eq2](_static/eq2.png)
 
 Our third objective function ensures that total free space in each bin is minimized. 
 We squared this term to ensure that the cases are distributed more evenly between bins.
 
-![eq3](_static/eq3.PNG)
+![eq3](_static/eq3.png)
 
 However, this term does not have same unit or magnitude as previous terms. 
 Assuming that the unit of height is meter, the first and second objective terms are
-in meter, but the third term unit is m^6. 
-The contribution of this term to the objective, in meter to the objective is.
+in meter, but the third term unit is square of cubic meter (m^6). 
+The contribution of this term to the objective in meter can be obtained using:
 
-![eq4](_static/eq4.PNG)
+![eq4](_static/eq4.png)
 
 The total objective value is summation of all these terms. 
 
@@ -155,70 +156,75 @@ The total objective value is summation of all these terms.
 #### Orientation Constraints
 Each case has exactly one orientation:
 
-![eq5](_static/eq5.PNG)
+![eq5](_static/eq5.png)
 
 Orientation defines the effective length, width, and height of the cases along `x`, `w`, and `z` axis.
 
-![eq6](_static/eq6.PNG)
+![eq6](_static/eq6.png)
 
+#### Case and Bin Assignment Constraints
 Each case goes to exactly one bin.  
 
-![eq7](_static/eq7.PNG)
+![eq7](_static/eq7.png)
 
 Only assign cases to bins that are open. 
 
-![eq8](_static/eq8.PNG)
+![eq8](_static/eq8.png)
 
 Ensure that bins are added in order, i.e., bin `j` is opened
 before bin `j + 1`.
 
-![eq9](_static/eq9.PNG)
+![eq9](_static/eq9.png)
 
 #### Geometric Constraints
 Geometric constraints are applied to prevent overlaps between cases.
-These constraints are only applied when `i`, `j` belong to a bin
-In a 3d dimension to avoid overlap between to cases we only need to ensure that at least one of thus situation occurs:
+These constraints are only applied when `i`, `j` belong to a bin in a 3d space. Note that in following 
+we use "left" and "right" to refer to the position of the case along `x` axis of bin, 
+"behind" and "in front of" for `y` axis, and "above" and "bellow" for `z` axis. 
+To avoid overlaps between each pair of cases we only need to ensure that at least one of these situations occur:
 
-- case `i` is on the left of case `k`:
+- case `i` is on the left of case `k` (`q = 0`):
 
-![eq10](_static/eq10.PNG)
+![eq10](_static/eq10.png)
 
-- case `i` is behind case `k`:
+- case `i` is behind case `k` (`q = 1`):
 
-![eq11](_static/eq11.PNG) 
+![eq11](_static/eq11.png) 
 
-- case `i` is bellow case `k`:
+- case `i` is bellow case `k` (`q = 2`):
 
-![eq12](_static/eq12.PNG)
+![eq12](_static/eq12.png)
  
-- case `i` is on the right of case `k`:
+- case `i` is on the right of case `k` (`q = 3`):
 
-![eq13](_static/eq13.PNG)
+![eq13](_static/eq13.png)
 
-- case `i` is in front of case `k`:
+- case `i` is in front of case `k` (`q = 4`):
 
-![eq14](_static/eq14.PNG)
+![eq14](_static/eq14.png)
  
-- case `k` is above case `i` :
+- case `i` is above case `k` (`q = 5`):
 
-![eq15](_static/eq15.PNG)
+![eq15](_static/eq15.png)
 
 To enforce only one of the above constrains we also need:
 
-![eq16](_static/eq16.PNG)
+![eq16](_static/eq16.png)
 
-#### Bin boundary constraints:
-These sets of constraints ensure that case `i` is not placed outside the bins
+#### Bin Boundary Constraints:
+These sets of constraints ensure that case `i` is not placed outside the bins.
 
-![eq17](_static/eq17.PNG)
+![eq17](_static/eq17.png)
 
-![eq18](_static/eq18.PNG)
+![eq18](_static/eq18.png)
 
-![eq19](_static/eq19.PNG)
+![eq19](_static/eq19.png)
 
-![eq20](_static/eq20.PNG)
+![eq20](_static/eq20.png)
 
-When `u_(i,j)` is `0` these constraints are free.  
+When `u_(i,j)` is `0` these constraints are free. Note that we assumed that bins are placed next to each other 
+along `x` axis. That means any case placed within `0<=x<=L` is in the first bin, if placed withing `L<x<=2*L` it is in the 
+second bin and so forth. 
 
 ## References
 
