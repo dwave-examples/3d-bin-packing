@@ -1,3 +1,4 @@
+import os
 import plotly.graph_objects as go
 import numpy as np
 from tabulate import tabulate
@@ -5,7 +6,7 @@ from typing import List, Optional, TYPE_CHECKING
 import dimod
 
 if TYPE_CHECKING:
-    from packing3d import Cases, Pallets, Variables
+    from packing3d import Cases, Bins, Variables
 
 
 def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
@@ -72,75 +73,158 @@ def _cuboid_data2(o: tuple, size: tuple = (1, 1, 1)):
 
 
 def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None,
-                 **kwargs)-> list:
+                 **kwargs) -> list:
     if not isinstance(sizes, (list, np.ndarray)): sizes = [(1, 1, 1)] * len(
         positions)
-    item_data = []
+    case_data = []
     for p, s in zip(positions, sizes):
-        box_points = _cuboid_data2(p, size=s)
+        case_points = _cuboid_data2(p, size=s)
         # Get all unique vertices for 3d Mesh
-        x, y, z = np.unique(np.vstack(box_points), axis=0).T
-        item_data.append(go.Mesh3d(x=x, y=y, z=z, 
-                                   name=f"item_{s[0]}x{s[1]}x{s[2]}", 
+        x, y, z = np.unique(np.vstack(case_points), axis=0).T
+        case_data.append(go.Mesh3d(x=x, y=y, z=z,
+                                   name=f"case_{s[0]}x{s[1]}x{s[2]}",
                                    **kwargs))
-    
-    return item_data
+
+    return case_data
 
 
 def _plot_cuboid(positions: List[tuple], sizes: List[tuple],
-                 pallet_length: int,
-                 pallet_width: int, pallet_height: int, **kwargs) -> go.Figure:
-    colors = [[tuple(list(np.random.rand(3)) + [0.1])] * 6 for i in
-              range(len(positions))]
-    colors = np.vstack(colors)
+                 bin_length: int, bin_width: int,
+                 bin_height: int, **kwargs) -> go.Figure:
 
-    item_data = _plotCubeAt2(positions, sizes, **kwargs)
-    fig = go.Figure(data=item_data)
+    case_data = _plotCubeAt2(positions, sizes, **kwargs)
+    fig = go.Figure(data=case_data)
     fig.update_layout(scene=dict(
-        xaxis=dict(range=[0,pallet_length*1.1]),
-        yaxis=dict(range=[0,pallet_width*1.1]),
-        zaxis=dict(range=[0,pallet_height*1.1])
+        xaxis=dict(range=[0, bin_length * 1.1]),
+        yaxis=dict(range=[0, bin_width * 1.1]),
+        zaxis=dict(range=[0, bin_height * 1.1])
     ))
 
     return fig
 
 
 def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
-                 pallets: "Pallets", origins: list, **kwargs) -> go.Figure:
+                 bins: "Bins", origins: list, **kwargs) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
     Args:
         sample: A ``dimod.SampleSet`` that represents the best feasible solution found.
         vars: Instance of ``Variables`` that defines the complete set of variables
             for the 3D bin packing problem.
-        cases: Instance of ``Cases``, representing items packed into containers.
-        pallets: Instance of ``Pallets``, representing containers to pack items into.
+        cases: Instance of ``Cases``, representing cuboid items packed into containers.
+        bins: Instance of ``Bins``, representing containers to pack cases into.
         origins: List of case dimensions based on orientations of cases.
     
     Returns:
-        ``plotly.graph_objects.Figure`` with all items packed according to CQM results.
+        ``plotly.graph_objects.Figure`` with all cases packed according to CQM results.
     
     """
     sx, sy, sz = origins
     num_cases = cases.num_cases
-    num_pallets = pallets.num_pallets
+    num_bins = bins.num_bins
     positions = []
     sizes = []
     for i in range(num_cases):
-        if sum(vars.pallet_loc[i, j].energy(sample) for j in
-               range(num_pallets)):
+        if sum(vars.bin_loc[i, j].energy(sample) for j in
+               range(num_bins)):
             positions.append(
                 (vars.x[i].energy(sample), vars.y[i].energy(sample),
                  vars.z[i].energy(sample)))
             sizes.append((sx[i].energy(sample),
                           sy[i].energy(sample),
-                          cases.height[i]))
-    fig = _plot_cuboid(positions, sizes, pallets.length*num_pallets, 
-                       pallets.width, pallets.height, **kwargs)
-    for i in range(num_pallets):
+                          sz[i].energy(sample)))
+    fig = _plot_cuboid(positions, sizes, bins.length * num_bins,
+                       bins.width, bins.height, **kwargs)
+    for i in range(num_bins):
         fig.add_trace(
-            go.Scatter3d(x=[pallets.length * (i+1)]*2, y=[0, pallets.width],
-                         z=[0,0], mode='lines', name=f"Bin Boundary {i}")
+            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, bins.width],
+                         z=[0, 0], mode='lines', name=f"Bin Boundary {i}")
         )
 
     return fig
+
+
+def read_instance(instance_path: str) -> dict:
+    """Convert instance input files into raw problem data.
+
+    Args:
+        instance_path:  Path to the bin packing problem instance file.
+
+    Returns:
+        data: dictionary containing raw information for both bins and cases.
+
+    """
+
+    data = {"num_bins": 0, "bin_dimensions": [], "quantity": [], "case_ids": [],
+            "case_length": [], "case_width": [], "case_height": []}
+
+    with open(instance_path) as f:
+        for i, line in enumerate(f):
+            if i == 0:
+                data["num_bins"] = int(line.split()[-1])
+            elif i == 1:
+                data["bin_dimensions"] = [int(i) for i in line.split()[-3:]]
+            elif 2 <= i <= 4:
+                continue
+            else:
+                case_info = list(map(int, line.split()))
+                data["case_ids"].append(case_info[0])
+                data["quantity"].append(case_info[1])
+                data["case_length"].append(case_info[2])
+                data["case_width"].append(case_info[3])
+                data["case_height"].append(case_info[4])
+
+        return data
+
+
+def write_solution_to_file(solution_file_path: str,
+                           cqm: dimod.ConstrainedQuadraticModel,
+                           vars: "Vars",
+                           sample: dimod.SampleSet,
+                           cases: "cases",
+                           bins: "Bins",
+                           origins: list):
+    """Write solution to a file.
+
+    Args:
+        solution_file_path: path to the output solution file. If doesn't exist,
+            a new file is created.
+        cqm: A ``dimod.CQM`` object that defines the 3D bin packing problem.
+        vars: Instance of ``Variables`` that defines the complete set of variables
+            for the 3D bin packing problem.
+        sample: A ``dimod.SampleSet`` that represents the best feasible solution found.
+        cases: Instance of ``Cases``, representing cases packed into containers.
+        bins: Instance of ``Bins``, representing containers to pack cases into.
+        origins: List of case dimensions based on orientations of cases.
+
+    """
+
+    num_cases = cases.num_cases
+    num_bins = bins.num_bins
+    sx, sy, sz = origins
+    num_bin_used = sum([vars.bin_on[j].energy(sample) for j in
+                        range(num_bins)])
+    objective_value = cqm.objective.energy(sample)
+    vs = [['case-id', 'bin-location', 'orientation', 'x', 'y', 'z', "x'",
+           "y'", "z'"]]
+    for i in range(num_cases):
+        vs.append([i,
+                   int(sum((j + 1) * vars.bin_loc[i, j].energy(sample) for j in
+                           range(num_bins))),
+                   int(sum((r + 1) * vars.o[i, r].energy(sample) for r in
+                           range(6))),
+                   np.round(vars.x[i].energy(sample), 2),
+                   np.round(vars.y[i].energy(sample), 2),
+                   np.round(vars.z[i].energy(sample), 2),
+                   np.round(sx[i].energy(sample), 2),
+                   np.round(sy[i].energy(sample), 2),
+                   np.round(sz[i].energy(sample), 2)])
+
+    with open(solution_file_path, 'w') as f:
+        f.write('# Number of bins used: ' + str(int(num_bin_used)) + '\n')
+        f.write('# Number of cases packed: ' + str(int(num_cases)) + '\n')
+        f.write('# Objective value: ' + str(np.round(objective_value, 3)) + '\n\n')
+        f.write(tabulate(vs, headers="firstrow"))
+        f.close()
+        print(f'Saved solution to '
+              f'{os.path.join(os.getcwd(), solution_file_path)}')

@@ -1,5 +1,4 @@
 import argparse
-import os
 import time
 from typing import Tuple
 from itertools import combinations, permutations
@@ -7,6 +6,7 @@ import numpy as np
 from dimod import quicksum, ConstrainedQuadraticModel, Real, Binary, SampleSet
 
 from utils import print_cqm_stats, plot_cuboids
+from utils import read_instance, write_solution_to_file
 
 # todo: remove this before launch
 use_local = True
@@ -20,77 +20,70 @@ class Cases:
     """Class for representing cuboid item data in a 3D bin packing problem.
 
     Args:
-        data_filepath: Specifies file to load comma-delimited data from.
-            See sample_data.txt for format.
+         data: dictionary containing raw information for both bins and cases
     
     """
-    def __init__(self, data_filepath: str):
-        path = os.path.join(os.path.dirname(__file__), data_filepath)
-        data = np.genfromtxt(path, delimiter=",", names=True, dtype=np.int32)
-        self.case_ids = data["case_id"]
+    def __init__(self, data):
+        self.case_ids = data["case_ids"]
         self.num_cases = np.sum(data["quantity"], dtype=np.int32)
-        self.length = np.repeat(data["length"], data["quantity"])
-        self.width = np.repeat(data["width"], data["quantity"])
-        self.height = np.repeat(data["height"], data["quantity"])
+        self.length = np.repeat(data["case_length"], data["quantity"])
+        self.width = np.repeat(data["case_width"], data["quantity"])
+        self.height = np.repeat(data["case_height"], data["quantity"])
         print(f'Number of cases: {self.num_cases}')
 
 
-class Pallets:
+class Bins:
     """Class for representing cuboid container data in a 3D bin packing problem.
 
     Args:
-        length: Length of container(s).
-        width: Width of container(s).
-        height: Height of container(s).
-        num_pallets: Number of containers.
-        cases: Instance of ``Cases``, representing items packed into containers.
+        data: dictionary containing raw information for both bins and cases
+        cases: Instance of ``Cases``, representing cuboid items packed into containers.
 
     """
 
-    def __init__(self, length: int, width: int, height: int, num_pallets: int,
-                 cases: Cases):
-        self.length = length
-        self.width = width
-        self.height = height
-        self.num_pallets = num_pallets
-        self.lowest_num_pallet = np.ceil(
+    def __init__(self, data, cases):
+        self.length = data["bin_dimensions"][0]
+        self.width = data["bin_dimensions"][1]
+        self.height = data["bin_dimensions"][2]
+        self.num_bins = data["num_bins"]
+        self.lowest_num_bin = np.ceil(
             np.sum(cases.length * cases.width * cases.height) / (
-                    length * width * height))
-        assert self.lowest_num_pallet <= num_pallets, \
-            f'number of pallets is at least {self.lowest_num_pallet}'
-        print(f'Minimum Number of pallets required: {self.lowest_num_pallet}')
+                    self.length * self.width * self.height))
+        assert self.lowest_num_bin <= self.num_bins, \
+            f'number of bins is at least {self.lowest_num_bin}'
+        print(f'Minimum Number of bins required: {self.lowest_num_bin}')
 
 
 class Variables:
     """Class that collects all CQM model variables for the 3D bin packing problem.
 
     Args:
-        cases: Instance of ``Cases``, representing items packed into containers.
-        pallets: Instance of ``Pallets``, representing containers to pack items into.
+        cases: Instance of ``Cases``, representing cuboid items packed into containers.
+        bins: Instance of ``Bins``, representing containers to pack cases into.
     
     """
-    def __init__(self, cases: Cases, pallets: Pallets):
+    def __init__(self, cases: Cases, bins: Bins):
         num_cases = cases.num_cases
-        num_pallets = pallets.num_pallets
+        num_bins = bins.num_bins
         self.x = {i: Real(f'x_{i}',
                           lower_bound=0,
-                          upper_bound=pallets.length * pallets.num_pallets)
+                          upper_bound=bins.length * bins.num_bins)
                   for i in range(num_cases)}
-        self.y = {i: Real(f'y_{i}', lower_bound=0, upper_bound=pallets.width)
+        self.y = {i: Real(f'y_{i}', lower_bound=0, upper_bound=bins.width)
                   for i in range(num_cases)}
-        self.z = {i: Real(f'z_{i}', lower_bound=0, upper_bound=pallets.height)
+        self.z = {i: Real(f'z_{i}', lower_bound=0, upper_bound=bins.height)
                   for i in range(num_cases)}
 
         self.bin_height = {
-            j: Real(label=f'upper_bound_{j}', upper_bound=pallets.height)
-            for j in range(num_pallets)}
+            j: Real(label=f'upper_bound_{j}', upper_bound=bins.height)
+            for j in range(num_bins)}
 
-        self.pallet_loc = {(i, j): Binary(f'box_{i}_in_bin_{j}')
+        self.bin_loc = {(i, j): Binary(f'case_{i}_in_bin_{j}')
                            for i in range(num_cases)
-                           for j in range(num_pallets)}
+                           for j in range(num_bins)}
 
-        self.pallet_on = {j: Binary(f'bin_{j}_is_used')
-                          for j in range(num_pallets)}
+        self.bin_on = {j: Binary(f'bin_{j}_is_used')
+                          for j in range(num_bins)}
 
         self.o = {(i, k): Binary(f'o_{i}_{k}') for i in range(num_cases)
                   for k in range(6)}
@@ -100,17 +93,17 @@ class Variables:
                          for k in range(6)}
 
 
-def _add_pallet_on_constraint(cqm: ConstrainedQuadraticModel, vars: Variables,
-                              pallets: Pallets, cases: Cases):
+def _add_bin_on_constraint(cqm: ConstrainedQuadraticModel, vars: Variables,
+                              bins: Bins, cases: Cases):
     num_cases = cases.num_cases
-    num_pallets = pallets.num_pallets
-    for j in range(num_pallets):
-        cqm.add_constraint((1 - vars.pallet_on[j]) * quicksum(
-            vars.pallet_loc[i, j] for i in range(num_cases)) <= 0,
+    num_bins = bins.num_bins
+    for j in range(num_bins):
+        cqm.add_constraint((1 - vars.bin_on[j]) * quicksum(
+            vars.bin_loc[i, j] for i in range(num_cases)) <= 0,
                            label=f'p_on_{j}')
 
-    for j in range(num_pallets - 1):
-        cqm.add_constraint(vars.pallet_on[j] - vars.pallet_on[j + 1] >= 0,
+    for j in range(num_bins - 1):
+        cqm.add_constraint(vars.bin_on[j] - vars.bin_on[j + 1] >= 0,
                            label=f'bin_use_order_{j}')
 
 
@@ -138,108 +131,110 @@ def _add_orientation_constraints(cqm: ConstrainedQuadraticModel,
 
 
 def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
-                               pallets: Pallets, cases: Cases, origins: list):
+                               bins: Bins, cases: Cases, origins: list):
     num_cases = cases.num_cases
-    num_pallets = pallets.num_pallets
+    num_bins = bins.num_bins
     sx, sy, sz = origins
 
     for i, k in combinations(range(num_cases), r=2):
         cqm.add_discrete(quicksum([vars.selector[i, k, s] for s in range(6)]),
                          label=f'discrete_{i}_{k}')
-        for j in range(num_pallets):
+        for j in range(num_bins):
+            cases_on_same_bin = vars.bin_loc[i, j] * vars.bin_loc[k, j]
             cqm.add_constraint(
-                - (2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
-                   vars.selector[i, k, 0]) * num_pallets * pallets.length +
+                - (2 - cases_on_same_bin -
+                   vars.selector[i, k, 0]) * num_bins * bins.length +
                 (vars.x[i] + sx[i] - vars.x[k]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_0')
 
             cqm.add_constraint(
-                -(2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
-                  vars.selector[i, k, 1]) * pallets.width +
+                -(2 - cases_on_same_bin -
+                  vars.selector[i, k, 1]) * bins.width +
                 (vars.y[i] + sy[i] - vars.y[k]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_1')
 
             cqm.add_constraint(
-                -(2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
-                  vars.selector[i, k, 2]) * pallets.height +
+                -(2 - cases_on_same_bin -
+                  vars.selector[i, k, 2]) * bins.height +
                 (vars.z[i] + sz[i] - vars.z[k]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_2')
 
             cqm.add_constraint(
-                -(2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
-                  vars.selector[i, k, 3]) * num_pallets * pallets.length +
+                -(2 - cases_on_same_bin -
+                  vars.selector[i, k, 3]) * num_bins * bins.length +
                 (vars.x[k] + sx[k] - vars.x[i]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_3')
 
             cqm.add_constraint(
-                -(2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
-                  vars.selector[i, k, 4]) * pallets.width +
+                -(2 - cases_on_same_bin -
+                  vars.selector[i, k, 4]) * bins.width +
                 (vars.y[k] + sy[k] - vars.y[i]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_4')
 
             cqm.add_constraint(
-                -(2 - (vars.pallet_loc[i, j] * vars.pallet_loc[k, j]) -
-                  vars.selector[i, k, 5]) * pallets.height +
+                -(2 - cases_on_same_bin -
+                  vars.selector[i, k, 5]) * bins.height +
                 (vars.z[k] + sz[k] - vars.z[i]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_5')
 
     for i in range(num_cases):
         cqm.add_constraint(
-            quicksum([vars.pallet_loc[i, j] for j in range(num_pallets)]) == 1,
-            label=f'box_{i}_max_packed')
+            quicksum([vars.bin_loc[i, j] for j in range(num_bins)]) == 1,
+            label=f'case_{i}_max_packed')
 
 
 def _add_boundary_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
-                              pallets: Pallets, cases: Cases, origins: list):
+                              bins: Bins, cases: Cases, origins: list):
     num_cases = cases.num_cases
-    num_pallets = pallets.num_pallets
+    num_bins = bins.num_bins
     sx, sy, sz = origins
     for i in range(num_cases):
-        for j in range(num_pallets):
+        for j in range(num_bins):
             cqm.add_constraint(vars.z[i] + sz[i] - vars.bin_height[j] -
-                               (1 - vars.pallet_on[j]) * pallets.height <= 0,
+                               (1 - vars.bin_loc[i, j]) * bins.height <= 0,
                                label=f'maxx_height_{i}_{j}')
 
-            cqm.add_constraint(vars.x[i] + sx[i] - pallets.length * (j + 1)
-                               - (1 - vars.pallet_loc[i, j]) *
-                               num_pallets * pallets.length <= 0,
+            cqm.add_constraint(vars.x[i] + sx[i] - bins.length * (j + 1)
+                               - (1 - vars.bin_loc[i, j]) *
+                               num_bins * bins.length <= 0,
                                label=f'maxx_{i}_{j}_less')
 
             cqm.add_constraint(
-                vars.x[i] - pallets.length * j * vars.pallet_loc[i, j] >= 0,
+                vars.x[i] - bins.length * j * vars.bin_loc[i, j] >= 0,
                 label=f'maxx_{i}_{j}_greater')
 
             cqm.add_constraint(
-                (vars.y[i] + sy[i] - pallets.width) -
-                (1 - vars.pallet_loc[i, j]) * pallets.width <= 0,
+                (vars.y[i] + sy[i] - bins.width) -
+                (1 - vars.bin_loc[i, j]) * bins.width <= 0,
                 label=f'maxy_{i}_{j}_less')
 
 
 def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
-                      pallets: Pallets, cases: Cases, origins: list):
+                      bins: Bins, cases: Cases, origins: list):
     num_cases = cases.num_cases
-    num_pallets = pallets.num_pallets
+    num_bins = bins.num_bins
     sx, sy, sz = origins
 
-    # First term of objective: minimize average height of boxes
+    # First term of objective: minimize average height of cases
     first_obj_term = quicksum(
         vars.z[i] + sz[i] for i in range(num_cases)) / num_cases
 
-    # Second term of objective: minimize height of the box at the top of the bin
-    second_obj_term = quicksum(vars.bin_height[j] for j in range(num_pallets)) / num_pallets
+    # Second term of objective: minimize height of the case at the top of the
+    # bin
+    second_obj_term = quicksum(vars.bin_height[j] for j in range(num_bins))
 
     # Third term of the objective:
-    pallet_available_space = [
-        pallets.length * pallets.width * pallets.height * vars.pallet_on[j]
-        for j in range(num_pallets)]
-    boxes_used_space = [cases.length[i] * cases.width[i] * cases.height[i] *
-                        vars.pallet_loc[i, j] for i in range(num_cases)
-                        for j in range(num_pallets)]
-    denominator = num_pallets * pallets.height * (pallets.length * pallets.width) ** 2
+    bin_available_space = [
+        bins.length * bins.width * bins.height * vars.bin_on[j]
+        for j in range(num_bins)]
+    cases_used_space = [cases.length[i] * cases.width[i] * cases.height[i] *
+                        vars.bin_loc[i, j] for i in range(num_cases)
+                        for j in range(num_bins)]
+    denominator = bins.height * (bins.length * bins.width) ** 2
     third_obj_term = quicksum(
-        (pallet_available_space[j] - boxes_used_space[j]) ** 2
-        for j in range(num_pallets)) / denominator
-    first_obj_coefficient = 3
+        (bin_available_space[j] - cases_used_space[j]) ** 2
+        for j in range(num_bins)) / denominator
+    first_obj_coefficient = 1
     second_obj_coefficient = 1
     third_obj_coefficient = 1
     cqm.set_objective(first_obj_coefficient * first_obj_term +
@@ -247,16 +242,15 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
                       third_obj_coefficient * third_obj_term)
 
 
-
-def build_cqm(vars: Variables, pallets: Pallets,
+def build_cqm(vars: Variables, bins: Bins,
               cases: Cases) -> Tuple[ConstrainedQuadraticModel, list]:
     """Builds the CQM model from the problem variables and data.
 
     Args:
         vars: Instance of ``Variables`` that defines the complete set of variables
             for the 3D bin packing problem.
-        pallets: Instance of ``Pallets``, representing containers to pack items into.
-        cases: Instance of ``Cases``, representing items packed into containers.
+        bins: Instance of ``Bins``, representing containers to pack cases into.
+        cases: Instance of ``Cases``, representing cuboid items packed into containers.
 
     Returns:
         A ``dimod.CQM`` object that defines the 3D bin packing problem.
@@ -265,10 +259,10 @@ def build_cqm(vars: Variables, pallets: Pallets,
     """
     cqm = ConstrainedQuadraticModel()
     origins = _add_orientation_constraints(cqm, vars, cases)
-    _add_pallet_on_constraint(cqm, vars, pallets, cases)
-    _add_geometric_constraints(cqm, vars, pallets, cases, origins)
-    _add_boundary_constraints(cqm, vars, pallets, cases, origins)
-    _define_objective(cqm, vars, pallets, cases, origins)
+    _add_bin_on_constraint(cqm, vars, bins, cases)
+    _add_geometric_constraints(cqm, vars, bins, cases, origins)
+    _add_boundary_constraints(cqm, vars, bins, cases, origins)
+    _define_objective(cqm, vars, bins, cases, origins)
 
     return cqm, origins
 
@@ -298,82 +292,42 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
     return best_feasible
 
 
-def print_results(cqm: ConstrainedQuadraticModel, vars: Variables,
-                  sample: SampleSet,
-                  cases: Cases, pallets: Pallets, origins: list):
-    """Helper function to print results of CQM sampler.
-
-    Args:
-        cqm: A ``dimod.CQM`` object that defines the 3D bin packing problem.
-        vars: Instance of ``Variables`` that defines the complete set of variables
-            for the 3D bin packing problem.
-        sample: A ``dimod.SampleSet`` that represents the best feasible solution found.
-        cases: Instance of ``Cases``, representing items packed into containers.
-        pallets: Instance of ``Pallets``, representing containers to pack items into.
-        origins: List of case dimensions based on orientations of cases.
-    
-    """
-    num_cases = cases.num_cases
-    num_pallets = pallets.num_pallets
-    sx, sy, sz = origins
-    print(f'Objective: {cqm.objective.energy(sample)}')
-    vs = {i: (
-        sum((j + 1) * vars.pallet_loc[i, j].energy(sample) for j in
-            range(num_pallets)),
-        np.round(vars.x[i].energy(sample), 2),
-        np.round(vars.y[i].energy(sample), 2),
-        np.round(vars.z[i].energy(sample), 2),
-        np.round(sx[i].energy(sample), 2),
-        np.round(sy[i].energy(sample), 2),
-        np.round(sz[i].energy(sample), 2)) for i in range(num_cases)}
-    for k, v in vs.items():
-        print(k, v)
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_filepath", type=str, nargs="?",
                         help="Filepath to bin-packing data file.",
                         default="input/sample_data.txt")
-    parser.add_argument("--pallet_length", type=int, nargs="?",
-                        help="Length dimension of pallet.",
-                        default=100)
-    parser.add_argument("--pallet_width", type=int, nargs="?",
-                        help="Width dimension of pallet.",
-                        default=100)
-    parser.add_argument("--pallet_height", type=int, nargs="?",
-                        help="Height dimension of pallet.",
-                        default=110)
-    parser.add_argument("--num_pallets", type=int, nargs="?",
-                        help="Specify number of pallets to pack.",
-                        default=1)
+
+    parser.add_argument('--output_file', type=str,  nargs="?",
+                        help='Path to the output solution file.',
+                        default='solution.txt')
+
     parser.add_argument("--time_limit", type=float, nargs="?",
                         help="Time limit for the hybrid CQM Solver to run in"
                              " seconds.",
                         default=20)
     args = parser.parse_args()
+    out_soln_file = args.output_file
     time_limit = args.time_limit
-    cases = Cases(args.data_filepath)
-    pallets = Pallets(length=args.pallet_length,
-                      width=args.pallet_width,
-                      height=args.pallet_height,
-                      num_pallets=args.num_pallets,
-                      cases=cases)
+    data = read_instance(args.data_filepath)
+    cases = Cases(data)
+    bins = Bins(data, cases)
 
-    vars = Variables(cases, pallets)
+    vars = Variables(cases, bins)
 
-    cqm, origins = build_cqm(vars, pallets, cases)
+    cqm, origins = build_cqm(vars, bins, cases)
 
     print_cqm_stats(cqm)
 
     best_feasible = call_cqm_solver(cqm, time_limit)
 
     if len(best_feasible) > 0:
-        print_results(cqm, vars, best_feasible, cases, pallets,
-                      origins)
+        write_solution_to_file(out_soln_file, cqm, vars, best_feasible, cases,
+                               bins, origins)
+
         plotly_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
         fig = plot_cuboids(best_feasible, vars, cases,
-                           pallets, origins, **plotly_kwargs)
+                           bins, origins, **plotly_kwargs)
         fig.show()
         fig.write_html("result.html")
     else:
