@@ -35,28 +35,26 @@ if run_type == "File upload":
     run_button = st.sidebar.button("Run CQM Solver")
 
     if run_button:
-        col1, col2 = st.columns(2)
-        with col1:
-            data = read_instance(problem_filepath)
-            cases = Cases(data)
-            bins = Bins(data, cases=cases)
+        data = read_instance(problem_filepath)
+        cases = Cases(data)
+        bins = Bins(data, cases=cases)
 
-            model_variables = Variables(cases, bins)
+        model_variables = Variables(cases, bins)
 
-            cqm, origins = build_cqm(model_variables, bins, cases)
+        cqm, origins = build_cqm(model_variables, bins, cases)
 
-            best_feasible = call_cqm_solver(cqm, time_limit)
+        best_feasible = call_cqm_solver(cqm, time_limit)
 
-            # kwargs for ploty 3D meshes
-            plot_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
+        # kwargs for ploty 3D meshes
+        plot_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
 
-            plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                    bins, origins, **plot_kwargs)
+        plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
+                                bins, origins, **plot_kwargs)
 
-            st.plotly_chart(plotly_fig)
+        st.plotly_chart(plotly_fig)
 
-        with col2:
-            st.code(_get_cqm_stats(cqm))
+        st.code(_get_cqm_stats(cqm))
+
 elif run_type == "Random":
     col1, col2 = st.columns([1,2])
     with col1:
