@@ -1,4 +1,5 @@
 import os
+import plotly.colors as colors
 import plotly.graph_objects as go
 import numpy as np
 from tabulate import tabulate
@@ -69,42 +70,52 @@ def _cuboid_data2(o: tuple, size: tuple = (1, 1, 1)):
     for i in range(3):
         X[:, :, i] *= size[i]
     X += np.array(o)
+
     return X
 
 
-def _plotCubeAt2(positions: List[tuple], sizes: Optional[List[tuple]] = None,
-                 **kwargs) -> list:
-    if not isinstance(sizes, (list, np.ndarray)): sizes = [(1, 1, 1)] * len(
-        positions)
+def _plotCubeAt2(positions: List[tuple], sizes: List[tuple],
+                 colors: list, case_ids: np.array) -> list:
     case_data = []
-    for p, s in zip(positions, sizes):
+    mesh_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
+    for p, s, c, id in zip(positions, sizes, colors, case_ids):
         case_points = _cuboid_data2(p, size=s)
         # Get all unique vertices for 3d Mesh
         x, y, z = np.unique(np.vstack(case_points), axis=0).T
         case_data.append(go.Mesh3d(x=x, y=y, z=z,
-                                   name=f"case_{s[0]}x{s[1]}x{s[2]}",
-                                   **kwargs))
+                                   name=f"case_{id}",
+                                   color=c, **mesh_kwargs))
 
     return case_data
 
 
-def _plot_cuboid(positions: List[tuple], sizes: List[tuple],
-                 bin_length: int, bin_width: int,
-                 bin_height: int, **kwargs) -> go.Figure:
+def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
+                  bin_length: int, bin_width: int,
+                  bin_height: int, colors: list, 
+                  case_ids: np.array) -> go.Figure:
 
-    case_data = _plotCubeAt2(positions, sizes, **kwargs)
+    case_data = _plotCubeAt2(positions, sizes, colors, case_ids)
     fig = go.Figure(data=case_data)
     fig.update_layout(scene=dict(
         xaxis=dict(range=[0, bin_length * 1.1]),
         yaxis=dict(range=[0, bin_width * 1.1]),
         zaxis=dict(range=[0, bin_height * 1.1])
     ))
-
+    
     return fig
 
 
+def _get_colors(case_ids: np.array) -> list:
+    if len(np.unique(case_ids)) > 1:
+        scaled = (case_ids - np.min(case_ids))/ \
+                 (np.max(case_ids) - np.min(case_ids))
+        return colors.sample_colorscale(colors.sequential.Rainbow, scaled)
+        
+    return ["blue"]*len(case_ids)
+
+
 def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
-                 bins: "Bins", origins: list, **kwargs) -> go.Figure:
+                 bins: "Bins", origins: list) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
     Args:
@@ -133,8 +144,9 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
             sizes.append((sx[i].energy(sample),
                           sy[i].energy(sample),
                           sz[i].energy(sample)))
-    fig = _plot_cuboid(positions, sizes, bins.length * num_bins,
-                       bins.width, bins.height, **kwargs)
+    colors = _get_colors(cases.case_ids)
+    fig = _plot_cuboids(positions, sizes, bins.length * num_bins,
+                        bins.width, bins.height, colors, cases.case_ids)
     for i in range(num_bins):
         fig.add_trace(
             go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, bins.width],
@@ -179,9 +191,9 @@ def read_instance(instance_path: str) -> dict:
 
 def write_solution_to_file(solution_file_path: str,
                            cqm: dimod.ConstrainedQuadraticModel,
-                           vars: "Vars",
+                           vars: "Variables",
                            sample: dimod.SampleSet,
-                           cases: "cases",
+                           cases: "Cases",
                            bins: "Bins",
                            origins: list):
     """Write solution to a file.
