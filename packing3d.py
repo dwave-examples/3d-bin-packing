@@ -24,13 +24,13 @@ class Cases:
     
     """
     def __init__(self, data):
-        self.case_ids = data["case_ids"]
+        self.case_ids = np.repeat(data["case_ids"], data["quantity"])
         self.num_cases = np.sum(data["quantity"], dtype=np.int32)
         self.length = np.repeat(data["case_length"], data["quantity"])
         self.width = np.repeat(data["case_width"], data["quantity"])
         self.height = np.repeat(data["case_height"], data["quantity"])
         print(f'Number of cases: {self.num_cases}')
-
+    
 
 class Bins:
     """Class for representing cuboid container data in a 3D bin packing problem.
