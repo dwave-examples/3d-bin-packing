@@ -208,7 +208,7 @@ To avoid overlaps between each pair of cases we only need to ensure that at leas
 
 ![eq15](_static/eq15.png)
 
-To enforce only one of the above constrains we also need:
+To enforce only one of the above constraints we also need:
 
 ![eq16](_static/eq16.png)
 

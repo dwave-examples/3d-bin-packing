@@ -45,13 +45,10 @@ if run_type == "File upload":
 
         best_feasible = call_cqm_solver(cqm, time_limit)
 
-        # kwargs for ploty 3D meshes
-        plot_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
-
         plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                bins, origins, **plot_kwargs)
+                                  bins, origins)
 
-        st.plotly_chart(plotly_fig)
+        st.plotly_chart(plotly_fig, use_container_width=True)
 
         st.code(_get_cqm_stats(cqm))
 
@@ -61,7 +58,6 @@ elif run_type == "Random":
         with st.form(key="problem_config"):
             time_limit = st.number_input(label="Hybrid solver time limit(S)",
                                          value=20)
-            num_bins = st.slider("Number of bins", 1, 3)
             num_cases = st.slider("Number of unique case dimensions", 1, 5)
             form_submit = st.form_submit_button("Run random problem")
         
@@ -69,7 +65,7 @@ elif run_type == "Random":
         if form_submit:
             rng = np.random.default_rng()
             data = {
-                "num_bins":num_bins,
+                "num_bins":1,
                 "bin_dimensions":[100,100,100],
                 "quantity":rng.integers(8,12,num_cases),
                 "case_ids":[range(num_cases)],
@@ -86,11 +82,8 @@ elif run_type == "Random":
 
             best_feasible = call_cqm_solver(cqm, time_limit)
 
-            # kwargs for ploty 3D meshes
-            plot_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
-
             plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                    bins, origins, **plot_kwargs)
+                                      bins, origins)
 
             st.plotly_chart(plotly_fig)
     
