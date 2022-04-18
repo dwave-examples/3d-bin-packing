@@ -7,7 +7,7 @@ from packing3d import (Cases,
                        Variables,
                        build_cqm,
                        call_cqm_solver)
-from utils import print_cqm_stats, plot_cuboids, read_instance
+from utils import print_cqm_stats, plot_cuboids, read_instance, write_solution_to_file
 
 def _get_cqm_stats(cqm) -> str:
     cqm_info_stream = StringIO()
@@ -35,15 +35,36 @@ if run_type == "File upload":
     display_input = st.sidebar.checkbox("Display input data")
     run_button = st.sidebar.button("Run CQM Solver")
 
-    col1, col2 = st.columns([1,2])
+    if display_input:
+        col1, col2 = st.columns([1,2])
+        with col1:
+                if problem_filepath:
+                    with open(problem_filepath) as f:
+                        for line in f:
+                            st.text(line)
 
-    with col1:
-        data = read_instance(problem_filepath)
-        if display_input:
-            st.write(data)
+        with col2:
+            if run_button:
+                data = read_instance(problem_filepath)
+                cases = Cases(data)
+                bins = Bins(data, cases=cases)
 
-    with col2:
+                model_variables = Variables(cases, bins)
+
+                cqm, origins = build_cqm(model_variables, bins, cases)
+
+                best_feasible = call_cqm_solver(cqm, time_limit)
+
+                plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
+                                        bins, origins)
+
+                st.plotly_chart(plotly_fig, use_container_width=True)
+
+                st.code(_get_cqm_stats(cqm))
+
+    else:
         if run_button:
+            data = read_instance(problem_filepath)
             cases = Cases(data)
             bins = Bins(data, cases=cases)
 
@@ -60,6 +81,7 @@ if run_type == "File upload":
 
             st.code(_get_cqm_stats(cqm))
 
+
 elif run_type == "Random":
     col1, col2 = st.columns([1,2])
     with col1:
@@ -67,7 +89,7 @@ elif run_type == "Random":
             time_limit = st.number_input(label="Hybrid solver time limit(S)",
                                          value=20)
             num_bins = st.number_input("Number of bins", min_value=1,
-                                        max_value=3)
+                                        max_value=5)
             num_cases = st.number_input("Number of unique case types",
                                         min_value=1, max_value=5)
             bin_length = st.number_input("Bin length", min_value=50,
