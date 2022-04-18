@@ -91,13 +91,13 @@ elif run_type == "Random":
             num_bins = st.number_input("Number of bins", min_value=1,
                                         max_value=5)
             num_cases = st.number_input("Number of unique case types",
-                                        min_value=1, max_value=5)
+                                        min_value=1, max_value=15)
             bin_length = st.number_input("Bin length", min_value=50,
-                                         max_value=100)
+                                         max_value=200)
             bin_width = st.number_input("Bin width", min_value=50,
-                                        max_value=100)
+                                        max_value=200)
             bin_height = st.number_input("Bin height", min_value=50,
-                                         max_value=100)
+                                         max_value=200)
             form_submit = st.form_submit_button("Run random problem")
 
         if form_submit:
@@ -112,9 +112,9 @@ elif run_type == "Random":
                 "bin_dimensions":[bin_length, bin_width, bin_height],
                 "quantity":quantity,
                 "case_ids":np.array(range(num_cases)),
-                "case_length":rng.integers(10,max_case_side_length,num_cases),
-                "case_width":rng.integers(10,max_case_side_length,num_cases),
-                "case_height":rng.integers(10,max_case_side_length,num_cases)
+                "case_length":rng.integers(5,max_case_side_length,num_cases),
+                "case_width":rng.integers(5,max_case_side_length,num_cases),
+                "case_height":rng.integers(5,max_case_side_length,num_cases)
             }
         
             st.write(data)
