@@ -110,7 +110,7 @@ def _get_colors(case_ids: np.array) -> list:
         scaled = (case_ids - np.min(case_ids))/ \
                  (np.max(case_ids) - np.min(case_ids))
         return colors.sample_colorscale(colors.sequential.Rainbow, scaled)
-        
+
     return ["blue"]*len(case_ids)
 
 
@@ -149,8 +149,20 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
                         bins.width, bins.height, colors, cases.case_ids)
     for i in range(num_bins):
         fig.add_trace(
-            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, bins.width],
-                         z=[0, 0], mode='lines', name=f"Bin Boundary {i}")
+            go.Scatter3d(x=[bins.length*i,bins.length*(i+1)], y=[0,0],
+                         z=[0,0], mode='lines', name=f"Bin Boundary {i+1}",
+                         line_color="red", line_width=5)
+        )
+        fig.add_trace(
+            go.Scatter3d(x=[bins.length*(i+1)] * 2, y=[0, bins.width],
+                         z=[0,0], mode='lines', name=f"Bin Boundary {i+1}",
+                         line_color="red", line_width=5)
+        )
+        fig.add_trace(
+            go.Scatter3d(x=[bins.length*(i+1)] * 2, y=[0,0],
+                         z=[0,bins.height], mode='lines', 
+                         name=f"Bin Boundary {i+1}", line_color="red",
+                         line_width=5)
         )
 
     return fig
