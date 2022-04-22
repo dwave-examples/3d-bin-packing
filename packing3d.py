@@ -285,11 +285,18 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
     res.resolve()
     feasible_sampleset = res.filter(lambda d: d.is_feasible)
     print(feasible_sampleset)
-    best_feasible = feasible_sampleset.first.sample
-    t = time.perf_counter() - t0
-    print(f'Time: {t} s')
+    try:
+        best_feasible = feasible_sampleset.first.sample
+        t = time.perf_counter() - t0
+        print(f'Time: {t} s')
 
-    return best_feasible
+        return best_feasible
+        
+    except ValueError:
+        raise RuntimeError(
+            "Sampleset is empty, try increasing time limit or\
+            adjusting problem config."
+        )
 
 
 if __name__ == '__main__':
