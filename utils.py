@@ -166,6 +166,8 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
                          name=f"Bin Boundary {i+1}", line_color="red",
                          line_width=5)
         )
+    
+    fig.update_layout(scene=dict(aspectmode="data"))
 
     return fig
 
