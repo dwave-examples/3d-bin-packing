@@ -35,7 +35,7 @@ def _solve_bin_packing_instance(data:dict,
     best_feasible = call_cqm_solver(cqm, time_limit)
 
     plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                bins, origins, color_coded)
+                              bins, origins, color_coded)
 
     st.plotly_chart(plotly_fig, **st_plotly_kwargs)
 
