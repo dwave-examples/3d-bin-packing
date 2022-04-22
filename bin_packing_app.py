@@ -35,6 +35,7 @@ if run_type == "File upload":
                                              value="input/sample_data.txt")
     time_limit = st.sidebar.number_input(label="Hybrid solver time limit (S)",
                                          value=20)
+    color_coded = st.sidebar.checkbox("Color coded cases")
     display_input = st.sidebar.checkbox("Display input data")
     write_to_file = st.sidebar.checkbox("Write solution to file")
     if write_to_file:
@@ -62,7 +63,7 @@ if run_type == "File upload":
                 best_feasible = call_cqm_solver(cqm, time_limit)
 
                 plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                        bins, origins)
+                                          bins, origins, color_coded)
 
                 st.plotly_chart(plotly_fig, use_container_width=True)
 
@@ -87,7 +88,7 @@ if run_type == "File upload":
             best_feasible = call_cqm_solver(cqm, time_limit)
 
             plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                    bins, origins)
+                                      bins, origins, color_coded)
 
             st.plotly_chart(plotly_fig, use_container_width=True)
 
@@ -100,6 +101,7 @@ if run_type == "File upload":
 
 
 elif run_type == "Random":
+    color_coded = st.sidebar.checkbox("Color coded cases")
     write_to_file = st.sidebar.checkbox("Write solution to file")
     if write_to_file:
         solution_path = st.sidebar.text_input("Solution filename")
@@ -159,7 +161,7 @@ elif run_type == "Random":
                 best_feasible = call_cqm_solver(cqm, time_limit)
 
                 plotly_fig = plot_cuboids(best_feasible, model_variables,
-                                          cases, bins, origins)
+                                          cases, bins, origins, color_coded)
 
                 st.plotly_chart(plotly_fig)
         

@@ -75,25 +75,28 @@ def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):
 
 
 def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
-                 colors: list, case_ids: np.array) -> list:
+                    color_coded: bool, case_ids: np.array) -> list:
     case_data = []
     mesh_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
+    colors = _get_colors(case_ids)
     for p, s, c, id in zip(positions, sizes, colors, case_ids):
         case_points = _cuboid_data(p, size=s)
         # Get all unique vertices for 3d Mesh
         x, y, z = np.unique(np.vstack(case_points), axis=0).T
+        if color_coded:
+            mesh_kwargs["color"] = c
         case_data.append(go.Mesh3d(x=x, y=y, z=z,
                                    name=f"case_{id}",
-                                   color=c, **mesh_kwargs))
+                                   **mesh_kwargs))
 
     return case_data
 
 
 def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
                   bin_length: int, bin_width: int,
-                  bin_height: int, colors: list, 
+                  bin_height: int, color_coded: bool, 
                   case_ids: np.array) -> go.Figure:
-    case_data = _get_all_cuboids(positions, sizes, colors, case_ids)
+    case_data = _get_all_cuboids(positions, sizes, color_coded, case_ids)
     fig = go.Figure(data=case_data)
     fig.update_layout(scene=dict(
         xaxis=dict(range=[0, bin_length * 1.1]),
@@ -113,8 +116,9 @@ def _get_colors(case_ids: np.array) -> list:
     return ["blue"]*len(case_ids)
 
 
-def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
-                 bins: "Bins", origins: list) -> go.Figure:
+def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", 
+                 cases: "Cases", bins: "Bins", origins: list, 
+                 color_coded: bool = True) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
     Args:
@@ -143,9 +147,8 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", cases: "Cases",
             sizes.append((sx[i].energy(sample),
                           sy[i].energy(sample),
                           sz[i].energy(sample)))
-    colors = _get_colors(cases.case_ids)
     fig = _plot_cuboids(positions, sizes, bins.length * num_bins,
-                        bins.width, bins.height, colors, cases.case_ids)
+                        bins.width, bins.height, color_coded, cases.case_ids)
     for i in range(num_bins):
         fig.add_trace(
             go.Scatter3d(x=[bins.length*i,bins.length*(i+1)], y=[0,0],
