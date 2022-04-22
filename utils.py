@@ -59,7 +59,7 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
                    headers="firstrow"))
 
 
-def _cuboid_data2(o: tuple, size: tuple = (1, 1, 1)):
+def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
          [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
@@ -69,17 +69,17 @@ def _cuboid_data2(o: tuple, size: tuple = (1, 1, 1)):
     X = np.array(X).astype(float)
     for i in range(3):
         X[:, :, i] *= size[i]
-    X += np.array(o)
+    X += np.array(origin)
 
     return X
 
 
-def _plotCubeAt2(positions: List[tuple], sizes: List[tuple],
+def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
                  colors: list, case_ids: np.array) -> list:
     case_data = []
     mesh_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
     for p, s, c, id in zip(positions, sizes, colors, case_ids):
-        case_points = _cuboid_data2(p, size=s)
+        case_points = _cuboid_data(p, size=s)
         # Get all unique vertices for 3d Mesh
         x, y, z = np.unique(np.vstack(case_points), axis=0).T
         case_data.append(go.Mesh3d(x=x, y=y, z=z,
@@ -93,8 +93,7 @@ def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
                   bin_length: int, bin_width: int,
                   bin_height: int, colors: list, 
                   case_ids: np.array) -> go.Figure:
-
-    case_data = _plotCubeAt2(positions, sizes, colors, case_ids)
+    case_data = _get_all_cuboids(positions, sizes, colors, case_ids)
     fig = go.Figure(data=case_data)
     fig.update_layout(scene=dict(
         xaxis=dict(range=[0, bin_length * 1.1]),
