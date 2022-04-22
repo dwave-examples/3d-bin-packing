@@ -99,6 +99,8 @@ elif run_type == "Random":
     write_to_file = st.sidebar.checkbox("Write solution to file")
     if write_to_file:
         solution_filename = st.sidebar.text_input("Solution filename")
+    else:
+        solution_filename = None
 
     col1, col2 = st.columns([1,2])
     with col1:
