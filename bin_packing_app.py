@@ -2,6 +2,7 @@ from io import StringIO
 import numpy as np
 import sys
 import streamlit as st
+from typing import Optional
 from packing3d import (Cases,
                        Bins,
                        Variables,
@@ -19,6 +20,31 @@ def _get_cqm_stats(cqm) -> str:
     sys.stdout = sys.__stdout__
 
     return cqm_info_stream.getvalue()
+
+def _solve_bin_packing_instance(data:dict, 
+                                write_to_file: bool, 
+                                solution_filename: Optional[str],
+                                **st_plotly_kwargs):
+    cases = Cases(data)
+    bins = Bins(data, cases=cases)
+
+    model_variables = Variables(cases, bins)
+
+    cqm, origins = build_cqm(model_variables, bins, cases)
+
+    best_feasible = call_cqm_solver(cqm, time_limit)
+
+    plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
+                                bins, origins, color_coded)
+
+    st.plotly_chart(plotly_fig, **st_plotly_kwargs)
+
+    st.code(_get_cqm_stats(cqm))
+
+    if write_to_file:
+        write_solution_to_file(solution_filename, cqm, 
+                               model_variables, best_feasible,
+                               cases, bins, origins)
 
 st.set_page_config(layout="wide")
 
@@ -39,7 +65,9 @@ if run_type == "File upload":
     display_input = st.sidebar.checkbox("Display input data")
     write_to_file = st.sidebar.checkbox("Write solution to file")
     if write_to_file:
-        solution_path = st.sidebar.text_input("Solution filename")
+        solution_filename = st.sidebar.text_input("Solution filename")
+    else:
+        solution_filename = None
     run_button = st.sidebar.button("Run CQM Solver")
 
     if display_input:
@@ -53,58 +81,24 @@ if run_type == "File upload":
         with col2:
             if run_button:
                 data = read_instance(problem_filepath)
-                cases = Cases(data)
-                bins = Bins(data, cases=cases)
-
-                model_variables = Variables(cases, bins)
-
-                cqm, origins = build_cqm(model_variables, bins, cases)
-
-                best_feasible = call_cqm_solver(cqm, time_limit)
-
-                plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                          bins, origins, color_coded)
-
-                st.plotly_chart(plotly_fig, use_container_width=True)
-
-                st.code(_get_cqm_stats(cqm))
-
-                if write_to_file:
-                    write_solution_to_file(solution_path, cqm, 
-                                           model_variables, best_feasible,
-                                           cases, bins, origins)
-
-
+                _solve_bin_packing_instance(data,
+                                            write_to_file,
+                                            solution_filename,
+                                            **{"use_container_width":True})
     else:
         if run_button:
             data = read_instance(problem_filepath)
-            cases = Cases(data)
-            bins = Bins(data, cases=cases)
-
-            model_variables = Variables(cases, bins)
-
-            cqm, origins = build_cqm(model_variables, bins, cases)
-
-            best_feasible = call_cqm_solver(cqm, time_limit)
-
-            plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                                      bins, origins, color_coded)
-
-            st.plotly_chart(plotly_fig, use_container_width=True)
-
-            st.code(_get_cqm_stats(cqm))
-
-            if write_to_file:
-                write_solution_to_file(solution_path, cqm,
-                                       model_variables, best_feasible,
-                                       cases, bins, origins)
+            _solve_bin_packing_instance(data,
+                                        write_to_file,
+                                        solution_filename,
+                                        **{"use_container_width":True})
 
 
 elif run_type == "Random":
     color_coded = st.sidebar.checkbox("Color coded cases")
     write_to_file = st.sidebar.checkbox("Write solution to file")
     if write_to_file:
-        solution_path = st.sidebar.text_input("Solution filename")
+        solution_filename = st.sidebar.text_input("Solution filename")
 
     col1, col2 = st.columns([1,2])
     with col1:
@@ -151,22 +145,6 @@ elif run_type == "Random":
             st.write(data)
         
             with col2:    
-                cases = Cases(data)
-                bins = Bins(data, cases=cases)
-
-                model_variables = Variables(cases, bins)
-
-                cqm, origins = build_cqm(model_variables, bins, cases)
-
-                best_feasible = call_cqm_solver(cqm, time_limit)
-
-                plotly_fig = plot_cuboids(best_feasible, model_variables,
-                                          cases, bins, origins, color_coded)
-
-                st.plotly_chart(plotly_fig)
-        
-                st.code(_get_cqm_stats(cqm))
-
-                if write_to_file:
-                    write_solution_to_file(solution_path, cqm, model_variables,
-                                           best_feasible, cases, bins, origins)
+                _solve_bin_packing_instance(data,
+                                            write_to_file,
+                                            solution_filename)
