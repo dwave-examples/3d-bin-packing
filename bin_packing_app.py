@@ -127,10 +127,10 @@ elif run_type == "Random":
 
         if form_submit:
             rng = np.random.default_rng()
-            unique_cases = rng.integers(2,5)
+            unique_cases = rng.integers(5,num_cases)
             quantity = np.random.multinomial(
-                num_cases, [1/unique_cases]*unique_cases
-            )
+                num_cases - unique_cases, [1/unique_cases]*unique_cases
+            ) + np.ones(unique_cases, dtype=int)
 
             data = {
                 "num_bins":num_bins,
