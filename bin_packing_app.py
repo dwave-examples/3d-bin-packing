@@ -7,7 +7,10 @@ from packing3d import (Cases,
                        Variables,
                        build_cqm,
                        call_cqm_solver)
-from utils import print_cqm_stats, plot_cuboids, read_instance, write_solution_to_file
+from utils import (print_cqm_stats, 
+                   plot_cuboids, 
+                   read_instance, 
+                   write_solution_to_file)
 
 def _get_cqm_stats(cqm) -> str:
     cqm_info_stream = StringIO()
@@ -33,6 +36,9 @@ if run_type == "File upload":
     time_limit = st.sidebar.number_input(label="Hybrid solver time limit (S)",
                                          value=20)
     display_input = st.sidebar.checkbox("Display input data")
+    write_to_file = st.sidebar.checkbox("Write solution to file")
+    if write_to_file:
+        solution_path = st.sidebar.text_input("Solution filename")
     run_button = st.sidebar.button("Run CQM Solver")
 
     if display_input:
@@ -62,6 +68,12 @@ if run_type == "File upload":
 
                 st.code(_get_cqm_stats(cqm))
 
+                if write_to_file:
+                    write_solution_to_file(solution_path, cqm, 
+                                           model_variables, best_feasible,
+                                           cases, bins, origins)
+
+
     else:
         if run_button:
             data = read_instance(problem_filepath)
@@ -81,8 +93,17 @@ if run_type == "File upload":
 
             st.code(_get_cqm_stats(cqm))
 
+            if write_to_file:
+                write_solution_to_file(solution_path, cqm,
+                                       model_variables, best_feasible,
+                                       cases, bins, origins)
+
 
 elif run_type == "Random":
+    write_to_file = st.sidebar.checkbox("Write solution to file")
+    if write_to_file:
+        solution_path = st.sidebar.text_input("Solution filename")
+
     col1, col2 = st.columns([1,2])
     with col1:
         with st.form(key="problem_config"):
@@ -90,8 +111,10 @@ elif run_type == "Random":
                                          value=20)
             num_bins = st.number_input("Number of bins", min_value=1,
                                         max_value=5)
-            num_cases = st.number_input("Number of unique case types",
-                                        min_value=1, max_value=15)
+            num_cases = st.number_input("Total number of cases",
+                                        min_value=10, max_value=75)
+            case_size_range = st.slider("Case dimension range", min_value=1,
+                                        max_value=30, value=(1,15))
             bin_length = st.number_input("Bin length", min_value=50,
                                          max_value=200)
             bin_width = st.number_input("Bin width", min_value=50,
@@ -102,19 +125,25 @@ elif run_type == "Random":
 
         if form_submit:
             rng = np.random.default_rng()
-
-            bin_volume = num_bins * bin_length * bin_width * bin_height
-            quantity = rng.integers(5,15,num_cases)
-            max_case_side_length = np.floor((bin_volume/sum(quantity))**(1/3))
+            unique_cases = rng.integers(2,5)
+            quantity = np.random.multinomial(
+                num_cases, [1/unique_cases]*unique_cases
+            )
 
             data = {
                 "num_bins":num_bins,
                 "bin_dimensions":[bin_length, bin_width, bin_height],
                 "quantity":quantity,
-                "case_ids":np.array(range(num_cases)),
-                "case_length":rng.integers(5,max_case_side_length,num_cases),
-                "case_width":rng.integers(5,max_case_side_length,num_cases),
-                "case_height":rng.integers(5,max_case_side_length,num_cases)
+                "case_ids":np.array(range(len(quantity))),
+                "case_length":rng.integers(
+                    case_size_range[0], case_size_range[1], len(quantity)
+                ),
+                "case_width":rng.integers(
+                    case_size_range[0], case_size_range[1], len(quantity)
+                ),
+                "case_height":rng.integers(
+                    case_size_range[0], case_size_range[1], len(quantity)
+                )
             }
         
             st.write(data)
@@ -135,3 +164,7 @@ elif run_type == "Random":
                 st.plotly_chart(plotly_fig)
         
                 st.code(_get_cqm_stats(cqm))
+
+                if write_to_file:
+                    write_solution_to_file(solution_path, cqm, model_variables,
+                                           best_feasible, cases, bins, origins)
