@@ -224,7 +224,7 @@ def write_solution_to_file(solution_file_path: str,
         origins: List of case dimensions based on orientations of cases.
 
     """
-    solution_file_path = "output/" + solution_file_path
+    solution_file_path = os.path.join("output", solution_file_path)
     num_cases = cases.num_cases
     num_bins = bins.num_bins
     sx, sy, sz = origins
