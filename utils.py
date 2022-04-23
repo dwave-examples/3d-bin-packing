@@ -75,7 +75,7 @@ def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):
 
 
 def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
-                    color_coded: bool, case_ids: np.array) -> list:
+                     color_coded: bool, case_ids: np.array) -> list:
     case_data = []
     mesh_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
     colors = _get_colors(case_ids)
@@ -94,7 +94,7 @@ def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
 
 def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
                   bin_length: int, bin_width: int,
-                  bin_height: int, color_coded: bool, 
+                  bin_height: int, color_coded: bool,
                   case_ids: np.array) -> go.Figure:
     case_data = _get_all_cuboids(positions, sizes, color_coded, case_ids)
     fig = go.Figure(data=case_data)
@@ -103,21 +103,21 @@ def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
         yaxis=dict(range=[0, bin_width * 1.1]),
         zaxis=dict(range=[0, bin_height * 1.1])
     ))
-    
+
     return fig
 
 
 def _get_colors(case_ids: np.array) -> list:
     if len(np.unique(case_ids)) > 1:
-        scaled = (case_ids - np.min(case_ids))/ \
+        scaled = (case_ids - np.min(case_ids)) / \
                  (np.max(case_ids) - np.min(case_ids))
         return colors.sample_colorscale(colors.sequential.Rainbow, scaled)
 
-    return ["blue"]*len(case_ids)
+    return ["blue"] * len(case_ids)
 
 
-def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", 
-                 cases: "Cases", bins: "Bins", origins: list, 
+def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
+                 cases: "Cases", bins: "Bins", origins: list,
                  color_coded: bool = True) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
@@ -128,10 +128,10 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
         cases: Instance of ``Cases``, representing cuboid items packed into containers.
         bins: Instance of ``Bins``, representing containers to pack cases into.
         origins: List of case dimensions based on orientations of cases.
-    
+
     Returns:
         ``plotly.graph_objects.Figure`` with all cases packed according to CQM results.
-    
+
     """
     sx, sy, sz = origins
     num_cases = cases.num_cases
@@ -151,22 +151,22 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
                         bins.width, bins.height, color_coded, cases.case_ids)
     for i in range(num_bins):
         fig.add_trace(
-            go.Scatter3d(x=[bins.length*i,bins.length*(i+1)], y=[0,0],
-                         z=[0,0], mode='lines', name=f"Bin Boundary {i+1}",
+            go.Scatter3d(x=[bins.length * i, bins.length * (i + 1)], y=[0, 0],
+                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
                          line_color="red", line_width=5)
         )
         fig.add_trace(
-            go.Scatter3d(x=[bins.length*(i+1)] * 2, y=[0, bins.width],
-                         z=[0,0], mode='lines', name=f"Bin Boundary {i+1}",
+            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, bins.width],
+                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
                          line_color="red", line_width=5)
         )
         fig.add_trace(
-            go.Scatter3d(x=[bins.length*(i+1)] * 2, y=[0,0],
-                         z=[0,bins.height], mode='lines', 
-                         name=f"Bin Boundary {i+1}", line_color="red",
+            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, 0],
+                         z=[0, bins.height], mode='lines',
+                         name=f"Bin Boundary {i + 1}", line_color="red",
                          line_width=5)
         )
-    
+
     fig.update_layout(scene=dict(aspectmode="data"))
 
     return fig
