@@ -13,7 +13,7 @@ use_local = True
 if use_local:
     from cqmsolver.hss_sampler import HSSCQMSampler
 else:
-    from dwave.system import LeapHybridSampler
+    from dwave.system import LeapHybridCQMSampler
 
 
 class Cases:
@@ -273,9 +273,15 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
         A ``dimod.SampleSet`` that represents the best feasible solution found.
     
     """
-    sampler = HSSCQMSampler()
+
+    if use_local:
+        sampler = HSSCQMSampler()
+        res = sampler.sample(cqm, time_limit=time_limit)
+    else:
+        sampler = LeapHybridCQMSampler(solver= 'hybrid_constrained_quadratic_model_version1p_bulk_test')
+        res = sampler.sample_cqm(cqm, time_limit=time_limit)
+
     t0 = time.perf_counter()
-    res = sampler.sample(cqm, time_limit=time_limit)
     res.resolve()
     feasible_sampleset = res.filter(lambda d: d.is_feasible)
     print(feasible_sampleset)
@@ -326,7 +332,6 @@ if __name__ == '__main__':
         write_solution_to_file(out_soln_file, cqm, vars, best_feasible, cases,
                                bins, origins)
 
-        # plotly_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
         fig = plot_cuboids(best_feasible, vars, cases,
                            bins, origins)
         fig.show()

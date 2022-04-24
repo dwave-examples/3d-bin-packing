@@ -251,8 +251,37 @@ def write_solution_to_file(solution_file_path: str,
     with open(solution_file_path, 'w') as f:
         f.write('# Number of bins used: ' + str(int(num_bin_used)) + '\n')
         f.write('# Number of cases packed: ' + str(int(num_cases)) + '\n')
-        f.write('# Objective value: ' + str(np.round(objective_value, 3)) + '\n\n')
+        f.write(
+            '# Objective value: ' + str(np.round(objective_value, 3)) + '\n\n')
         f.write(tabulate(vs, headers="firstrow"))
         f.close()
         print(f'Saved solution to '
               f'{os.path.join(os.getcwd(), solution_file_path)}')
+
+
+def prep_input_data(data):
+    """Convert input data dictionary to an input file"
+
+    Args:
+        data: dictionary containing raw information for both bins and cases
+
+    Returns:
+        input_string: input data information
+
+    """
+    header = ["case_id", "quantity", "length", "width", "height"]
+
+    case_info = [[i, data["quantity"][i], data["case_length"][i],
+                  data["case_width"][i], data["case_height"][i]]
+                 for i in range(len(data['case_ids']))]
+
+    input_string = '\n'
+    input_string += f'# Max num of bins :: {data["num_bins"]} \n'
+    input_string += (f'# Bins dimension '
+                        f'(L * W * H): : {data["bin_dimensions"][0]} *'
+                        f' {data["bin_dimensions"][1]} *'
+                        f' {data["bin_dimensions"][2]} \n \n')
+    input_string += tabulate([header, *[v for v in case_info]],
+                                headers="firstrow")
+
+    return input_string
