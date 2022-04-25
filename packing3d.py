@@ -305,26 +305,18 @@ if __name__ == '__main__':
                         help="Filepath to bin-packing data file.",
                         default="input/sample_data.txt")
     
-    parser.add_argument("--save_file", type=bool, nargs="?",
-                        help="Whether or not to save solution file.",
-                        default=False)
-
     parser.add_argument("--output_filepath", type=str,  nargs="?",
                         help="Path for the output solution file.",
-                        default='sample_solution.txt')
+                        default=None)
 
     parser.add_argument("--time_limit", type=float, nargs="?",
                         help="Time limit for the hybrid CQM Solver to run in"
                              " seconds.",
                         default=20)
     
-    parser.add_argument("--write_plot_html", type=bool, nargs="?",
-                        help="Whether or not to save plot as html file.",
-                        default=False)
-    
     parser.add_argument("--html_filepath", type=str, nargs="?",
                         help="Path for the plot html file",
-                        default="result.html")
+                        default=None)
 
     parser.add_argument("--color_coded", type=bool, nargs="?",
                         help="View plot with coded or randomly colored cases",
@@ -332,7 +324,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     save_file = args.save_file
-    out_soln_file = args.output_filepath
+    output_filepath = args.output_filepath
     time_limit = args.time_limit
     write_plot_html = args.write_plot_html
     html_filepath = args.html_filepath
@@ -350,13 +342,14 @@ if __name__ == '__main__':
 
     best_feasible = call_cqm_solver(cqm, time_limit)
 
-    if save_file:
-        write_solution_to_file(out_soln_file, cqm, vars, best_feasible, cases,
+    if output_filepath is not None:
+        write_solution_to_file(output_filepath, cqm, vars, best_feasible, cases,
                                bins, origins)
 
     fig = plot_cuboids(best_feasible, vars, cases,
                        bins, origins, color_coded)
-    if write_plot_html:
+
+    if html_filepath is not None:
         fig.write_html(html_filepath)
 
     fig.show()
