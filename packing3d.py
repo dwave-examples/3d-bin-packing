@@ -13,7 +13,7 @@ use_local = True
 if use_local:
     from cqmsolver.hss_sampler import HSSCQMSampler
 else:
-    from dwave.system import LeapHybridSampler
+    from dwave.system import LeapHybridCQMSampler
 
 
 class Cases:
@@ -23,6 +23,7 @@ class Cases:
          data: dictionary containing raw information for both bins and cases
     
     """
+
     def __init__(self, data):
         self.case_ids = np.repeat(data["case_ids"], data["quantity"])
         self.num_cases = np.sum(data["quantity"], dtype=np.int32)
@@ -30,7 +31,7 @@ class Cases:
         self.width = np.repeat(data["case_width"], data["quantity"])
         self.height = np.repeat(data["case_height"], data["quantity"])
         print(f'Number of cases: {self.num_cases}')
-    
+
 
 class Bins:
     """Class for representing cuboid container data in a 3D bin packing problem.
@@ -62,6 +63,7 @@ class Variables:
         bins: Instance of ``Bins``, representing containers to pack cases into.
     
     """
+
     def __init__(self, cases: Cases, bins: Bins):
         num_cases = cases.num_cases
         num_bins = bins.num_bins
@@ -79,11 +81,11 @@ class Variables:
             for j in range(num_bins)}
 
         self.bin_loc = {(i, j): Binary(f'case_{i}_in_bin_{j}')
-                           for i in range(num_cases)
-                           for j in range(num_bins)}
+                        for i in range(num_cases)
+                        for j in range(num_bins)}
 
         self.bin_on = {j: Binary(f'bin_{j}_is_used')
-                          for j in range(num_bins)}
+                       for j in range(num_bins)}
 
         self.o = {(i, k): Binary(f'o_{i}_{k}') for i in range(num_cases)
                   for k in range(6)}
@@ -94,7 +96,7 @@ class Variables:
 
 
 def _add_bin_on_constraint(cqm: ConstrainedQuadraticModel, vars: Variables,
-                              bins: Bins, cases: Cases):
+                           bins: Bins, cases: Cases):
     num_cases = cases.num_cases
     num_bins = bins.num_bins
     for j in range(num_bins):
@@ -224,16 +226,8 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
     second_obj_term = quicksum(vars.bin_height[j] for j in range(num_bins))
 
     # Third term of the objective:
-    bin_available_space = [
-        bins.length * bins.width * bins.height * vars.bin_on[j]
-        for j in range(num_bins)]
-    cases_used_space = [cases.length[i] * cases.width[i] * cases.height[i] *
-                        vars.bin_loc[i, j] for i in range(num_cases)
-                        for j in range(num_bins)]
-    denominator = bins.height * (bins.length * bins.width) ** 2
     third_obj_term = quicksum(
-        (bin_available_space[j] - cases_used_space[j]) ** 2
-        for j in range(num_bins)) / denominator
+        bins.height * vars.bin_on[j] for j in range(num_bins))
     first_obj_coefficient = 1
     second_obj_coefficient = 1
     third_obj_coefficient = 1
@@ -279,9 +273,15 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
         A ``dimod.SampleSet`` that represents the best feasible solution found.
     
     """
-    sampler = HSSCQMSampler()
+
+    if use_local:
+        sampler = HSSCQMSampler()
+        res = sampler.sample(cqm, time_limit=time_limit)
+    else:
+        sampler = LeapHybridCQMSampler(solver= 'hybrid_constrained_quadratic_model_version1p_bulk_test')
+        res = sampler.sample_cqm(cqm, time_limit=time_limit)
+
     t0 = time.perf_counter()
-    res = sampler.sample(cqm, time_limit=time_limit)
     res.resolve()
     feasible_sampleset = res.filter(lambda d: d.is_feasible)
     print(feasible_sampleset)
@@ -332,9 +332,8 @@ if __name__ == '__main__':
         write_solution_to_file(out_soln_file, cqm, vars, best_feasible, cases,
                                bins, origins)
 
-        plotly_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
         fig = plot_cuboids(best_feasible, vars, cases,
-                           bins, origins, **plotly_kwargs)
+                           bins, origins)
         fig.show()
         fig.write_html("result.html")
     else:

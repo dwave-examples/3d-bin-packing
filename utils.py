@@ -75,7 +75,7 @@ def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):
 
 
 def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
-                    color_coded: bool, case_ids: np.array) -> list:
+                     color_coded: bool, case_ids: np.array) -> list:
     case_data = []
     mesh_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
     colors = _get_colors(case_ids)
@@ -94,7 +94,7 @@ def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
 
 def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
                   bin_length: int, bin_width: int,
-                  bin_height: int, color_coded: bool, 
+                  bin_height: int, color_coded: bool,
                   case_ids: np.array) -> go.Figure:
     case_data = _get_all_cuboids(positions, sizes, color_coded, case_ids)
     fig = go.Figure(data=case_data)
@@ -103,21 +103,21 @@ def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
         yaxis=dict(range=[0, bin_width * 1.1]),
         zaxis=dict(range=[0, bin_height * 1.1])
     ))
-    
+
     return fig
 
 
 def _get_colors(case_ids: np.array) -> list:
     if len(np.unique(case_ids)) > 1:
-        scaled = (case_ids - np.min(case_ids))/ \
+        scaled = (case_ids - np.min(case_ids)) / \
                  (np.max(case_ids) - np.min(case_ids))
         return colors.sample_colorscale(colors.sequential.Rainbow, scaled)
 
-    return ["blue"]*len(case_ids)
+    return ["blue"] * len(case_ids)
 
 
-def plot_cuboids(sample: dimod.SampleSet, vars: "Variables", 
-                 cases: "Cases", bins: "Bins", origins: list, 
+def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
+                 cases: "Cases", bins: "Bins", origins: list,
                  color_coded: bool = True) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
@@ -128,10 +128,10 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
         cases: Instance of ``Cases``, representing cuboid items packed into containers.
         bins: Instance of ``Bins``, representing containers to pack cases into.
         origins: List of case dimensions based on orientations of cases.
-    
+
     Returns:
         ``plotly.graph_objects.Figure`` with all cases packed according to CQM results.
-    
+
     """
     sx, sy, sz = origins
     num_cases = cases.num_cases
@@ -151,22 +151,22 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
                         bins.width, bins.height, color_coded, cases.case_ids)
     for i in range(num_bins):
         fig.add_trace(
-            go.Scatter3d(x=[bins.length*i,bins.length*(i+1)], y=[0,0],
-                         z=[0,0], mode='lines', name=f"Bin Boundary {i+1}",
+            go.Scatter3d(x=[bins.length * i, bins.length * (i + 1)], y=[0, 0],
+                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
                          line_color="red", line_width=5)
         )
         fig.add_trace(
-            go.Scatter3d(x=[bins.length*(i+1)] * 2, y=[0, bins.width],
-                         z=[0,0], mode='lines', name=f"Bin Boundary {i+1}",
+            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, bins.width],
+                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
                          line_color="red", line_width=5)
         )
         fig.add_trace(
-            go.Scatter3d(x=[bins.length*(i+1)] * 2, y=[0,0],
-                         z=[0,bins.height], mode='lines', 
-                         name=f"Bin Boundary {i+1}", line_color="red",
+            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, 0],
+                         z=[0, bins.height], mode='lines',
+                         name=f"Bin Boundary {i + 1}", line_color="red",
                          line_width=5)
         )
-    
+
     fig.update_layout(scene=dict(aspectmode="data"))
 
     return fig
@@ -251,8 +251,44 @@ def write_solution_to_file(solution_file_path: str,
     with open(solution_file_path, 'w') as f:
         f.write('# Number of bins used: ' + str(int(num_bin_used)) + '\n')
         f.write('# Number of cases packed: ' + str(int(num_cases)) + '\n')
-        f.write('# Objective value: ' + str(np.round(objective_value, 3)) + '\n\n')
+        f.write(
+            '# Objective value: ' + str(np.round(objective_value, 3)) + '\n\n')
         f.write(tabulate(vs, headers="firstrow"))
         f.close()
         print(f'Saved solution to '
               f'{os.path.join(os.getcwd(), solution_file_path)}')
+
+
+def prep_write_input_data(data, input_filename):
+    """Convert input data dictionary to an input string and write it to a file.
+
+    Args:
+        data: dictionary containing raw information for both bins and cases
+        input_filename: name of the file for writing input data
+
+    Returns:
+        input_string: input data information
+
+    """
+    header = ["case_id", "quantity", "length", "width", "height"]
+
+    case_info = [[i, data["quantity"][i], data["case_length"][i],
+                  data["case_width"][i], data["case_height"][i]]
+                 for i in range(len(data['case_ids']))]
+
+    input_string = '\n'
+    input_string += f'# Max num of bins : {data["num_bins"]} \n'
+    input_string += (f'# Bins dimension '
+                     f'(L * W * H): {data["bin_dimensions"][0]} '
+                     f'{data["bin_dimensions"][1]} '
+                     f'{data["bin_dimensions"][2]} \n \n')
+    input_string += tabulate([header, *[v for v in case_info]],
+                             headers="firstrow", colalign='right')
+
+    if input_filename is not None:
+        full_file_path = os.path.join("input", input_filename)
+        f = open(full_file_path, "w")
+        f.write(input_string)
+        f.close()
+
+    return input_string
