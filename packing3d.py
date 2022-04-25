@@ -327,7 +327,7 @@ if __name__ == '__main__':
                         default="result.html")
 
     parser.add_argument("--color_coded", type=bool, nargs="?",
-                        help="View plot with coded or random colored cases",
+                        help="View plot with coded or randomly colored cases",
                         default=False)
 
     args = parser.parse_args()
