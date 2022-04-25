@@ -304,18 +304,40 @@ if __name__ == '__main__':
     parser.add_argument("--data_filepath", type=str, nargs="?",
                         help="Filepath to bin-packing data file.",
                         default="input/sample_data.txt")
+    
+    parser.add_argument("--save_file", type=bool, nargs="?",
+                        help="Whether or not to save solution file.",
+                        default=False)
 
-    parser.add_argument('--output_file', type=str,  nargs="?",
-                        help='Path to the output solution file.',
-                        default='solution.txt')
+    parser.add_argument("--output_filepath", type=str,  nargs="?",
+                        help="Path for the output solution file.",
+                        default='sample_solution.txt')
 
     parser.add_argument("--time_limit", type=float, nargs="?",
                         help="Time limit for the hybrid CQM Solver to run in"
                              " seconds.",
                         default=20)
+    
+    parser.add_argument("--write_plot_html", type=bool, nargs="?",
+                        help="Whether or not to save plot as html file.",
+                        default=False)
+    
+    parser.add_argument("--html_filepath", type=str, nargs="?",
+                        help="Path for the plot html file",
+                        default="result.html")
+
+    parser.add_argument("--color_coded", type=bool, nargs="?",
+                        help="View plot with coded or random colored cases",
+                        default=False)
+
     args = parser.parse_args()
-    out_soln_file = args.output_file
+    save_file = args.save_file
+    out_soln_file = args.output_filepath
     time_limit = args.time_limit
+    write_plot_html = args.write_plot_html
+    html_filepath = args.html_filepath
+    color_coded = args.color_coded
+
     data = read_instance(args.data_filepath)
     cases = Cases(data)
     bins = Bins(data, cases)
@@ -328,13 +350,13 @@ if __name__ == '__main__':
 
     best_feasible = call_cqm_solver(cqm, time_limit)
 
-    if len(best_feasible) > 0:
+    if save_file:
         write_solution_to_file(out_soln_file, cqm, vars, best_feasible, cases,
                                bins, origins)
 
-        fig = plot_cuboids(best_feasible, vars, cases,
-                           bins, origins)
-        fig.show()
-        fig.write_html("result.html")
-    else:
-        print("No feasible solution found this run.")
+    fig = plot_cuboids(best_feasible, vars, cases,
+                       bins, origins, color_coded)
+    if write_plot_html:
+        fig.write_html(html_filepath)
+
+    fig.show()
