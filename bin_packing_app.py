@@ -12,7 +12,7 @@ from utils import (print_cqm_stats,
                    plot_cuboids,
                    read_instance,
                    write_solution_to_file,
-                   prep_write_input_data)
+                   write_input_data)
 
 
 def _get_cqm_stats(cqm) -> str:
@@ -154,7 +154,7 @@ elif run_type == "Random":
                 )
             }
 
-            input_data_string = prep_write_input_data(data, input_filename)
+            input_data_string = write_input_data(data, input_filename)
             if display_input:
                 for line in input_data_string.split(sep='\n'):
                     st.text(line)
