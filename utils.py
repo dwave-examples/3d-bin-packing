@@ -259,11 +259,12 @@ def write_solution_to_file(solution_file_path: str,
               f'{os.path.join(os.getcwd(), solution_file_path)}')
 
 
-def prep_input_data(data):
-    """Convert input data dictionary to an input file"
+def prep_write_input_data(data, input_filename):
+    """Convert input data dictionary to an input string and write it to a file.
 
     Args:
         data: dictionary containing raw information for both bins and cases
+        input_filename: name of the file for writing input data
 
     Returns:
         input_string: input data information
@@ -276,12 +277,18 @@ def prep_input_data(data):
                  for i in range(len(data['case_ids']))]
 
     input_string = '\n'
-    input_string += f'# Max num of bins :: {data["num_bins"]} \n'
+    input_string += f'# Max num of bins : {data["num_bins"]} \n'
     input_string += (f'# Bins dimension '
-                        f'(L * W * H): : {data["bin_dimensions"][0]} *'
-                        f' {data["bin_dimensions"][1]} *'
-                        f' {data["bin_dimensions"][2]} \n \n')
+                     f'(L * W * H): {data["bin_dimensions"][0]} '
+                     f'{data["bin_dimensions"][1]} '
+                     f'{data["bin_dimensions"][2]} \n \n')
     input_string += tabulate([header, *[v for v in case_info]],
-                                headers="firstrow")
+                             headers="firstrow", colalign='right')
+
+    if input_filename is not None:
+        full_file_path = os.path.join("input", input_filename)
+        f = open(full_file_path, "w")
+        f.write(input_string)
+        f.close()
 
     return input_string

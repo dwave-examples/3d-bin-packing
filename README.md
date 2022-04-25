@@ -135,7 +135,7 @@ that cases are packed down.
 ![eq1](_static/eq1.png)
 
 The second term in the objective ensures that the height of the case at top of each bin is minimized. This 
-objective is weekly considered in the first objective term, here we give more importance to it. 
+objective is weakly considered in the first objective term, here we give more importance to it. 
 
 ![eq2](_static/eq2.png)
 

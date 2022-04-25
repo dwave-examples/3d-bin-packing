@@ -1,7 +1,6 @@
 from io import StringIO
 import numpy as np
 import sys
-import os
 import streamlit as st
 from typing import Optional
 from packing3d import (Cases,
@@ -9,11 +8,11 @@ from packing3d import (Cases,
                        Variables,
                        build_cqm,
                        call_cqm_solver)
-from utils import (print_cqm_stats, 
-                   plot_cuboids, 
-                   read_instance, 
+from utils import (print_cqm_stats,
+                   plot_cuboids,
+                   read_instance,
                    write_solution_to_file,
-                   prep_input_data)
+                   prep_write_input_data)
 
 
 def _get_cqm_stats(cqm) -> str:
@@ -155,16 +154,10 @@ elif run_type == "Random":
                 )
             }
 
-            input_data_string = prep_input_data(data)
+            input_data_string = prep_write_input_data(data, input_filename)
             if display_input:
                 for line in input_data_string.split(sep='\n'):
                     st.text(line)
-
-            if save_input_to_file:
-                full_file_path = os.path.join("output", input_filename + '.txt')
-                f = open(full_file_path, "w")
-                f.write(input_data_string)
-                f.close()
 
             with col2:
                 _solve_bin_packing_instance(data,
