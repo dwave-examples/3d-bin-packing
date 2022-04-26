@@ -14,7 +14,7 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
     """Print some information about the CQM model defining the 3D bin packing problem.
 
     Args:
-        cqm: a dimod cqm model (dimod.cqm)
+        cqm: A dimod constrained quadratic model.
 
     """
     if not isinstance(cqm, dimod.ConstrainedQuadraticModel):

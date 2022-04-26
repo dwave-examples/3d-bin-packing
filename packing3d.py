@@ -302,7 +302,7 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_filepath", type=str, nargs="?",
-                        help="Filepath to bin-packing data file.",
+                        help="Filename with path to bin-packing data file.",
                         default="input/sample_data.txt")
     
     parser.add_argument("--output_filepath", type=str,  nargs="?",
@@ -315,11 +315,11 @@ if __name__ == '__main__':
                         default=20)
     
     parser.add_argument("--html_filepath", type=str, nargs="?",
-                        help="Path for the plot html file",
+                        help="Filename with path to plot html file.",
                         default=None)
 
     parser.add_argument("--color_coded", type=bool, nargs="?",
-                        help="View plot with coded or randomly colored cases",
+                        help="View plot with coded or randomly colored cases.",
                         default=False)
 
     args = parser.parse_args()

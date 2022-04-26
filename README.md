@@ -1,8 +1,8 @@
 # 3D Bin Packing using CQM
 
 Three-dimensional bin packing [Martello et al. 2000](#Materllo) is an 
-optimization problem where the goal is to use minimum number of bins to pack items with
-different dimensions, weights and properties. Example of bins are containers,
+optimization problem where the goal is to use the minimum number of bins to pack items with
+different dimensions, weights and properties. Examples of bins are containers,
 pallets or aircraft ULDs (Unit Load Device).
 In this example, both items and bins are cuboids, and the sides of items are
 parallel to the sides of the bins. There maybe various objectives and
@@ -12,7 +12,7 @@ packed within the boundaries of the bins, and without overlap with each another,
 There may be additional requirements like stability of the packing, flatness of the top or bottom layers, 
 fragility and weight distribution which are not modeled in this example. 
 
-This example demonstrates a means of formulating and optimizing three-dimensional multi bin packing problem
+This example demonstrates a formulation and optimization of a three-dimensional multi bin packing problem
 using a [constrained quadratic model](
 https://docs.ocean.dwavesys.com/en/stable/concepts/cqm.html#cqm-sdk) (CQM) that
 can be solved using a Leap hybrid CQM solver.
@@ -23,14 +23,16 @@ To run the demo, type:
 
     streamlit run bin_packing_app.py
 
-The demo program opens an interface where user can define details of a 3d bin packing problem by either importing a file
-or defining the problem through the user interface. The user interface also allows submitting jobs and viewing the results. 
+The demo program opens an interface where you can instantiate a 3d bin packing problem by either importing a file
+or configuring a random problem. The user interface also allows you to submit the problems and view results. 
 
 Alternatively, one can solve an instance of a problem through the terminal by typing:
 
     python packing3d.py ---data_filepath <path to your problem file>
 
-There are several instances under `input` folder. 
+There are several examples of problem instances under the `input` folder. 
+
+### Inputs
 
 This is an example of a 3d bin packing input instance file with 1 bin and 47 cases.
 
@@ -50,17 +52,12 @@ This is an example of a 3d bin packing input instance file with 1 bin and 47 cas
 
 
 Note that:
-- all bins are of the same size
-- there are several number of cases of each size defined by `quantity`.
+- all bins are the same size.
+- there are several cases of each size (`quantity` sets the number of cases of identity `case id` with all having the dimensions defined in that row).
 
-These additional parameters can be passed to `packing3d.py`:
+Run `python packing3d.py --help` in the terminal for a description of the demo program's input parameters.
 
-    -h, --help            show this help message and exit
-    --data_filepath [DATA_FILEPATH] Filepath to bin-packing data file.
-    --output_file [OUTPUT_FILE] Path to the output solution file.
-    --time_limit [TIME_LIMIT] Time limit for the hybrid CQM Solver to run in seconds.
-
-
+### Outputs
 The program produces a solution like this:
 
 ```
@@ -79,7 +76,7 @@ The program produces a solution like this:
         ...
 ```
 
-The number under orientation shows the rotation of the case inside bin as follows.
+The number under the `orientation` column shows the rotation of the case inside bin as follows:
 - 0: if length of case is along `x` axis of the bin , width along `y`, height along `z`
 - 1: if length of case is along `x` axis of the bin , height along `y`, width along `z`
 - 2: if width of case is along `x` axis of the bin , length along `y`, height along `z`
@@ -108,13 +105,13 @@ These are the parameters of the problem:
  - `H`: height of the bins
  - `l_i`: height of case `i`
  - `w_i`: width of case `i`
- - `h_i`: Height of the case `i`
+ - `h_i`: height of case `i`
  
 
 ### Variables
  - `v_j`:  binary variable that shows if bin `j` is used
  - `u_(i,j)`:  binary variable that shows if case `i` is added to bin `j`
- - `b_(i,k,q)`: binary variable defining geometric relation `q` between box `i` and `k`
+ - `b_(i,k,q)`: binary variable defining geometric relation `q` between cases `i` and `k`
  - `s_j`:  optimized height of bin `j`
  - `r_(i,k)`: are binary variables defining `k` orientations for case `i`
  - `x_i`,`y_i`,`z_i`: location of the back lower left corner of case `i` along `x`, `y`, and `z` axis of the bin
@@ -123,8 +120,7 @@ These are the parameters of the problem:
  Expressions are linear or quadratic combinations of variables used for easier representations of the models. 
  - `x'_i`,`y'_i`,`z'_i`: effective length, width and height of case `i`, considering orientation, 
  along `x`, `y`, and `z` axis of the bin
- - `o_1`, `o_2`, `o_3` objective terms
- - `e` squared empty spaces for each bin
+ - `o_1`, `o_2`, `o_3`: terms of the objective 
 
 ### Objective
 Our objective contains three terms:
@@ -145,7 +141,7 @@ Our third objective function minimizes the total number of the bins.
 
 Note that we multiplied this term by the height of the bins so its contribution to the objective has same weights as the
 first and second objective terms.
-The total objective value is summation of all these terms. 
+The total objective value is the summation of all these terms. 
 
 ### Constraints
 #### Orientation Constraints
@@ -153,7 +149,7 @@ Each case has exactly one orientation:
 
 ![eq4](_static/eq4.png)
 
-Orientation defines the effective length, width, and height of the cases along `x`, `w`, and `z` axis.
+Orientation defines the effective length, width, and height of the cases along `x`, `y`, and `z` axes.
 
 ![eq5](_static/eq5.png)
 
@@ -166,20 +162,20 @@ Each case goes to exactly one bin.
 
 ![eq8](_static/eq8.png)
 
-Only assign cases to bins that are open. 
+Only assign cases to bins that are in use. 
 
 ![eq9](_static/eq9.png)
 
-Ensure that bins are added in order, i.e., bin `j` is opened
+Ensure that bins are added in order; i.e., bin `j` is in use
 before bin `j + 1`.
 
 ![eq10](_static/eq10.png)
 
 #### Geometric Constraints
-Geometric constraints are applied to prevent overlaps between cases.
-These constraints are only applied when `i`, `j` belong to a bin in a 3d space. Note that in following 
-we use "left" and "right" to refer to the position of the case along `x` axis of bin, 
-"behind" and "in front of" for `y` axis, and "above" and "bellow" for `z` axis. 
+Geometric constraints, required only for three-dimensional problems, are applied to 
+prevent overlaps between cases. In the following constraints,
+"left" and "right" refer to the position of the case along the `x` axis of a bin, 
+"behind" and "in front of" to the `y` axis, and "above" and "below" to the `z` axis. 
 To avoid overlaps between each pair of cases we only need to ensure that at least one of these situations occur:
 
 - case `i` is on the left of case `k` (`q = 0`):
@@ -190,7 +186,7 @@ To avoid overlaps between each pair of cases we only need to ensure that at leas
 
 ![eq12](_static/eq12.png) 
 
-- case `i` is bellow case `k` (`q = 2`):
+- case `i` is below case `k` (`q = 2`):
 
 ![eq13](_static/eq13.png)
  
