@@ -323,10 +323,8 @@ if __name__ == '__main__':
                         default=False)
 
     args = parser.parse_args()
-    save_file = args.save_file
     output_filepath = args.output_filepath
     time_limit = args.time_limit
-    write_plot_html = args.write_plot_html
     html_filepath = args.html_filepath
     color_coded = args.color_coded
 
