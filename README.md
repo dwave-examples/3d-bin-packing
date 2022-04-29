@@ -18,7 +18,7 @@ https://docs.ocean.dwavesys.com/en/stable/concepts/cqm.html#cqm-sdk) (CQM) that
 can be solved using a Leap hybrid CQM solver.
 
 Below is an example output of the program:
-
+<a id="plot"></a>
 ![Example Solution](_static/sample_solution_plot.png)
 
 ## Installation
@@ -92,16 +92,16 @@ The number under the `orientation` column shows the rotation of the case inside 
 ![Orientations](_static/orientations.png)  
 
 
-The graphic at the top of the README is a visual of this solution, [here](#Example Solution)
+The graphic at the top of the README is a visual of this solution, [here](#plot)
 
-Note that, in this example we do not model support or load-bearing constraints for cases.
+Note that in this example, we do not model support or load-bearing constraints for cases.
 Therefore, it is possible that larger cases are packed over smaller cases without having full support.
 
 ## Model and Code Overview
 
 In this example, to model multiple bins we assume that bins are located back-to-back 
 next to each other along x-axis of the coordinate system. This way we only need to use one coordinate system
-with width of `W`, height of `H` and length of `n * L` to model all bins,(see [below](#Problem Parameters)
+with width of `W`, height of `H` and length of `n * L` to model all bins,(see [below](#problem-parameters)
 for definition of these parameters). 
 That means first bin is located at `0<=x<=L`, second at `L<x<=2*L`,
 and last bin is located at `(n - 1) * L < x <= n * L`.  
