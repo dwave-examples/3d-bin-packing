@@ -1,5 +1,4 @@
 import argparse
-import time
 from typing import Tuple
 from itertools import combinations, permutations
 import numpy as np
