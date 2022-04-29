@@ -281,14 +281,11 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
         sampler = LeapHybridCQMSampler(solver= 'hybrid_constrained_quadratic_model_version1p_bulk_test')
         res = sampler.sample_cqm(cqm, time_limit=time_limit)
 
-    t0 = time.perf_counter()
     res.resolve()
     feasible_sampleset = res.filter(lambda d: d.is_feasible)
     print(feasible_sampleset)
     try:
         best_feasible = feasible_sampleset.first.sample
-        t = time.perf_counter() - t0
-        print(f'Time: {t} s')
 
         return best_feasible
         

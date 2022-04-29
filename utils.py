@@ -233,10 +233,10 @@ def write_solution_to_file(solution_file_path: str,
     num_bin_used = sum([vars.bin_on[j].energy(sample) for j in
                         range(num_bins)])
     objective_value = cqm.objective.energy(sample)
-    vs = [['case-id', 'bin-location', 'orientation', 'x', 'y', 'z', "x'",
+    vs = [['case_id', 'bin-location', 'orientation', 'x', 'y', 'z', "x'",
            "y'", "z'"]]
     for i in range(num_cases):
-        vs.append([i,
+        vs.append([cases.case_ids[i],
                    int(sum((j + 1) * vars.bin_loc[i, j].energy(sample) for j in
                            range(num_bins))),
                    int(sum((r + 1) * vars.o[i, r].energy(sample) for r in
@@ -276,8 +276,7 @@ def write_input_data(data, input_filename):
                   data["case_width"][i], data["case_height"][i]]
                  for i in range(len(data['case_ids']))]
 
-    input_string = '\n'
-    input_string += f'# Max num of bins : {data["num_bins"]} \n'
+    input_string = f'# Max num of bins : {data["num_bins"]} \n'
     input_string += (f'# Bins dimension '
                      f'(L * W * H): {data["bin_dimensions"][0]} '
                      f'{data["bin_dimensions"][1]} '

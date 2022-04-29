@@ -2,7 +2,7 @@
 # Number of cases packed: 38
 # Objective value: 83.711
 
-  case-id    bin-location    orientation    x    y    z    x'    y'    z'
+  case_id    bin-location    orientation    x    y    z    x'    y'    z'
 ---------  --------------  -------------  ---  ---  ---  ----  ----  ----
         0               1              3    0    0    0     3     5     8
         1               1              3    0   16    0     3     5     8
