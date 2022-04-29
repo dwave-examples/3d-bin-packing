@@ -63,16 +63,16 @@ The program produces a solution like this:
 ```
 # Number of bins used: 1
 # Number of cases packed: 47
-# Objective value: 117.266
+# Objective value: 115.638
 
   case_id    bin-location    orientation    x    y    z    x'    y'    z'
 ---------  --------------  -------------  ---  ---  ---  ----  ----  ----
-        0               1              4    0    0    0     3     8     5
-        0               1              1    6    5    0     5     3     8
-        0               1              1    0   23    0     5     3     8
-        0               1              5    3    0    0     8     5     3
-        0               1              3    0   12    0     3     5     8
-        0               1              2   11    0    0     5     8     3
+        0               1              2   25    8    0     5     8     3
+        0               1              2    5    0    0     5     8     3
+        0               1              5    0   13    0     8     5     3
+        0               1              2   25    0    0     5     8     3
+        0               1              2   25    0    3     5     8     3
+        0               1              2   12    8    0     5     8     3
         ...
 ```
 Note that only a portion of the solution is shown above. Also, there are multiple rows with same case_id as 
