@@ -1,6 +1,6 @@
 # 3D Bin Packing
 
-Three-dimensional bin packing [[1]](#Materllo) is an 
+Three-dimensional bin packing [[1]](#Martello) is an 
 optimization problem where the goal is to use the minimum number of bins to pack items with
 different dimensions, weights and properties. Examples of bins are containers,
 pallets or aircraft ULDs (Unit Load Device).
@@ -38,7 +38,7 @@ This is an example of a 3d bin packing input instance file with 1 bin and 47 cas
 
 ```
 # Max num of bins : 1
-# Bins dimension (L * W * H): 30 30 50
+# Bin dimensions (L * W * H): 30 30 50
 
   case_id     quantity   length      width    height
   -------     --------   ------      -----    ------
@@ -118,9 +118,9 @@ These are the parameters of the problem:
  - `v_j`:  binary variable that shows if bin `j` is used
  - `u_(i,j)`:  binary variable that shows if case `i` is added to bin `j`
  - `b_(i,k,q)`: binary variable defining geometric relation `q` between cases `i` and `k`
- - `s_j`:  optimized height of bin `j`
- - `r_(i,k)`: are binary variables defining `k` orientations for case `i`
- - `x_i`,`y_i`,`z_i`: location of the back lower left corner of case `i` along `x`, `y`, and `z` axis of the bin
+ - `s_j`:  continuous variable showing height of the topmost case in bin `j`
+ - `r_(i,k)`: binary variable defining `k` orientations for case `i`
+ - `x_i`,`y_i`,`z_i`: continuous variable defining location of the back lower left corner of case `i` along `x`, `y`, and `z` axis of the bin
 
 ### Expressions 
  Expressions are linear or quadratic combinations of variables used for easier representations of the models. 
@@ -179,8 +179,7 @@ before bin `j + 1`.
 
 #### Geometric Constraints
 Geometric constraints, required only for three-dimensional problems, are applied to prevent overlaps between cases. 
-In the following constraints, 
-"left" and "right" refer to the position of the case along the `x` axis of a bin, 
+In the following constraints, "left" and "right" refer to the position of the case along the `x` axis of a bin, 
 "behind" and "in front of" to the `y` axis, and "above" and "below" to the `z` axis. 
 To avoid overlaps between each pair of cases we only need to ensure that at least one of these situations occur:
 

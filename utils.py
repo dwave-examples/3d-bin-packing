@@ -277,7 +277,7 @@ def write_input_data(data, input_filename):
                  for i in range(len(data['case_ids']))]
 
     input_string = f'# Max num of bins : {data["num_bins"]} \n'
-    input_string += (f'# Bins dimension '
+    input_string += (f'# Bin dimensions '
                      f'(L * W * H): {data["bin_dimensions"][0]} '
                      f'{data["bin_dimensions"][1]} '
                      f'{data["bin_dimensions"][2]} \n \n')

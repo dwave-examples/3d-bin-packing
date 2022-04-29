@@ -61,7 +61,7 @@ run_type = st.sidebar.radio(label="Choose run type:",
 
 if run_type == "File upload":
     problem_filepath = st.sidebar.text_input(label="Problem instance file",
-                                             value="input/sample_data.txt")
+                                             value="input/sample_data_1.txt")
     time_limit = st.sidebar.number_input(label="Hybrid solver time limit (S)",
                                          value=20)
     color_coded = st.sidebar.checkbox("Color coded cases")
