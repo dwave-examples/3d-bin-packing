@@ -28,7 +28,7 @@ or configuring a random problem. The user interface also allows you to submit th
 
 Alternatively, one can solve an instance of a problem through the terminal by typing:
 
-    python packing3d.py ---data_filepath <path to your problem file>
+    python packing3d.py --data_filepath <path to your problem file>
 
 There are several examples of problem instances under the `input` folder. 
 
