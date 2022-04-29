@@ -4,18 +4,28 @@ Three-dimensional bin packing [[1]](#Martello) is an
 optimization problem where the goal is to use the minimum number of bins to pack items with
 different dimensions, weights and properties. Examples of bins are containers,
 pallets or aircraft ULDs (Unit Load Device).
-In this example, both items and bins are cuboids, and the sides of items are
-parallel to the sides of the bins. There maybe various objectives and
-requirements for a 3d binpacking problem. 
-The most basic requirements are boundary and geometric constraints which require items be
-packed within the boundaries of the bins, and without overlap with each another, respectively.
-There may be additional requirements like stability of the packing, flatness of the top or bottom layers, 
-fragility and weight distribution which are not modeled in this example. 
+3d binpacking problems may include various objectives and requirements. Basic 
+requirements are boundary and geometric constraints, which require that items be 
+packed within bin boundaries and without overlapping, respectively. There may be 
+additional requirements on the stability of the packing, flatness of top or bottom layers, 
+fragility and weight distribution, etc., which are not modeled in this formulation. 
+In this example, both items and bins are cuboids, and the sides of the items must be packed parallel 
+to the sides of bins. 
 
 This example demonstrates a formulation and optimization of a three-dimensional multi bin packing problem
 using a [constrained quadratic model](
 https://docs.ocean.dwavesys.com/en/stable/concepts/cqm.html#cqm-sdk) (CQM) that
 can be solved using a Leap hybrid CQM solver.
+
+Below is an example output of the program:
+
+![Example Solution](_static/sample_solution_plot.png)
+
+## Installation
+
+Ideally, install requirements in a virtual environment with:
+
+    pip install -r requirements.txt
 
 ## Usage
 
@@ -82,9 +92,10 @@ The number under the `orientation` column shows the rotation of the case inside 
 ![Orientations](_static/orientations.png)  
 
 
-The following graphic is an illustration of this solution.
+The graphic at the top of the README is a visual of this solution, [here](#Example Solution)
 
-![Example Solution](_static/sample_solution_plot.png)
+Note that, in this example we do not model support or load-bearing constraints for cases.
+Therefore, it is possible that larger cases are packed over smaller cases without having full support.
 
 ## Model and Code Overview
 
@@ -227,7 +238,7 @@ When `u_(i,j)` is `0` these constraints are relaxed.
 ## References
 
 <a id="Martello"></a>
-Martello, Silvano, David Pisinger, and Daniele Vigo. 
+[1] Martello, Silvano, David Pisinger, and Daniele Vigo. 
 "The three-dimensional bin packing problem."
 Operations research 48.2 (2000): 256-267.
 ## License
