@@ -291,8 +291,8 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
         
     except ValueError:
         raise RuntimeError(
-            "Sampleset is empty, try increasing time limit or\
-            adjusting problem config."
+            "Sampleset is empty, try increasing time limit or "+
+            "adjusting problem config."
         )
 
 
