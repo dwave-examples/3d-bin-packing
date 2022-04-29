@@ -84,7 +84,7 @@ The number under the `orientation` column shows the rotation of the case inside 
 
 The following graphic is an illustration of this solution.
 
-![Example Solution](_static/sol_plot.png)
+![Example Solution](_static/sample_solution_plot.png)
 
 ## Model and Code Overview
 
