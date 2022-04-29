@@ -1,6 +1,6 @@
-# 3D Bin Packing using CQM
+# 3D Bin Packing
 
-Three-dimensional bin packing [Martello et al. 2000](#Materllo) is an 
+Three-dimensional bin packing [[1]](#Martello) is an 
 optimization problem where the goal is to use the minimum number of bins to pack items with
 different dimensions, weights and properties. Examples of bins are containers,
 pallets or aircraft ULDs (Unit Load Device).
@@ -38,9 +38,9 @@ This is an example of a 3d bin packing input instance file with 1 bin and 47 cas
 
 ```
 # Max num of bins : 1
-# Bins dimension (L * W * H): 30 30 50
+# Bin dimensions (L * W * H): 30 30 50
 
-  case id     quantity   length      width    height
+  case_id     quantity   length      width    height
   -------     --------   ------      -----    ------
         0           12        5          3         8
         1            9       12         15        12
@@ -65,30 +65,36 @@ The program produces a solution like this:
 # Number of cases packed: 47
 # Objective value: 117.266
 
-  case-id    bin-location    orientation    x    y    z    x'    y'    z'
+  case_id    bin-location    orientation    x    y    z    x'    y'    z'
 ---------  --------------  -------------  ---  ---  ---  ----  ----  ----
         0               1              4    0    0    0     3     8     5
-        1               1              1    6    5    0     5     3     8
-        2               1              1    0   23    0     5     3     8
-        3               1              5    3    0    0     8     5     3
-        4               1              3    0   12    0     3     5     8
-        5               1              2   11    0    0     5     8     3
+        0               1              1    6    5    0     5     3     8
+        0               1              1    0   23    0     5     3     8
+        0               1              5    3    0    0     8     5     3
+        0               1              3    0   12    0     3     5     8
+        0               1              2   11    0    0     5     8     3
         ...
 ```
+Note that only a portion of the solution is shown above. Also, there are multiple rows with same case_id as 
+there are several items of the same sizes.
+The number under the `orientation` column shows the rotation of the case inside bin as shown in the following figure.
 
-The number under the `orientation` column shows the rotation of the case inside bin as follows:
-- 0: if length of case is along `x` axis of the bin , width along `y`, height along `z`
-- 1: if length of case is along `x` axis of the bin , height along `y`, width along `z`
-- 2: if width of case is along `x` axis of the bin , length along `y`, height along `z`
-- 3: if width of case is along `x` axis of the bin , height along `y`, length along `z`
-- 4: if height of case is along `x` axis of the bin , length along `y`, width along `z`
-- 5: if height of case is along `x` axis of the bin , width along `y`, length along `z`
+![Orientations](_static/orientations.png)  
+
 
 The following graphic is an illustration of this solution.
 
 ![Example Solution](_static/sol_plot.png)
 
 ## Model and Code Overview
+
+In this example, to model multiple bins we assume that bins are located back-to-back 
+next to each other along x-axis of the coordinate system. This way we only need to use one coordinate system
+with width of `W`, height of `H` and length of `n * L` to model all bins,(see [below](#Problem Parameters)
+for definition of these parameters). 
+That means first bin is located at `0<=x<=L`, second at `L<x<=2*L`,
+and last bin is located at `(n - 1) * L < x <= n * L`.  
+We apply necessary constraints to ensure that cases are not placed between two bins. 
 
 ### Problem Parameters
 
@@ -112,9 +118,9 @@ These are the parameters of the problem:
  - `v_j`:  binary variable that shows if bin `j` is used
  - `u_(i,j)`:  binary variable that shows if case `i` is added to bin `j`
  - `b_(i,k,q)`: binary variable defining geometric relation `q` between cases `i` and `k`
- - `s_j`:  optimized height of bin `j`
- - `r_(i,k)`: are binary variables defining `k` orientations for case `i`
- - `x_i`,`y_i`,`z_i`: location of the back lower left corner of case `i` along `x`, `y`, and `z` axis of the bin
+ - `s_j`:  continuous variable showing height of the topmost case in bin `j`
+ - `r_(i,k)`: binary variable defining `k` orientations for case `i`
+ - `x_i`,`y_i`,`z_i`: continuous variable defining location of the back lower left corner of case `i` along `x`, `y`, and `z` axis of the bin
 
 ### Expressions 
  Expressions are linear or quadratic combinations of variables used for easier representations of the models. 
@@ -130,8 +136,8 @@ that cases are packed down.
 
 ![eq1](_static/eq1.png)
 
-The second term in the objective ensures that the height of the case at top of each bin is minimized. This 
-objective is weakly considered in the first objective term, here we give more importance to it. 
+The second term in the objective ensures that the height of the topmost case in each bin is minimized. This 
+objective is weakly considered in the first objective term, but here is given more importance.
 
 ![eq2](_static/eq2.png)
 
@@ -172,9 +178,8 @@ before bin `j + 1`.
 ![eq10](_static/eq10.png)
 
 #### Geometric Constraints
-Geometric constraints, required only for three-dimensional problems, are applied to 
-prevent overlaps between cases. In the following constraints,
-"left" and "right" refer to the position of the case along the `x` axis of a bin, 
+Geometric constraints, required only for three-dimensional problems, are applied to prevent overlaps between cases. 
+In the following constraints, "left" and "right" refer to the position of the case along the `x` axis of a bin, 
 "behind" and "in front of" to the `y` axis, and "above" and "below" to the `z` axis. 
 To avoid overlaps between each pair of cases we only need to ensure that at least one of these situations occur:
 
@@ -217,9 +222,7 @@ These sets of constraints ensure that case `i` is not placed outside the bins.
 
 ![eq21](_static/eq21.png)
 
-When `u_(i,j)` is `0` these constraints are free. Note that we assumed that bins are placed next to each other 
-along `x` axis. That means any case placed within `0<=x<=L` is in the first bin, if placed withing `L<x<=2*L` it is in the 
-second bin and so forth. 
+When `u_(i,j)` is `0` these constraints are relaxed.
 
 ## References
 
