@@ -117,7 +117,7 @@ def _get_colors(case_ids: np.array) -> list:
 
 
 def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
-                 cases: "Cases", bins: "Bins", origins: list,
+                 cases: "Cases", bins: "Bins", effective_dimensions: list,
                  color_coded: bool = True) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
@@ -127,13 +127,13 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
             for the 3D bin packing problem.
         cases: Instance of ``Cases``, representing cuboid items packed into containers.
         bins: Instance of ``Bins``, representing containers to pack cases into.
-        origins: List of case dimensions based on orientations of cases.
+        effective_dimensions: List of case dimensions based on orientations of cases.
 
     Returns:
         ``plotly.graph_objects.Figure`` with all cases packed according to CQM results.
 
     """
-    sx, sy, sz = origins
+    dx, dy, dz = effective_dimensions
     num_cases = cases.num_cases
     num_bins = bins.num_bins
     positions = []
@@ -144,9 +144,9 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
             positions.append(
                 (vars.x[i].energy(sample), vars.y[i].energy(sample),
                  vars.z[i].energy(sample)))
-            sizes.append((sx[i].energy(sample),
-                          sy[i].energy(sample),
-                          sz[i].energy(sample)))
+            sizes.append((dx[i].energy(sample),
+                          dy[i].energy(sample),
+                          dz[i].energy(sample)))
     fig = _plot_cuboids(positions, sizes, bins.length * num_bins,
                         bins.width, bins.height, color_coded, cases.case_ids)
     for i in range(num_bins):
@@ -211,7 +211,7 @@ def write_solution_to_file(solution_file_path: str,
                            sample: dimod.SampleSet,
                            cases: "Cases",
                            bins: "Bins",
-                           origins: list):
+                           effective_dimensions: list):
     """Write solution to a file.
 
     Args:
@@ -223,13 +223,13 @@ def write_solution_to_file(solution_file_path: str,
         sample: A ``dimod.SampleSet`` that represents the best feasible solution found.
         cases: Instance of ``Cases``, representing cases packed into containers.
         bins: Instance of ``Bins``, representing containers to pack cases into.
-        origins: List of case dimensions based on orientations of cases.
+        effective_dimensions: List of case dimensions based on orientations of cases.
 
     """
     solution_file_path = os.path.join("output", solution_file_path)
     num_cases = cases.num_cases
     num_bins = bins.num_bins
-    sx, sy, sz = origins
+    dx, dy, dz = effective_dimensions
     num_bin_used = sum([vars.bin_on[j].energy(sample) for j in
                         range(num_bins)])
     objective_value = cqm.objective.energy(sample)
@@ -244,9 +244,9 @@ def write_solution_to_file(solution_file_path: str,
                    np.round(vars.x[i].energy(sample), 2),
                    np.round(vars.y[i].energy(sample), 2),
                    np.round(vars.z[i].energy(sample), 2),
-                   np.round(sx[i].energy(sample), 2),
-                   np.round(sy[i].energy(sample), 2),
-                   np.round(sz[i].energy(sample), 2)])
+                   np.round(dx[i].energy(sample), 2),
+                   np.round(dy[i].energy(sample), 2),
+                   np.round(dz[i].energy(sample), 2)])
 
     with open(solution_file_path, 'w') as f:
         f.write('# Number of bins used: ' + str(int(num_bin_used)) + '\n')
