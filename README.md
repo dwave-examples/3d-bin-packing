@@ -85,14 +85,14 @@ The program produces a solution like this:
         0               1              1   10   13    0     5     3     8
         ...
 ```
-Note that only a portion of the solution is shown above. Also, there are multiple rows with same case_id as 
-there are several items of the same sizes.
-The number under the `orientation` column shows the rotation of the case inside bin as shown in the following figure.
+Note that only a portion of the solution is shown above. Also, there are multiple rows with same `case_id` as 
+there are several items of the same size.
+The number under the `orientation` column shows the rotation of a case inside a bin as shown in the following figure.
 
 ![Orientations](_static/orientations.png)  
 
 
-The graphic at the top of the README is a visual of this solution, [here](#plot)
+The [graphic](#plot) at the top of the README is a visualization of this solution.
 
 Note that in this example, we do not model support or load-bearing constraints for cases.
 Therefore, it is possible that larger cases are packed over smaller cases without having full support.
@@ -131,12 +131,12 @@ These are the parameters of the problem:
  - `b_(i,k,q)`: binary variable defining geometric relation `q` between cases `i` and `k`
  - `s_j`:  continuous variable showing height of the topmost case in bin `j`
  - `r_(i,k)`: binary variable defining `k` orientations for case `i`
- - `x_i`,`y_i`,`z_i`: continuous variable defining location of the back lower left corner of case `i` along `x`, `y`, and `z` axis of the bin
+ - `x_i`,`y_i`,`z_i`: continuous variable defining location of the back lower left corner of case `i` along `x`, `y`, and `z` axes of the bin
 
 ### Expressions 
  Expressions are linear or quadratic combinations of variables used for easier representations of the models. 
  - `x'_i`,`y'_i`,`z'_i`: effective length, width and height of case `i`, considering orientation, 
- along `x`, `y`, and `z` axis of the bin
+ along `x`, `y`, and `z` axes of the bin
  - `o_1`, `o_2`, `o_3`: terms of the objective 
 
 ### Objective
