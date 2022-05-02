@@ -180,8 +180,8 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                 label=f'overlap_{i}_{k}_{j}_5')
 
     for i in range(num_cases):
-        cqm.add_constraint(
-            quicksum([vars.bin_loc[i, j] for j in range(num_bins)]) == 1,
+        cqm.add_discrete(
+            quicksum([vars.bin_loc[i, j] for j in range(num_bins)]),
             label=f'case_{i}_max_packed')
 
 
