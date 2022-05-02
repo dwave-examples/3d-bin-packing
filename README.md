@@ -97,7 +97,7 @@ The graphic at the top of the README is a visual of this solution, [here](#plot)
 Note that in this example, we do not model support or load-bearing constraints for cases.
 Therefore, it is possible that larger cases are packed over smaller cases without having full support.
 
-## Model and Code Overview
+## Model Overview
 
 In this example, to model multiple bins we assume that bins are located back-to-back 
 next to each other along x-axis of the coordinate system. This way we only need to use one coordinate system
