@@ -79,11 +79,11 @@ class Variables:
             j: Real(label=f'upper_bound_{j}', upper_bound=bins.height)
             for j in range(num_bins)}
 
-        self.bin_loc = {(i, j): Binary(f'case_{i}_in_bin_{j}')
-                        for i in range(num_cases)
-                        for j in range(num_bins)}
+        self.bin_loc = {
+            (i, j): Binary(f'case_{i}_in_bin_{j}') if num_bins > 1 else 1
+            for i in range(num_cases) for j in range(num_bins)}
 
-        self.bin_on = {j: Binary(f'bin_{j}_is_used')
+        self.bin_on = {j: Binary(f'bin_{j}_is_used') if num_bins > 1 else 1
                        for j in range(num_bins)}
 
         self.o = {(i, k): Binary(f'o_{i}_{k}') for i in range(num_cases)
@@ -98,14 +98,15 @@ def _add_bin_on_constraint(cqm: ConstrainedQuadraticModel, vars: Variables,
                            bins: Bins, cases: Cases):
     num_cases = cases.num_cases
     num_bins = bins.num_bins
-    for j in range(num_bins):
-        cqm.add_constraint((1 - vars.bin_on[j]) * quicksum(
-            vars.bin_loc[i, j] for i in range(num_cases)) <= 0,
-                           label=f'p_on_{j}')
+    if num_bins > 1:
+        for j in range(num_bins):
+            cqm.add_constraint((1 - vars.bin_on[j]) * quicksum(
+                vars.bin_loc[i, j] for i in range(num_cases)) <= 0,
+                               label=f'p_on_{j}')
 
-    for j in range(num_bins - 1):
-        cqm.add_constraint(vars.bin_on[j] - vars.bin_on[j + 1] >= 0,
-                           label=f'bin_use_order_{j}')
+        for j in range(num_bins - 1):
+            cqm.add_constraint(vars.bin_on[j] - vars.bin_on[j + 1] >= 0,
+                               label=f'bin_use_order_{j}')
 
 
 def _add_orientation_constraints(cqm: ConstrainedQuadraticModel,
@@ -179,10 +180,11 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                 (vars.z[k] + dz[k] - vars.z[i]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_5')
 
-    for i in range(num_cases):
-        cqm.add_discrete(
-            quicksum([vars.bin_loc[i, j] for j in range(num_bins)]),
-            label=f'case_{i}_max_packed')
+    if num_bins > 1:
+        for i in range(num_cases):
+                cqm.add_discrete(
+                quicksum([vars.bin_loc[i, j] for j in range(num_bins)]),
+                label=f'case_{i}_max_packed')
 
 
 def _add_boundary_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
