@@ -238,9 +238,11 @@ def write_solution_to_file(solution_file_path: str,
     vs = [['case_id', 'bin-location', 'orientation', 'x', 'y', 'z', "x'",
            "y'", "z'"]]
     for i in range(num_cases):
+
         vs.append([cases.case_ids[i],
-                   int(sum((j + 1) * vars.bin_loc[i, j].energy(sample) for j in
-                           range(num_bins))),
+                   int(sum((j + 1) * vars.bin_loc[i, j].energy(sample)
+                           if num_bins > 1 else 1
+                           for j in range(num_bins))),
                    int(sum((r + 1) * vars.o[i, r].energy(sample) for r in
                            range(6))),
                    np.round(vars.x[i].energy(sample), 2),
