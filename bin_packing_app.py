@@ -121,7 +121,7 @@ elif run_type == "Random":
             num_bins = st.number_input("Number of bins", min_value=1,
                                        max_value=5)
             num_cases = st.number_input("Total number of cases",
-                                        min_value=10, max_value=75)
+                                        min_value=1, max_value=75, value=20)
             case_size_range = st.slider("Case dimension range", min_value=1,
                                         max_value=30, value=(1, 15))
             bin_length = st.number_input("Bin length", min_value=1,
