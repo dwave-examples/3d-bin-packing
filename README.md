@@ -23,7 +23,12 @@ Below is an example output of the program:
 
 ## Installation
 
-Ideally, install requirements in a virtual environment with:
+This example can be run in the Leap IDE by accessing the following URL:
+    
+    https://ide.dwavesys.io/#https://github.com/dwave-examples/3d-bin-packing
+
+
+Alternatively, install requirements locally. Ideally, in a virtual environment.
 
     pip install -r requirements.txt
 

@@ -121,39 +121,50 @@ elif run_type == "Random":
             num_bins = st.number_input("Number of bins", min_value=1,
                                        max_value=5)
             num_cases = st.number_input("Total number of cases",
-                                        min_value=10, max_value=75)
+                                        min_value=1, max_value=75, value=20)
             case_size_range = st.slider("Case dimension range", min_value=1,
                                         max_value=30, value=(1, 15))
-            bin_length = st.number_input("Bin length", min_value=50,
-                                         max_value=200)
-            bin_width = st.number_input("Bin width", min_value=50,
-                                        max_value=200)
-            bin_height = st.number_input("Bin height", min_value=50,
-                                         max_value=200)
+            bin_length = st.number_input("Bin length", min_value=1,
+                                         max_value=200, value=50)
+            bin_width = st.number_input("Bin width", min_value=1,
+                                        max_value=200, value=50)
+            bin_height = st.number_input("Bin height", min_value=1,
+                                         max_value=200, value=50)
             form_submit = st.form_submit_button("Run random problem")
 
         if form_submit:
             rng = np.random.default_rng()
-            unique_cases = rng.integers(5, num_cases)
-            quantity = np.random.multinomial(
-                num_cases - unique_cases, [1 / unique_cases] * unique_cases
-            ) + np.ones(unique_cases, dtype=int)
 
             data = {
                 "num_bins": num_bins,
                 "bin_dimensions": [bin_length, bin_width, bin_height],
-                "quantity": quantity,
-                "case_ids": np.array(range(len(quantity))),
                 "case_length": rng.integers(
-                    case_size_range[0], case_size_range[1], len(quantity)
+                    case_size_range[0], case_size_range[1], 
+                    num_cases, endpoint=True
                 ),
                 "case_width": rng.integers(
-                    case_size_range[0], case_size_range[1], len(quantity)
+                    case_size_range[0], case_size_range[1], 
+                    num_cases, endpoint=True
                 ),
                 "case_height": rng.integers(
-                    case_size_range[0], case_size_range[1], len(quantity)
-                )
+                    case_size_range[0], case_size_range[1], 
+                    num_cases, endpoint=True
+                ),
             }
+
+            # Determine quantities and case_ids
+            case_dimensions = np.vstack(
+                [data["case_length"], data["case_width"], data["case_height"]]
+            )
+            unique_dimensions, data["quantity"] = np.unique(case_dimensions, 
+                                                            axis=1,
+                                                            return_counts=True)
+            
+            data["case_length"] = unique_dimensions[0,:]
+            data["case_width"] = unique_dimensions[1,:]
+            data["case_height"] = unique_dimensions[2,:]
+            
+            data["case_ids"] = np.array(range(len(data["quantity"])))
 
             input_data_string = write_input_data(data, input_filename)
             if display_input:
