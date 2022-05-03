@@ -1,0 +1,5 @@
+tasks:
+  - init: |
+      pip install -r requirements.txt
+    command: |
+      streamlit run bin_packing_app.py
