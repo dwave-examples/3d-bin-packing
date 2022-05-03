@@ -229,7 +229,7 @@ def write_solution_to_file(solution_file_path: str,
     num_bins = bins.num_bins
     dx, dy, dz = effective_dimensions
     if num_bins > 1:
-        num_bin_used = sum([vars.bin_on[j].energy(sample) if num_bins > 1 else 1
+        num_bin_used = sum([vars.bin_on[j].energy(sample)
                             for j in range(num_bins)])
     else:
         num_bin_used = 1
