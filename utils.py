@@ -139,14 +139,12 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
     positions = []
     sizes = []
     for i in range(num_cases):
-        if sum(vars.bin_loc[i, j].energy(sample) for j in
-               range(num_bins)):
-            positions.append(
-                (vars.x[i].energy(sample), vars.y[i].energy(sample),
-                 vars.z[i].energy(sample)))
-            sizes.append((dx[i].energy(sample),
-                          dy[i].energy(sample),
-                          dz[i].energy(sample)))
+        positions.append(
+            (vars.x[i].energy(sample), vars.y[i].energy(sample),
+             vars.z[i].energy(sample)))
+        sizes.append((dx[i].energy(sample),
+                      dy[i].energy(sample),
+                      dz[i].energy(sample)))
     fig = _plot_cuboids(positions, sizes, bins.length * num_bins,
                         bins.width, bins.height, color_coded, cases.case_ids)
     for i in range(num_bins):
@@ -230,15 +228,20 @@ def write_solution_to_file(solution_file_path: str,
     num_cases = cases.num_cases
     num_bins = bins.num_bins
     dx, dy, dz = effective_dimensions
-    num_bin_used = sum([vars.bin_on[j].energy(sample) for j in
-                        range(num_bins)])
+    if num_bins > 1:
+        num_bin_used = sum([vars.bin_on[j].energy(sample)
+                            for j in range(num_bins)])
+    else:
+        num_bin_used = 1
+
     objective_value = cqm.objective.energy(sample)
     vs = [['case_id', 'bin-location', 'orientation', 'x', 'y', 'z', "x'",
            "y'", "z'"]]
     for i in range(num_cases):
         vs.append([cases.case_ids[i],
-                   int(sum((j + 1) * vars.bin_loc[i, j].energy(sample) for j in
-                           range(num_bins))),
+                   int(sum((j + 1) * vars.bin_loc[i, j].energy(sample)
+                           if num_bins > 1 else 1
+                           for j in range(num_bins))),
                    int(sum((r + 1) * vars.o[i, r].energy(sample) for r in
                            range(6))),
                    np.round(vars.x[i].energy(sample), 2),
