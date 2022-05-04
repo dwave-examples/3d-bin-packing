@@ -49,19 +49,18 @@ There are several examples of problem instances under the `input` folder.
 
 ### Inputs
 
-This is an example of a 3d bin packing input instance file with 1 bin and 47 cases.
+This is an example of a 3d bin packing input instance file with 1 bin and 35 cases.
 
 ```
 # Max num of bins : 1
 # Bin dimensions (L * W * H): 30 30 50
 
-  case_id     quantity   length      width    height
-  -------     --------   ------      -----    ------
-        0           12        5          3         8
-        1            9       12         15        12
-        2           14        8          5        11
-        3            5        9         12         4
-        4            7        9         12         4
+  case_id    quantity    length    width    height
+---------  ----------  --------  -------  --------
+0          12          5         3        8
+1          9           12        15       12
+2          7           8         5        11
+3          7           9         12       4
         
 ```
 
@@ -77,17 +76,17 @@ The program produces a solution like this:
 
 ```
 # Number of bins used: 1
-# Number of cases packed: 47
-# Objective value: 117.085
+# Number of cases packed: 35
+# Objective value: 104.457
 
   case_id    bin-location    orientation    x    y    z    x'    y'    z'
 ---------  --------------  -------------  ---  ---  ---  ----  ----  ----
-        0               1              1   14   27    0     5     3     8
-        0               1              1    9   27    0     5     3     8
-        0               1              2    0    0    8     5     8     3
-        0               1              1    0    3    0     5     3     8
-        0               1              2   20    9   10     5     8     3
-        0               1              1   10   13    0     5     3     8
+        0               1              3   15    0    0     3     5     8
+        0               1              3    9    0    0     3     5     8
+        0               1              6    9   17    0     8     3     5
+        0               1              3    0   25    0     3     5     8
+        0               1              3   12    0    0     3     5     8
+        0               1              2   20    0    0     5     8     3
         ...
 ```
 Note that only a portion of the solution is shown above. Also, there are multiple rows with same `case_id` as 
