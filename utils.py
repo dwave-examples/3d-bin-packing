@@ -224,7 +224,6 @@ def write_solution_to_file(solution_file_path: str,
         effective_dimensions: List of case dimensions based on orientations of cases.
 
     """
-    solution_file_path = os.path.join("output", solution_file_path)
     num_cases = cases.num_cases
     num_bins = bins.num_bins
     dx, dy, dz = effective_dimensions
