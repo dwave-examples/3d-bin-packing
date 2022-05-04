@@ -6,6 +6,7 @@ from dimod import quicksum, ConstrainedQuadraticModel, Real, Binary, SampleSet
 
 from utils import print_cqm_stats, plot_cuboids
 from utils import read_instance, write_solution_to_file
+from mip_solver import MIPCQMSolver
 
 # todo: remove this before launch
 use_local = True
@@ -264,8 +265,9 @@ def build_cqm(vars: Variables, bins: Bins,
     return cqm, effective_dimensions
 
 
-def call_cqm_solver(cqm: ConstrainedQuadraticModel,
-                    time_limit: float) -> SampleSet:
+def call_solver(cqm: ConstrainedQuadraticModel,
+                time_limit: float,
+                use_cqm_solver: bool = True) -> SampleSet:
     """Helper function to call the CQM Solver.
 
     Args:
@@ -276,12 +278,15 @@ def call_cqm_solver(cqm: ConstrainedQuadraticModel,
         A ``dimod.SampleSet`` that represents the best feasible solution found.
     
     """
-
-    if use_local:
-        sampler = HSSCQMSampler()
-        res = sampler.sample(cqm, time_limit=time_limit)
+    if use_cqm_solver:
+        if use_local:
+            sampler = HSSCQMSampler()
+            res = sampler.sample(cqm, time_limit=time_limit)
+        else:
+            sampler = LeapHybridCQMSampler(solver= 'hybrid_constrained_quadratic_model_version1p_bulk_test')
+            res = sampler.sample_cqm(cqm, time_limit=time_limit)
     else:
-        sampler = LeapHybridCQMSampler(solver= 'hybrid_constrained_quadratic_model_version1p_bulk_test')
+        sampler = MIPCQMSolver()
         res = sampler.sample_cqm(cqm, time_limit=time_limit)
 
     res.resolve()
@@ -314,6 +319,10 @@ if __name__ == '__main__':
                              " seconds.",
                         default=20)
     
+    parser.add_argument("--use_cqm_solver", type=bool, nargs="?",
+                        help="Flag to either use CQM or MIP solver",
+                        default=True)
+    
     parser.add_argument("--html_filepath", type=str, nargs="?",
                         help="Filename with path to plot html file.",
                         default=None)
@@ -325,6 +334,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     output_filepath = args.output_filepath
     time_limit = args.time_limit
+    use_cqm_solver = args.use_cqm_solver
     html_filepath = args.html_filepath
     color_coded = args.color_coded
 
@@ -338,11 +348,11 @@ if __name__ == '__main__':
 
     print_cqm_stats(cqm)
 
-    best_feasible = call_cqm_solver(cqm, time_limit)
+    best_feasible = call_solver(cqm, time_limit, use_cqm_solver)
 
     if output_filepath is not None:
-        write_solution_to_file(output_filepath, cqm, vars, best_feasible, cases,
-                               bins, effective_dimensions)
+        write_solution_to_file(output_filepath, cqm, vars, best_feasible, 
+                               cases, bins, effective_dimensions)
 
     fig = plot_cuboids(best_feasible, vars, cases,
                        bins, effective_dimensions, color_coded)

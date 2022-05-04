@@ -7,7 +7,7 @@ from packing3d import (Cases,
                        Bins,
                        Variables,
                        build_cqm,
-                       call_cqm_solver)
+                       call_solver)
 from utils import (print_cqm_stats,
                    plot_cuboids,
                    read_instance,
@@ -27,6 +27,7 @@ def _get_cqm_stats(cqm) -> str:
 def _solve_bin_packing_instance(data: dict,
                                 write_to_file: bool,
                                 solution_filename: Optional[str],
+                                use_cqm_solver: bool = True,
                                 **st_plotly_kwargs):
     cases = Cases(data)
     bins = Bins(data, cases=cases)
@@ -35,7 +36,7 @@ def _solve_bin_packing_instance(data: dict,
 
     cqm, effective_dimensions = build_cqm(model_variables, bins, cases)
 
-    best_feasible = call_cqm_solver(cqm, time_limit)
+    best_feasible = call_solver(cqm, time_limit, use_cqm_solver)
 
     plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
                               bins, effective_dimensions, color_coded)
@@ -59,6 +60,14 @@ st.markdown(
 
 run_type = st.sidebar.radio(label="Choose run type:",
                             options=["Random", "File upload"])
+
+solver_type = st.sidebar.radio(label="Choose solver to run problems on:",
+                               options=["CQM", "MIP"])
+
+if solver_type == "CQM":
+    use_cqm_solver = True
+else:
+    use_cqm_solver = False
 
 if run_type == "File upload":
     problem_filepath = st.sidebar.text_input(label="Problem instance file",
@@ -88,6 +97,7 @@ if run_type == "File upload":
                 _solve_bin_packing_instance(data,
                                             write_to_file,
                                             solution_filename,
+                                            use_cqm_solver,
                                             **{"use_container_width": True})
     else:
         if run_button:
@@ -95,6 +105,7 @@ if run_type == "File upload":
             _solve_bin_packing_instance(data,
                                         write_to_file,
                                         solution_filename,
+                                        use_cqm_solver,
                                         **{"use_container_width": True})
 
 
@@ -174,4 +185,5 @@ elif run_type == "Random":
             with col2:
                 _solve_bin_packing_instance(data,
                                             write_to_file,
-                                            solution_filename)
+                                            solution_filename,
+                                            use_cqm_solver)
