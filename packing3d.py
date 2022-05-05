@@ -283,7 +283,7 @@ def call_solver(cqm: ConstrainedQuadraticModel,
             sampler = HSSCQMSampler()
             res = sampler.sample(cqm, time_limit=time_limit)
         else:
-            sampler = LeapHybridCQMSampler(solver= 'hybrid_constrained_quadratic_model_version1p_bulk_test')
+            sampler = LeapHybridCQMSampler()
             res = sampler.sample_cqm(cqm, time_limit=time_limit)
     else:
         sampler = MIPCQMSolver()
