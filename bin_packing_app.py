@@ -62,9 +62,11 @@ run_type = st.sidebar.radio(label="Choose run type:",
                             options=["Random", "File upload"])
 
 solver_type = st.sidebar.radio(label="Choose solver to run problems on:",
-                               options=["CQM", "MIP"])
+                               options=["Constrained Quadratic Model",
+                                        "CBC (Python-MIP)",
+                                        ])
 
-if solver_type == "CQM":
+if solver_type == "Constrained Quadratic Model":
     use_cqm_solver = True
 else:
     use_cqm_solver = False
@@ -131,7 +133,7 @@ elif run_type == "Random":
                                          value=20)
             num_bins = st.number_input("Number of bins", min_value=1,
                                        max_value=5)
-            num_cases = st.number_input("Total number of cases",
+            num_cases = st.number_input("Number of cases",
                                         min_value=1, max_value=75, value=20)
             case_size_range = st.slider("Case dimension range", min_value=1,
                                         max_value=30, value=(1, 15))
@@ -141,7 +143,7 @@ elif run_type == "Random":
                                         max_value=200, value=50)
             bin_height = st.number_input("Bin height", min_value=1,
                                          max_value=200, value=50)
-            form_submit = st.form_submit_button("Run random problem")
+            form_submit = st.form_submit_button("Run")
 
         if form_submit:
             rng = np.random.default_rng()
