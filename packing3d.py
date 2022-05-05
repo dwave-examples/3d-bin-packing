@@ -284,7 +284,7 @@ def call_solver(cqm: ConstrainedQuadraticModel,
             res = sampler.sample(cqm, time_limit=time_limit)
         else:
             sampler = LeapHybridCQMSampler()
-            res = sampler.sample_cqm(cqm, time_limit=time_limit)
+            res = sampler.sample_cqm(cqm, time_limit=time_limit, label='3d bin packing')
     else:
         sampler = MIPCQMSolver()
         res = sampler.sample_cqm(cqm, time_limit=time_limit)
