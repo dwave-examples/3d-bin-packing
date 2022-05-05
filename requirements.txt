@@ -1,4 +1,6 @@
 dimod==0.11.0rc1
+# todo: add sdk and remove sdk install from .gitpod.yml
+dwave-preprocessing=0.4.0rc0  # todo: remove when adding sdk
 mip==1.13.0
 plotly==5.6.0
 streamlit==1.9.0
