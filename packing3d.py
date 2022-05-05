@@ -1,19 +1,13 @@
 import argparse
-from typing import Tuple
+from dimod import quicksum, ConstrainedQuadraticModel, Real, Binary, SampleSet
+from dwave.system import LeapHybridCQMSampler
 from itertools import combinations, permutations
 import numpy as np
-from dimod import quicksum, ConstrainedQuadraticModel, Real, Binary, SampleSet
+from typing import Tuple
 
 from utils import print_cqm_stats, plot_cuboids
 from utils import read_instance, write_solution_to_file
 from mip_solver import MIPCQMSolver
-
-# todo: remove this before launch
-use_local = True
-if use_local:
-    from cqmsolver.hss_sampler import HSSCQMSampler
-else:
-    from dwave.system import LeapHybridCQMSampler
 
 
 class Cases:
@@ -279,12 +273,8 @@ def call_solver(cqm: ConstrainedQuadraticModel,
     
     """
     if use_cqm_solver:
-        if use_local:
-            sampler = HSSCQMSampler()
-            res = sampler.sample(cqm, time_limit=time_limit)
-        else:
-            sampler = LeapHybridCQMSampler()
-            res = sampler.sample_cqm(cqm, time_limit=time_limit, label='3d bin packing')
+        sampler = LeapHybridCQMSampler()
+        res = sampler.sample_cqm(cqm, time_limit=time_limit, label='3d bin packing')
     else:
         sampler = MIPCQMSolver()
         res = sampler.sample_cqm(cqm, time_limit=time_limit)
