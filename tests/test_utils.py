@@ -14,8 +14,6 @@
 
 import unittest
 
-from packing3d import Cases, Bins
-
 from utils import read_instance, write_input_data
 
 
@@ -48,4 +46,3 @@ class TestUtils(unittest.TestCase):
                                  'case_length': [2, 3], 'case_width': [2, 3],
                                  'case_height': [2, 3]})
         self.assertEqual(data1, data)
-
