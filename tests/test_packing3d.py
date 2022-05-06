@@ -19,7 +19,7 @@ from packing3d import build_cqm, Cases, Bins, Variables
 from packing3d import _add_orientation_constraints, _add_bin_on_constraint
 from packing3d import _add_boundary_constraints, _add_geometric_constraints
 
-from utils import read_instance, write_input_data
+from utils import read_instance
 
 
 class TestBuildCQM(unittest.TestCase):
@@ -65,7 +65,6 @@ class TestBuildCQM(unittest.TestCase):
         self.assertEqual(cqm.check_feasible(sample), False)
 
     def test_add_geometric(self):
-
         data = read_instance(instance_path='./tests/test_data_1.txt')
         cases = Cases(data)
         bins = Bins(data, cases)
@@ -159,10 +158,7 @@ class TestBuildCQM(unittest.TestCase):
             self.assertFalse(cqm.check_feasible(sample))
 
     def test_build_cqm(self):
-        try:
-            data = read_instance(instance_path='test_data_1.txt')
-        except:
-            data = read_instance(instance_path='./tests/test_data_1.txt')
+        data = read_instance(instance_path='./tests/test_data_1.txt')
         cases = Cases(data)
         bins = Bins(data, cases)
         vars = Variables(cases, bins)
@@ -186,40 +182,3 @@ class TestBuildCQM(unittest.TestCase):
 
         self.assertTrue(cqm.check_feasible(feasible_sample))
         self.assertFalse(cqm.check_feasible(infeasible_sample))
-
-    def test_read_write_cqm(self):
-        try:
-            data = read_instance(instance_path='test_data_1.txt')
-        except:
-            data = read_instance(instance_path='./tests/test_data_1.txt')
-        cases = Cases(data)
-        bins = Bins(data, cases)
-        out_file_string = write_input_data(data)
-        data1 = {"num_bins": 0, "bin_dimensions": [], "quantity": [],
-                 "case_ids": [], "case_length": [], "case_width": [],
-                 "case_height": []}
-        out_list = (out_file_string.split(sep='\n'))
-        for i, line in enumerate(out_list):
-            if i == 0:
-                data1["num_bins"] = int(line.split()[-1])
-            elif i == 1:
-                data1["bin_dimensions"] = [int(i) for i in line.split()[-3:]]
-            elif 2 <= i <= 4:
-                continue
-            else:
-                case_info = list(map(int, line.split()))
-                data1["case_ids"].append(case_info[0])
-                data1["quantity"].append(case_info[1])
-                data1["case_length"].append(case_info[2])
-                data1["case_width"].append(case_info[3])
-                data1["case_height"].append(case_info[4])
-
-        self.assertEqual(data1, {'num_bins': 1, 'bin_dimensions': [30, 40, 50],
-                                 'quantity': [1, 1], 'case_ids': [0, 1],
-                                 'case_length': [2, 3], 'case_width': [2, 3],
-                                 'case_height': [2, 3]})
-        self.assertEqual(data1, data)
-
-
-if __name__ == '__main__':
-    TestBuildCQM()
