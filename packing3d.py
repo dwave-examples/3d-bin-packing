@@ -97,7 +97,7 @@ def _add_bin_on_constraint(cqm: ConstrainedQuadraticModel, vars: Variables,
         for j in range(num_bins):
             cqm.add_constraint((1 - vars.bin_on[j]) * quicksum(
                 vars.bin_loc[i, j] for i in range(num_cases)) <= 0,
-                               label=f'p_on_{j}')
+                               label=f'bin_on_{j}')
 
         for j in range(num_bins - 1):
             cqm.add_constraint(vars.bin_on[j] - vars.bin_on[j + 1] >= 0,
@@ -204,8 +204,7 @@ def _add_boundary_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                 label=f'maxx_{i}_{j}_greater')
 
             cqm.add_constraint(
-                (vars.y[i] + dy[i] - bins.width) -
-                (1 - vars.bin_loc[i, j]) * bins.width <= 0,
+                vars.y[i] + dy[i] <= bins.width,
                 label=f'maxy_{i}_{j}_less')
 
 
@@ -289,7 +288,7 @@ def call_solver(cqm: ConstrainedQuadraticModel,
         
     except ValueError:
         raise RuntimeError(
-            "Sampleset is empty, try increasing time limit or "+
+            "Sampleset is empty, try increasing time limit or " +
             "adjusting problem config."
         )
 
