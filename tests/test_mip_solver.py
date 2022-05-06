@@ -68,14 +68,14 @@ class TestMIPCQMSolver(unittest.TestCase):
         x = dimod.Binary('x')
         s = dimod.Spin('s')
 
-        cqm.set_objective(i + a + x)
-        cqm.add_constraint(i >= -5.5)
-        cqm.add_constraint(a >= -6.5)
-        cqm.add_constraint(x >= -7.5)
+        cqm.set_objective(-i - a - x)
+        cqm.add_constraint(i <= 5.5)
+        cqm.add_constraint(a <= 6.5)
+        cqm.add_constraint(x <= 7.5)
 
         sampleset = MIPCQMSolver().sample_cqm(cqm)
 
-        self.assertEqual(sampleset.first.sample, {'i': 5, 'a': 6.5, 'x': 0})
+        self.assertEqual(sampleset.first.sample, {'i': 5, 'a': 6.5, 'x': 1})
 
         cqm.add_constraint(s <= 5)
         with self.assertRaises(ValueError):
