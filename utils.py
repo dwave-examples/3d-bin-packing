@@ -275,7 +275,7 @@ def write_solution_to_file(solution_file_path: str,
               f'{os.path.join(os.getcwd(), solution_file_path)}')
 
 
-def write_input_data(data: dict, input_filename: str = None) -> str:
+def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
     """Convert input data dictionary to an input string and write it to a file.
 
     Args:
