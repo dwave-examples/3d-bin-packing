@@ -58,8 +58,11 @@ class Bins:
         self.lowest_num_bin = np.ceil(
             np.sum(cases.length * cases.width * cases.height) / (
                     self.length * self.width * self.height))
-        assert self.lowest_num_bin <= self.num_bins, \
-            f'number of bins is at least {self.lowest_num_bin}'
+        if self.lowest_num_bin > self.num_bins:
+            raise RuntimeError(
+                'number of bins is at least {self.lowest_num_bin}, ' +
+                'try increasing the number of bins'
+            )
         print(f'Minimum Number of bins required: {self.lowest_num_bin}')
 
 
