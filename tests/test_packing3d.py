@@ -12,17 +12,66 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from itertools import combinations
+import numpy as np
 import unittest
+from unittest.mock import patch
 
 import dimod
-from packing3d import build_cqm, Cases, Bins, Variables
+from dwave.system import LeapHybridCQMSampler
+from mip_solver import MIPCQMSolver
+from packing3d import build_cqm, Cases, Bins, Variables, call_solver
 from packing3d import _add_orientation_constraints, _add_bin_on_constraint
 from packing3d import _add_boundary_constraints, _add_geometric_constraints
 
 from utils import read_instance
 
 
-class TestBuildCQM(unittest.TestCase):
+class TestPacking3d(unittest.TestCase):
+    def test_cases(self):
+        data = read_instance(instance_path='./tests/test_data_1.txt')
+        cases = Cases(data)
+        np.testing.assert_array_equal(cases.case_ids, np.array([0,1]))
+        self.assertEqual(cases.num_cases, 2)
+        np.testing.assert_array_equal(cases.length, np.array([2,3]))
+        np.testing.assert_array_equal(cases.width, np.array([2,3]))
+        np.testing.assert_array_equal(cases.height, np.array([2,3]))
+
+    def test_bins(self):
+        data = read_instance(instance_path='./tests/test_data_1.txt')
+        cases = Cases(data)
+        bins = Bins(data, cases)
+        self.assertEqual(bins.length, 30)
+        self.assertEqual(bins.width, 40)
+        self.assertEqual(bins.height, 50)
+        self.assertEqual(bins.num_bins, 1)
+        self.assertEqual(bins.lowest_num_bin, 1)
+
+        # Alter bin dimensions to trigger exception
+        data['bin_dimensions'] = [1,1,1]
+        with self.assertRaises(RuntimeError):
+            bins = Bins(data, cases)
+
+    def test_variables(self):
+        data = read_instance(instance_path='./tests/test_data_1.txt')
+        cases = Cases(data)
+        bins = Bins(data, cases)
+        variables = Variables(cases, bins)
+
+        self.assertEqual(len(variables.x), cases.num_cases)
+        self.assertEqual(len(variables.y), cases.num_cases)
+        self.assertEqual(len(variables.z), cases.num_cases)
+        self.assertEqual(len(variables.bin_height), bins.num_bins)
+        self.assertEqual(
+            len(variables.bin_loc), cases.num_cases * bins.num_bins
+        )
+        self.assertEqual(len(variables.bin_on), bins.num_bins)
+        self.assertEqual(len(variables.o), cases.num_cases * 6)
+        self.assertEqual(
+            len(variables.selector), 
+            len(list(combinations(range(cases.num_cases), r=2))) * 6
+        )
+
     def test_add_orientation_constraints(self):
         data = read_instance(instance_path='./tests/test_data_1.txt')
         cases = Cases(data)
@@ -182,3 +231,18 @@ class TestBuildCQM(unittest.TestCase):
 
         self.assertTrue(cqm.check_feasible(feasible_sample))
         self.assertFalse(cqm.check_feasible(infeasible_sample))
+
+    def test_call_solver(self):
+        data = read_instance(instance_path='./tests/test_data_1.txt')
+        cases = Cases(data)
+        bins = Bins(data, cases)
+        vars = Variables(cases, bins)
+        cqm, _ = build_cqm(vars, bins, cases)
+
+        with patch.object(LeapHybridCQMSampler, 'sample_cqm') as mock:
+            call_solver(cqm, time_limit=5, use_cqm_solver=True)
+            mock.assert_called_with(cqm, time_limit=5, label='3d bin packing')
+
+        with patch.object(MIPCQMSolver, 'sample_cqm') as mock:
+            call_solver(cqm, time_limit=5, use_cqm_solver=False)
+            mock.assert_called_with(cqm, time_limit=5)
