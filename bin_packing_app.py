@@ -114,6 +114,10 @@ if run_type == "File upload":
 elif run_type == "Random":
     color_coded = st.sidebar.checkbox("Color coded cases")
     display_input = st.sidebar.checkbox("Display input data")
+    random_seed = st.sidebar.checkbox("Set random seed")
+    if random_seed:
+        seed = st.sidebar.number_input("Random seed", value=0)
+
     save_input_to_file = st.sidebar.checkbox("Save input data to file")
     if save_input_to_file:
         input_filename = st.sidebar.text_input("input filename")
@@ -146,7 +150,10 @@ elif run_type == "Random":
             form_submit = st.form_submit_button("Run")
 
         if form_submit:
-            rng = np.random.default_rng()
+            if random_seed:
+                rng = np.random.default_rng(seed)
+            else:
+                rng = np.random.default_rng()
 
             data = {
                 "num_bins": num_bins,
