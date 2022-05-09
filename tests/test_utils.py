@@ -33,7 +33,6 @@ from packing3d import (Cases,
 
 
 class TestUtils(unittest.TestCase):
-
     def test_print_cqm_stats(self):
         test_bqm = dimod.BQM('BINARY')
         with self.assertRaises(ValueError):
