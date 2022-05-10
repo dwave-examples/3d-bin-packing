@@ -97,7 +97,7 @@ if run_type == "File upload":
         solution_filename = st.sidebar.text_input("Solution filename")
     else:
         solution_filename = None
-    run_button = st.sidebar.button("Run CQM Solver")
+    run_button = st.sidebar.button("Run")
 
     if display_input:
         col1, col2 = st.columns([1, 2])
