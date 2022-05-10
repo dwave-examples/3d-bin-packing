@@ -1,3 +1,17 @@
+# Copyright 2022 D-Wave Systems Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
 import os
 import plotly.colors as colors
 import plotly.graph_objects as go
@@ -261,7 +275,7 @@ def write_solution_to_file(solution_file_path: str,
               f'{os.path.join(os.getcwd(), solution_file_path)}')
 
 
-def write_input_data(data: dict, input_filename: str = None) -> str:
+def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
     """Convert input data dictionary to an input string and write it to a file.
 
     Args:
