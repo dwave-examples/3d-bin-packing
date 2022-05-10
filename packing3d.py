@@ -18,6 +18,7 @@ from dwave.system import LeapHybridCQMSampler
 from itertools import combinations, permutations
 import numpy as np
 from typing import Tuple
+import warnings
 
 from utils import print_cqm_stats, plot_cuboids
 from utils import read_instance, write_solution_to_file
@@ -277,7 +278,7 @@ def build_cqm(vars: Variables, bins: Bins,
 
 def call_solver(cqm: ConstrainedQuadraticModel,
                 time_limit: float,
-                use_cqm_solver: bool = True) -> SampleSet:
+                use_cqm_solver: bool = True) -> dict:
     """Helper function to call the CQM Solver.
 
     Args:
@@ -285,7 +286,7 @@ def call_solver(cqm: ConstrainedQuadraticModel,
         time_limit: Time limit parameter to pass on to the CQM sampler.
 
     Returns:
-        A ``dimod.SampleSet`` that represents the best feasible solution found.
+        A dictionary containing solution data.
     
     """
     if use_cqm_solver:
@@ -298,16 +299,26 @@ def call_solver(cqm: ConstrainedQuadraticModel,
     res.resolve()
     feasible_sampleset = res.filter(lambda d: d.is_feasible)
     print(feasible_sampleset)
+    
     try:
-        best_feasible = feasible_sampleset.first.sample
+        solution_info = {
+            "best_feasible": feasible_sampleset.first.sample,
+            "solver": sampler.__class__.__name__,
+            "energy": feasible_sampleset.first.energy,
+        }
 
-        return best_feasible
+        return solution_info
         
     except ValueError:
-        raise RuntimeError(
-            "Sampleset is empty, try increasing time limit or " +
-            "adjusting problem config."
-        )
+        warnings.warn("No feasible solution found this run")
+
+        solution_info = {
+            "best_feasible": None,
+            "solver": sampler.__class__.__name__,
+            "energy": None,
+        }
+
+        return solution_info
 
 
 if __name__ == '__main__':
@@ -354,16 +365,18 @@ if __name__ == '__main__':
 
     print_cqm_stats(cqm)
 
-    best_feasible = call_solver(cqm, time_limit, use_cqm_solver)
+    solution_info = call_solver(cqm, time_limit, use_cqm_solver)
+    best_feasible = solution_info['best_feasible']
 
-    if output_filepath is not None:
-        write_solution_to_file(output_filepath, cqm, vars, best_feasible, 
-                               cases, bins, effective_dimensions)
+    if best_feasible is not None:
+        if output_filepath is not None:
+            write_solution_to_file(output_filepath, cqm, vars, best_feasible, 
+                                cases, bins, effective_dimensions)
 
-    fig = plot_cuboids(best_feasible, vars, cases,
-                       bins, effective_dimensions, color_coded)
+        fig = plot_cuboids(best_feasible, vars, cases,
+                        bins, effective_dimensions, color_coded)
 
-    if html_filepath is not None:
-        fig.write_html(html_filepath)
+        if html_filepath is not None:
+            fig.write_html(html_filepath)
 
-    fig.show()
+        fig.show()

@@ -64,7 +64,8 @@ class TestUtils(unittest.TestCase):
         variables = Variables(cases, bins)
         cqm, effective_dimensions = build_cqm(variables, bins, cases)
 
-        best_feasible = call_solver(cqm, time_limit=3, use_cqm_solver=False)
+        solution_info = call_solver(cqm, time_limit=3, use_cqm_solver=False)
+        best_feasible = solution_info['best_feasible']
 
         fig = plot_cuboids(best_feasible, variables, cases, bins, 
                            effective_dimensions)
@@ -110,7 +111,8 @@ class TestUtils(unittest.TestCase):
         variables = Variables(cases, bins)
         cqm, effective_dimensions = build_cqm(variables, bins, cases)
 
-        best_feasible = call_solver(cqm, time_limit=3, use_cqm_solver=False)
+        solution_info = call_solver(cqm, time_limit=3, use_cqm_solver=False)
+        best_feasible = solution_info['best_feasible']
 
         with TemporaryDirectory() as tempdir:
             solution_file_path = os.path.join(tempdir, "solution_test.txt")
