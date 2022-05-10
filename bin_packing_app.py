@@ -209,4 +209,5 @@ elif run_type == "Random":
                 _solve_bin_packing_instance(data,
                                             write_to_file,
                                             solution_filename,
-                                            use_cqm_solver)
+                                            use_cqm_solver,
+                                            **{"use_container_width": True})
