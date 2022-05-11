@@ -107,7 +107,7 @@ In this example, to model multiple bins we assume that bins are located back-to-
 next to each other along x-axis of the coordinate system. This way we only need to use one coordinate system
 with width of `W`, height of `H` and length of `n * L` to model all bins,(see [below](#problem-parameters)
 for definition of these parameters). 
-That means first bin is located at `0<=x<=L`, second at `L<x<=2*L`,
+That means that the first bin is located at `0 <= x <= L`, second at `L < x <= 2 * L`,
 and last bin is located at `(n - 1) * L < x <= n * L`.  
 We apply necessary constraints to ensure that cases are not placed between two bins. 
 
@@ -120,7 +120,7 @@ These are the parameters of the problem:
  - `I`: set of cases
  - `m` : number of cases
  - `K` : possible orientations `{0, 1, ..., 5}`
-`Q` : possible relation (e.g., behind, above, etc) between every pair of cases `{0, 1, ..., 5}`
+ - `Q` : possible relation (e.g., behind, above, etc) between every pair of cases `{0, 1, ..., 5}`
  - `L` : length of the bins
  - `W` : width of bins 
  - `H`: height of the bins
