@@ -120,7 +120,7 @@ These are the parameters of the problem:
  - `I`: set of cases
  - `m` : number of cases
  - `K` : possible orientations `{0, 1, ..., 5}`
- - `Q` : possible relation between every pair of cases `{0, 1, ..., 5}`
+`Q` : possible relation (e.g., behind, above, etc) between every pair of cases `{0, 1, ..., 5}`
  - `L` : length of the bins
  - `W` : width of bins 
  - `H`: height of the bins
