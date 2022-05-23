@@ -14,6 +14,7 @@
 
 from io import StringIO
 import numpy as np
+import pandas as pd
 import sys
 import streamlit as st
 from typing import Optional
@@ -28,6 +29,8 @@ from utils import (print_cqm_stats,
                    write_solution_to_file,
                    write_input_data)
 
+if 'summary' not in st.session_state:
+    st.session_state['summary'] = []
 
 def _get_cqm_stats(cqm) -> str:
     cqm_info_stream = StringIO()
@@ -50,20 +53,34 @@ def _solve_bin_packing_instance(data: dict,
 
     cqm, effective_dimensions = build_cqm(model_variables, bins, cases)
 
-    best_feasible = call_solver(cqm, time_limit, use_cqm_solver)
+    solution_info = call_solver(cqm, time_limit, use_cqm_solver)
+    best_feasible = solution_info['best_feasible']
 
-    plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
-                              bins, effective_dimensions, color_coded)
+    if best_feasible is not None:
+        plotly_fig = plot_cuboids(best_feasible, model_variables, cases,
+                                bins, effective_dimensions, color_coded)
 
-    st.plotly_chart(plotly_fig, **st_plotly_kwargs)
+        st.plotly_chart(plotly_fig, **st_plotly_kwargs)
 
-    st.code(_get_cqm_stats(cqm))
+        st.code(_get_cqm_stats(cqm))
 
-    if write_to_file:
-        write_solution_to_file(solution_filename, cqm, 
-                               model_variables, best_feasible,
-                               cases, bins, effective_dimensions)
+        if write_to_file:
+            write_solution_to_file(solution_filename, cqm, 
+                                    model_variables, best_feasible,
+                                    cases, bins, effective_dimensions)
 
+    st.session_state['summary'].append(
+        {
+            "Num cases":cases.num_cases,
+            "Num bins":bins.num_bins,
+            "Feasible solution":True if solution_info["best_feasible"] \
+                != None else False,
+            "Solver":solution_info["solver"],
+            "Energy":solution_info["energy"],
+        }
+    )
+
+    st.table(pd.DataFrame.from_records(st.session_state['summary']))
 
 st.set_page_config(layout="wide")
 
