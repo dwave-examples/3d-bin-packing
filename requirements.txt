@@ -1,5 +1,5 @@
 dwave-ocean-sdk==5.0.0
 mip==1.13.0
 plotly==5.6.0
-streamlit==1.9.0
+streamlit==1.9.2
 tabulate==0.8.9
