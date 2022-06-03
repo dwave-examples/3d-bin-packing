@@ -1,4 +1,9 @@
 tasks:
+  - name: Open streamlit app in a new browser window
+    command: |
+      port=8501
+      gp await-port "$port" && gp preview "$(gp url "$port")" --external
+
   - name: Run streamlit app
     init: |
       pip install -r requirements.txt
@@ -7,8 +12,3 @@ tasks:
       url=$(gp url "$port")
       host=${url#"https://"}
       streamlit run --server.port "$port" --browser.serverAddress "$host" --browser.serverPort 80 bin_packing_app.py
-
-  - name: Open streamlit app in a new browser window
-    command: |
-      port=8501
-      gp await-port "$port" && gp preview "$(gp url "$port")" --external
