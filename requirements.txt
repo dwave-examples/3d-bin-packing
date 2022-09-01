@@ -1,5 +1,8 @@
-dwave-ocean-sdk==5.0.0
-mip==1.13.0
-plotly==5.6.0
-streamlit==1.9.2
-tabulate==0.8.9
+dwave-ocean-sdk==5.3.0
+mip==1.14.1
+plotly==5.10.0
+streamlit==1.12.2
+tabulate==0.8.10
+dash==2.6.1
+dash-bootstrap-components==1.2.1
+pyyaml==6.0
