@@ -1,0 +1,14 @@
+html-header-title: "D-Wave Systems Inc. - Demos - Annealing and Gate Model Quantum Computing"
+title: 3D Bin Packing
+subtitle: Quantum Optimization of Bin Packing
+tabs:
+  - Introduction
+  - Problem
+content: The Bin Packing Problem is defined as the placement of a  set of
+  different-sized items into bins so that the number of bins used is minimized.
+  Specific cases of the problem vary according to the dimensions of items/bins,
+  priority and placement constraints, and the planning horizon. The problem
+  has important applications in Supply Chain Management, including vehicle,
+  container, pallet or cargo loading, cutting stock and trim loss problems,
+  packaging design, resource allocation, load balancing, scheduling, project
+  management and financial budgeting.
