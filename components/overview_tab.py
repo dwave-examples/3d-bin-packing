@@ -16,8 +16,6 @@ from dash import html
 import dash_bootstrap_components as dbc
 from .content import content
 
-content_slides = content['overview_slides']
-
 
 def build_overview_tab():
     return [html.Div(children=[
@@ -27,7 +25,7 @@ def build_overview_tab():
 
 def switch_pages():
     el = [html.Img(
-        src=content_slides[0],
+        src='https://blueandgreentomorrow.com/wp-content/uploads/2022/04/eco-friendly-supplychain-scaled.jpg',
         className='overview-image'),
         html.H6(content['content'],
                 style={'color': 'black', 'margin': '5px 5px 5px 5px'})
