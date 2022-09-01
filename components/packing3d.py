@@ -18,6 +18,8 @@ from dwave.system import LeapHybridCQMSampler
 from itertools import combinations, permutations
 import numpy as np
 from typing import Tuple
+import json
+import os
 
 from .bin_packing_utils import print_cqm_stats, plot_cuboids
 from .bin_packing_utils import read_instance, write_solution_to_file
@@ -303,7 +305,6 @@ def call_solver(cqm: ConstrainedQuadraticModel,
 
     res.resolve()
     feasible_sampleset = res.filter(lambda d: d.is_feasible)
-    print(feasible_sampleset)
     if len(feasible_sampleset):
         best_feasible = feasible_sampleset.first.sample
         return best_feasible, suitable
@@ -315,6 +316,7 @@ def main(output_filepath=None,
          time_limit=None,
          use_cqm_solver=True,
          color_coded=False,
+         solution_file=None,
          data=None, **kwargs):
     if data is None:
         raise ValueError
@@ -327,16 +329,25 @@ def main(output_filepath=None,
 
     print_cqm_stats(cqm)
 
-    best_feasible, suitable = call_solver(cqm, time_limit, use_cqm_solver)
+    if os.path.exists(solution_file):
+        with open(solution_file, 'r') as json_file:
+            best_feasible = json.load(json_file)
+    else:
+        best_feasible, suitable = call_solver(cqm, time_limit, use_cqm_solver)
+        with open(solution_file, 'w') as json_file:
+            json.dump(best_feasible, json_file)
     if best_feasible is None:
-        return None, False, suitable
+        return dict(solution=None, figure=None,
+                    feasible=False, suitable=suitable)
 
     if output_filepath is not None:
         write_solution_to_file(output_filepath, cqm, vars, best_feasible,
                                cases, bins, effective_dimensions)
 
-    return plot_cuboids(best_feasible, vars, cases,
-                        bins, effective_dimensions, color_coded), True, True
+    figure = plot_cuboids(best_feasible, vars, cases,
+                        bins, effective_dimensions, color_coded)
+    return dict(solution=best_feasible, figure=figure,
+                feasible=True, suitable=True)
 
 
 if __name__ == '__main__':

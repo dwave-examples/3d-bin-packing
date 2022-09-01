@@ -82,26 +82,24 @@ def _solve(*args):
     ids = [setting['id'] for setting in settings] + [setting['id'] for setting
                                                      in settings_solve]
     kwargs = {_id: value for _id, value in zip(ids, args)}
-
     kwargs['bin_length'], kwargs['bin_width'], kwargs['bin_height'] = list(
         map(int, kwargs['bin_dimensions'].split('x'))
     )
     kwargs['use_cqm_solver'] = 'Constrained Quadratic Model' == kwargs['solver']
     if kwargs['input_type'] == 'Random':
-        print("Using random data")
         data = generate_data(**kwargs)
     else:
-        print("Using a file")
         data = read_instance(kwargs['data_filepath'])
-    print(data)
-    fig, found_feasible, suitable = main(data=data, **kwargs)
-    if found_feasible:
-        fig.update_layout(
+
+    path = f'input/{file_name(kwargs)}.json'
+    result = main(data=data, solution_file=path, **kwargs)
+    if result['feasible']:
+        result['figure'].update_layout(
             margin=dict(l=20, r=20, t=20, b=20),
         )
-        return dcc.Graph(figure=fig, style={'height': '700px'}), \
+        return dcc.Graph(figure=result['figure'], style={'height': '700px'}), \
                "Feasible Solution Found", 'success'
-    elif suitable:
+    elif result['suitable']:
         return '', \
                "No Feasible Solution Found", 'danger'
     else:
@@ -155,3 +153,23 @@ def generate_data(num_bins, num_cases,
 
     data["case_ids"] = np.array(range(len(data["quantity"])))
     return data
+
+
+def file_name(p):
+    from itertools import chain
+    p = dict(p)
+    if p['input_type'] == 'Random':
+        p.pop('data_filepath')
+    else:
+        for key in ['num_bins', 'num_cases', 'case_size_range_min',
+                    'case_size_range_max', 'bin_dimensions', 'bin_length',
+                    'bin_width', 'bin_height']:
+            p.pop(key)
+    for key in p:
+        if isinstance(p[key], str):
+            for c in list('/.- '):
+                p[key] = p[key].replace(c, '_')
+            for c in list('()'):
+                p[key] = p[key].replace(c, '')
+    name = '_'.join(map(str, chain(*p.items())))
+    return name
