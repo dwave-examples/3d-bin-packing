@@ -17,16 +17,16 @@ import numpy as np
 import sys
 import streamlit as st
 from typing import Optional
-from packing3d import (Cases,
-                       Bins,
-                       Variables,
-                       build_cqm,
-                       call_solver)
-from utils import (print_cqm_stats,
-                   plot_cuboids,
-                   read_instance,
-                   write_solution_to_file,
-                   write_input_data)
+from components.packing3d import (Cases,
+                                  Bins,
+                                  Variables,
+                                  build_cqm,
+                                  call_solver)
+from components.bin_packing_utils import (print_cqm_stats,
+                                          plot_cuboids,
+                                          read_instance,
+                                          write_solution_to_file,
+                                          write_input_data)
 
 
 def _get_cqm_stats(cqm) -> str:
@@ -60,7 +60,7 @@ def _solve_bin_packing_instance(data: dict,
     st.code(_get_cqm_stats(cqm))
 
     if write_to_file:
-        write_solution_to_file(solution_filename, cqm, 
+        write_solution_to_file(solution_filename, cqm,
                                model_variables, best_feasible,
                                cases, bins, effective_dimensions)
 
@@ -173,15 +173,15 @@ elif run_type == "Random":
                 "num_bins": num_bins,
                 "bin_dimensions": [bin_length, bin_width, bin_height],
                 "case_length": rng.integers(
-                    case_size_range[0], case_size_range[1], 
+                    case_size_range[0], case_size_range[1],
                     num_cases, endpoint=True
                 ),
                 "case_width": rng.integers(
-                    case_size_range[0], case_size_range[1], 
+                    case_size_range[0], case_size_range[1],
                     num_cases, endpoint=True
                 ),
                 "case_height": rng.integers(
-                    case_size_range[0], case_size_range[1], 
+                    case_size_range[0], case_size_range[1],
                     num_cases, endpoint=True
                 ),
             }
@@ -190,14 +190,14 @@ elif run_type == "Random":
             case_dimensions = np.vstack(
                 [data["case_length"], data["case_width"], data["case_height"]]
             )
-            unique_dimensions, data["quantity"] = np.unique(case_dimensions, 
+            unique_dimensions, data["quantity"] = np.unique(case_dimensions,
                                                             axis=1,
                                                             return_counts=True)
-            
-            data["case_length"] = unique_dimensions[0,:]
-            data["case_width"] = unique_dimensions[1,:]
-            data["case_height"] = unique_dimensions[2,:]
-            
+
+            data["case_length"] = unique_dimensions[0, :]
+            data["case_width"] = unique_dimensions[1, :]
+            data["case_height"] = unique_dimensions[2, :]
+
             data["case_ids"] = np.array(range(len(data["quantity"])))
 
             input_data_string = write_input_data(data, input_filename)
