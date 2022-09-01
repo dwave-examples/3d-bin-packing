@@ -288,24 +288,27 @@ def call_solver(cqm: ConstrainedQuadraticModel,
         A ``dimod.SampleSet`` that represents the best feasible solution found.
     
     """
+    suitable = True
     if use_cqm_solver:
         sampler = LeapHybridCQMSampler()
         res = sampler.sample_cqm(cqm, time_limit=time_limit,
                                  label='3d bin packing')
     else:
-        sampler = MIPCQMSolver()
-        res = sampler.sample_cqm(cqm, time_limit=time_limit)
+        suitable = all([qm.lhs.is_linear() for qm in cqm.constraints.values()])
+        if suitable:
+            sampler = MIPCQMSolver()
+            res = sampler.sample_cqm(cqm, time_limit=time_limit)
+        else:
+            return None, suitable
 
     res.resolve()
     feasible_sampleset = res.filter(lambda d: d.is_feasible)
     print(feasible_sampleset)
-    try:
+    if len(feasible_sampleset):
         best_feasible = feasible_sampleset.first.sample
-
-        return best_feasible
-
-    except ValueError:
-        return None
+        return best_feasible, suitable
+    else:
+        return None, suitable
 
 
 def main(output_filepath=None,
@@ -324,16 +327,16 @@ def main(output_filepath=None,
 
     print_cqm_stats(cqm)
 
-    best_feasible = call_solver(cqm, time_limit, use_cqm_solver)
+    best_feasible, suitable = call_solver(cqm, time_limit, use_cqm_solver)
     if best_feasible is None:
-        return None, False
+        return None, False, suitable
 
     if output_filepath is not None:
         write_solution_to_file(output_filepath, cqm, vars, best_feasible,
                                cases, bins, effective_dimensions)
 
     return plot_cuboids(best_feasible, vars, cases,
-                        bins, effective_dimensions, color_coded), True
+                        bins, effective_dimensions, color_coded), True, True
 
 
 if __name__ == '__main__':

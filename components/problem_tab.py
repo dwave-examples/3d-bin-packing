@@ -94,15 +94,18 @@ def _solve(*args):
         print("Using a file")
         data = read_instance(kwargs['data_filepath'])
     print(data)
-    fig, found_feasible = main(data=data, **kwargs)
+    fig, found_feasible, suitable = main(data=data, **kwargs)
     if found_feasible:
         fig.update_layout(
             margin=dict(l=20, r=20, t=20, b=20),
         )
         return dcc.Graph(figure=fig, style={'height': '700px'}), \
                "Feasible Solution Found", 'success'
-    return '', \
-           "No Feasible Solution Found", 'danger'
+    elif suitable:
+        return '', \
+               "No Feasible Solution Found", 'danger'
+    else:
+        return '', "MIP cannot support quadratic interactions", 'danger'
 
 
 @app.callback(
