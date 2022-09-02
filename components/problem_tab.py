@@ -118,6 +118,17 @@ def update_inputs(value):
             for ab, d in zip(always_blocked, displays)]
 
 
+@app.callback(
+    Output("time_limit", "value"),
+    [Input("time_limit", "value"), Input("solver", "value")],
+
+)
+def adjust_time_limit(tl, solver):
+    if tl < 5 and solver == 'Constrained Quadratic Model':
+        return 5
+    return dash.no_update
+
+
 def generate_data(num_bins, num_cases,
                   bin_length, bin_width, bin_height,
                   case_size_range_min,
