@@ -273,6 +273,7 @@ def write_solution_to_file(solution_file_path: str,
         f.close()
         print(f'Saved solution to '
               f'{os.path.join(os.getcwd(), solution_file_path)}')
+    return vs
 
 
 def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:

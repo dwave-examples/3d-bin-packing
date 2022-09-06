@@ -70,15 +70,13 @@ def plot_data(data):
             go.Scatter(
                 x=x, y=y,
                 name=f'{k}',
-                mode='lines',
+                mode='markers+lines',
                 marker=dict(
                     color=color[i],
                     size=10,
                 )))
 
-    # names = content['quantities']
     fig.update_xaxes(type="log")
-    # fig.update_yaxes(type="log")
     fig.update_layout(xaxis=dict(title="Time (s)"),
                       yaxis=dict(title="Maximum Height (cm)"),
                       )
