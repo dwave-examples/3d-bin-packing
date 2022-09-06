@@ -312,6 +312,16 @@ def call_solver(cqm: ConstrainedQuadraticModel,
         return None, suitable
 
 
+def get_cqm(data=None):
+    if data is None:
+        raise ValueError
+    cases = Cases(data)
+    bins = Bins(data, cases)
+    vars = Variables(cases, bins)
+    cqm, effective_dimensions = build_cqm(vars, bins, cases)
+    return cqm, effective_dimensions
+
+
 def main(output_filepath=None,
          time_limit=None,
          use_cqm_solver=True,
@@ -329,6 +339,7 @@ def main(output_filepath=None,
 
     print_cqm_stats(cqm)
 
+    suitable = True
     if os.path.exists(solution_file):
         with open(solution_file, 'r') as json_file:
             best_feasible = json.load(json_file)
@@ -345,7 +356,7 @@ def main(output_filepath=None,
                                cases, bins, effective_dimensions)
 
     figure = plot_cuboids(best_feasible, vars, cases,
-                        bins, effective_dimensions, color_coded)
+                          bins, effective_dimensions, color_coded)
     return dict(solution=best_feasible, figure=figure,
                 feasible=True, suitable=True)
 

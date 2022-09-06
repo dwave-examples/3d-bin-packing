@@ -65,15 +65,21 @@ def build_problem_tab():
 @app.callback(
     [Output('output', 'children'),
      Output('info-card', 'children'),
-     Output('info-card', 'color')],
+     Output('info-card', 'color'),
+     Output('models', 'data')],
     Input('solve-button', 'n_clicks'),
     [State(f"{setting['id']}", 'value') for setting in settings] +
-    [State(f"{setting['id']}", 'value') for setting in settings_solve],
+    [State(f"{setting['id']}", 'value') for setting in settings_solve] +
+    [State('models', 'data')],
     prevent_initial_callback=True
 )
 def solve(nc, *args):
+    models = args[-1]
+    args = args[:-1]
     if nc > 0:
-        return _solve(*args)
+        figure, message, feasible, model = _solve(*args)
+        models.append(model)
+        return figure, message, feasible, models
     return dash.no_update
 
 
@@ -97,13 +103,14 @@ def _solve(*args):
         result['figure'].update_layout(
             margin=dict(l=20, r=20, t=20, b=20),
         )
+        kwargs['solution'] = result['solution']
         return dcc.Graph(figure=result['figure'], style={'height': '700px'}), \
-               "Feasible Solution Found", 'success'
+               "Feasible Solution Found", 'success', kwargs
     elif result['suitable']:
         return '', \
-               "No Feasible Solution Found", 'danger'
+               "No Feasible Solution Found", 'danger', kwargs
     else:
-        return '', "MIP cannot support quadratic interactions", 'danger'
+        return '', "MIP cannot support quadratic interactions", 'danger', kwargs
 
 
 @app.callback(

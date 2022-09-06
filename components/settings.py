@@ -73,7 +73,7 @@ settings = [
 ]
 
 
-_options = ['Constrained Quadratic Model', 'CBC (Python-MIP)', "DQM"]
+_options = ['Constrained Quadratic Model', 'CBC (Python-MIP)']
 settings_solve = [
     {
         'name': 'Solver', 'type': 'menu', 'id': 'solver',

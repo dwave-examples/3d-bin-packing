@@ -34,7 +34,8 @@ def named_template(name, element, **kwargs):
 def named_input(name='Dummy', id='', value='', type='text', **kwargs):
     return named_template(
         name,
-        dcc.Input(id=id, value=value, type=type, style={'width': '95%'}), id=id,
+        dcc.Input(id=id, value=value, type=type, style={'width': '95%'},
+                  debounce=True), id=id,
         **kwargs
     )
 

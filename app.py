@@ -23,6 +23,7 @@ app.layout = html.Div(
     id="big-app-container",
     children=[
         build_banner(),
+        dcc.Store(id='models', data=[]),
         dcc.Interval(
             id="interval-component",
             interval=1000,

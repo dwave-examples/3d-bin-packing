@@ -4,6 +4,11 @@ subtitle: Quantum Optimization of Bin Packing
 tabs:
   - Introduction
   - Problem
+  - Benchmark
+benchmark_tab_trace_colors:
+  - #B52626
+  - #092286
+  - #890690
 content: The Bin Packing Problem is defined as the placement of a  set of
   different-sized items into bins so that the number of bins used is minimized.
   Specific cases of the problem vary according to the dimensions of items/bins,

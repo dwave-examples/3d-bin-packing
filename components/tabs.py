@@ -15,6 +15,7 @@
 from dash import dcc, html, Input, Output
 from .overview_tab import build_overview_tab
 from .problem_tab import build_problem_tab
+from .benchmark_tab import build_benchmark_tab
 from .app import app
 from .content import content
 
@@ -57,3 +58,5 @@ def render_tab_content(tab_switch):
         return build_overview_tab()
     if tab_switch == "tab1":
         return build_problem_tab()
+    if tab_switch == "tab2":
+        return build_benchmark_tab()
