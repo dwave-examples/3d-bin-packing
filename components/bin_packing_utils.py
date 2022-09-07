@@ -161,23 +161,22 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
                       dz[i].energy(sample)))
     fig = _plot_cuboids(positions, sizes, bins.length * num_bins,
                         bins.width, bins.height, color_coded, cases.case_ids)
+    from itertools import product
+    corners = list(product([0, bins.length], [0, bins.width], [0, bins.height]))
+    ls = [bins.length, bins.width, bins.height]
     for i in range(num_bins):
-        fig.add_trace(
-            go.Scatter3d(x=[bins.length * i, bins.length * (i + 1)], y=[0, 0],
-                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
-                         line_color="red", line_width=5)
-        )
-        fig.add_trace(
-            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, bins.width],
-                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
-                         line_color="red", line_width=5)
-        )
-        fig.add_trace(
-            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, 0],
-                         z=[0, bins.height], mode='lines',
-                         name=f"Bin Boundary {i + 1}", line_color="red",
-                         line_width=5)
-        )
+        for c in corners:
+            for j, cv in enumerate(c):
+                if cv == 0:
+                    c1 = list(c)
+                    c1[0] += bins.length * i
+                    c2 = list(c1)
+                    c2[j] += ls[j]
+                    fig.add_trace(
+                        go.Scatter3d(x=[c1[0], c2[0]], y=[c1[1], c2[1]],
+                                     z=[c1[2], c2[2]], mode='lines', showlegend=False,
+                                     line_color="#ECD7D7", line_width=5)
+                    )
 
     fig.update_layout(scene=dict(aspectmode="data"))
 
