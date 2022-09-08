@@ -15,8 +15,9 @@
 import dash
 import dash_bootstrap_components as dbc
 import numpy as np
+import pandas as pd
 from functools import lru_cache
-from dash import html, dcc, Input, Output, State
+from dash import html, dcc, Input, Output, State, ctx, dash_table
 from .utils import selector
 from .settings import settings, settings_solve
 from .app import app
@@ -46,6 +47,11 @@ def build_problem_tab():
                         html.Div([selector(**setting)
                                   for setting in settings_solve],
                                  style={'margin': '20px 0px 0px 10px'}),
+                        html.Div(html.Button('Display Input',
+                                             id='display-input-button',
+                                             style=button_style,
+                                             n_clicks=0),
+                                 style={'margin': '20px 0px 0px 10px'}),
                         html.Div(html.Button('solve', id='solve-button',
                                              style=button_style,
                                              n_clicks=0),
@@ -63,24 +69,74 @@ def build_problem_tab():
 
 
 @app.callback(
-    [Output('output', 'children'),
-     Output('info-card', 'children'),
-     Output('info-card', 'color'),
-     Output('models', 'data')],
-    Input('solve-button', 'n_clicks'),
+    [
+        Output('output', 'children'),
+        Output('info-card', 'children'),
+        Output('info-card', 'color'),
+        Output('models', 'data')
+    ],
+    [
+        Input('display-input-button', 'n_clicks'),
+        Input('solve-button', 'n_clicks'),
+    ],
     [State(f"{setting['id']}", 'value') for setting in settings] +
     [State(f"{setting['id']}", 'value') for setting in settings_solve] +
     [State('models', 'data')],
     prevent_initial_callback=True
 )
-def solve(nc, *args):
+def solve(di_nc, sb_nc, *args):
     models = args[-1]
     args = args[:-1]
-    if nc > 0:
+    if sb_nc > 0 or di_nc > 0:
+        data, kwargs = _generate_problem(*args)
+        if ctx.triggered_id == 'display-input-button':
+            dd = dict(data)
+            dd.pop('num_bins')
+            dd.pop('bin_dimensions')
+            df = pd.DataFrame.from_dict(dd)
+            return dash_table.DataTable(
+                df.to_dict('records'),
+                [{"name": i, "id": i} for i in df.columns],
+                editable=True,
+                fill_width=False,
+                style_data={
+                    'color': 'black',
+                    'backgroundColor': 'white'
+                },
+                style_header={
+                    'backgroundColor': 'rgb(210, 210, 210)',
+                    'color': 'black',
+                    'fontWeight': 'bold',
+                    'text-align': 'center'
+                },
+                style_data_conditional=[
+                    {
+                        "if": {"state": "selected"},
+                        "backgroundColor": "inherit !important",
+                        "border": "inherit !important",
+                    }
+                ],
+            ), "Display Data", "True", dash.no_update
         figure, message, feasible, model = _solve(*args)
         models.append(model)
         return figure, message, feasible, models
     return dash.no_update
+
+
+@lru_cache()
+def _generate_problem(*args):
+    ids = [setting['id'] for setting in settings] + [setting['id'] for setting
+                                                     in settings_solve]
+    kwargs = {_id: value for _id, value in zip(ids, args)}
+    kwargs['bin_length'], kwargs['bin_width'], kwargs['bin_height'] = list(
+        map(int, kwargs['bin_dimensions'].split('x'))
+    )
+    kwargs['use_cqm_solver'] = 'Constrained Quadratic Model' == kwargs['solver']
+    if kwargs['input_type'] == 'Random':
+        data = generate_data(**kwargs)
+    else:
+        data = read_instance(kwargs['data_filepath'])
+    return data, kwargs
 
 
 @lru_cache()
@@ -96,7 +152,6 @@ def _solve(*args):
         data = generate_data(**kwargs)
     else:
         data = read_instance(kwargs['data_filepath'])
-
     path = f'input/{file_name(kwargs)}.json'
     result = main(data=data, solution_file=path, **kwargs)
     if result['feasible']:
