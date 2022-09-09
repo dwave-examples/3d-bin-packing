@@ -15,7 +15,7 @@
 settings = [
     {
         'name': 'Choose input type', 'type': 'menu', 'id': 'input_type',
-        'options': ['Random', 'File upload'], 'value': 'Random',
+        'options': ['Random', 'File upload', 'Random Cut'], 'value': 'Random',
     },
     {
         'name': 'Input file', 'type': 'text', 'id': 'data_filepath',
@@ -81,7 +81,7 @@ settings_solve = [
         'value': _options[1],
     },
     {
-        'name': 'Hybrid solver time(s)', 'type': 'number', 'id': 'time_limit',
+        'name': 'Hybrid solver time (s)', 'type': 'number', 'id': 'time_limit',
         'options': [],
         'value': 20,
     },

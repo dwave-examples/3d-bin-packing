@@ -23,6 +23,7 @@ from .settings import settings, settings_solve
 from .app import app
 from .packing3d import main
 from .bin_packing_utils import read_instance
+from .random_cut import random_cut_generator
 
 button_style = {'background-color': 'white',
                 'color': 'black'}
@@ -44,13 +45,13 @@ def build_problem_tab():
                         html.Div([selector(**setting)
                                   for setting in settings],
                                  style={'margin': '10px 0px 0px 10px'}),
-                        html.Div([selector(**setting)
-                                  for setting in settings_solve],
-                                 style={'margin': '20px 0px 0px 10px'}),
                         html.Div(html.Button('Display Input',
                                              id='display-input-button',
                                              style=button_style,
                                              n_clicks=0),
+                                 style={'margin': '20px 0px 0px 10px'}),
+                        html.Div([selector(**setting)
+                                  for setting in settings_solve],
                                  style={'margin': '20px 0px 0px 10px'}),
                         html.Div(html.Button('solve', id='solve-button',
                                              style=button_style,
@@ -94,11 +95,11 @@ def solve(di_nc, sb_nc, *args):
             dd.pop('num_bins')
             dd.pop('bin_dimensions')
             df = pd.DataFrame.from_dict(dd)
-            return dash_table.DataTable(
+            table = dash_table.DataTable(
                 df.to_dict('records'),
                 [{"name": i, "id": i} for i in df.columns],
                 editable=True,
-                fill_width=False,
+                fill_width=True,
                 style_data={
                     'color': 'black',
                     'backgroundColor': 'white'
@@ -116,7 +117,10 @@ def solve(di_nc, sb_nc, *args):
                         "border": "inherit !important",
                     }
                 ],
-            ), "Display Data", "True", dash.no_update
+                page_size=20,
+            )
+            table = dbc.Row(dbc.Col(table, width=6))
+            return table, "Display Data", "True", dash.no_update
         figure, message, feasible, model = _solve(*args)
         models.append(model)
         return figure, message, feasible, models
@@ -134,6 +138,8 @@ def _generate_problem(*args):
     kwargs['use_cqm_solver'] = 'Constrained Quadratic Model' == kwargs['solver']
     if kwargs['input_type'] == 'Random':
         data = generate_data(**kwargs)
+    elif kwargs['input_type'] == 'Random Cut':
+        data = random_cut_generator(**kwargs)
     else:
         data = read_instance(kwargs['data_filepath'])
     return data, kwargs
@@ -150,6 +156,8 @@ def _solve(*args):
     kwargs['use_cqm_solver'] = 'Constrained Quadratic Model' == kwargs['solver']
     if kwargs['input_type'] == 'Random':
         data = generate_data(**kwargs)
+    elif kwargs['input_type'] == 'Random Cut':
+        data = random_cut_generator(**kwargs)
     else:
         data = read_instance(kwargs['data_filepath'])
     path = f'input/{file_name(kwargs)}.json'
@@ -174,7 +182,7 @@ def _solve(*args):
     prevent_initial_callback=True
 )
 def update_inputs(value):
-    if value == 'Random':
+    if 'Random' in value:
         return displays
     return [{'display': 'none' if d['display'] == 'block' or ab else 'block'}
             for ab, d in zip(always_blocked, displays)]
@@ -231,7 +239,7 @@ def generate_data(num_bins, num_cases,
 def file_name(p):
     from itertools import chain
     p = dict(p)
-    if p['input_type'] == 'Random':
+    if 'Random' in p['input_type']:
         p.pop('data_filepath')
     else:
         for key in ['num_bins', 'num_cases', 'case_size_range_min',

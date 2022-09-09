@@ -113,9 +113,9 @@ def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
     case_data = _get_all_cuboids(positions, sizes, color_coded, case_ids)
     fig = go.Figure(data=case_data)
     fig.update_layout(scene=dict(
-        xaxis=dict(range=[0, bin_length * 1.1]),
-        yaxis=dict(range=[0, bin_width * 1.1]),
-        zaxis=dict(range=[0, bin_height * 1.1])
+        xaxis=dict(range=[0, bin_length]),
+        yaxis=dict(range=[0, bin_width]),
+        zaxis=dict(range=[0, bin_height])
     ))
 
     return fig
