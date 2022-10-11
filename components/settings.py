@@ -53,6 +53,11 @@ settings = [
         'value': '50x50x50',
     },
     {
+        'name': 'Seed', 'type': 'number', 'id': 'seed',
+        'options': [],
+        'value': 42,
+    },
+    {
         'name': 'Bin length', 'type': 'number', 'id': 'bin_length',
         'options': [],
         'value': 50,

@@ -202,8 +202,7 @@ def adjust_time_limit(tl, solver):
 def generate_data(num_bins, num_cases,
                   bin_length, bin_width, bin_height,
                   case_size_range_min,
-                  case_size_range_max, **kwargs):
-    seed = 111
+                  case_size_range_max, seed, **kwargs):
     rng = np.random.default_rng(seed)
     data = {
         "num_bins": num_bins,
