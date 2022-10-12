@@ -17,11 +17,10 @@ def random_cut_generator(num_bins, bin_length, bin_width, bin_height, num_cases,
         box1 = list(b)
         box2 = list(b)
         cut_length = int(b[i] * r)
-        if cut_length == 0:
-            cut_length = 1
-        elif cut_length >= b[i]:
-            cut_length = b[i] - 1
-
+        if b[i] == 1 or cut_length == 0 or cut_length >= b[i]:
+            c += 1
+            heappush(boxes, tuple(b))
+            continue
         box1[i] = cut_length
         box2[i] = b[i] - cut_length
         box1[0] = -max(box1[1:])
