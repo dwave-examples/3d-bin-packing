@@ -17,6 +17,7 @@ import json
 import dash
 import dash_bootstrap_components as dbc
 import numpy as np
+import pandas as pd
 from dash import html, dcc, Input, Output
 from .utils import selector
 from .app import app
@@ -52,7 +53,6 @@ def build_benchmark_tab():
 def benchmark_results(num_cases, tab):
     if tab == 'tab2':
         data = json.load(open(f'components/assets/benchmark_{num_cases}.json'))
-        import pandas as pd
         data = pd.DataFrame(data)
         return plot_data(data)
     return dash.no_update

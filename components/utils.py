@@ -32,9 +32,11 @@ def named_template(name, element, **kwargs):
 
 
 def named_input(name='Dummy', id='', value='', type='text', **kwargs):
+    min_value = kwargs.get('min', None)
     return named_template(
         name,
-        dcc.Input(id=id, value=value, type=type, style={'width': '95%'},
+        dcc.Input(id=id, value=value, type=type, style={'width': '100%'},
+                  min=min_value,
                   debounce=True), id=id,
         **kwargs
     )
@@ -49,7 +51,7 @@ def named_dropdown(name='Dummy', id='dummy',
             clearable=False,
             value=value,
             options=options,
-            style={'width': '95%', 'color': 'black'},
+            style={'width': '100%', 'color': 'black'},
         ), id=id, **kwargs
     )
 

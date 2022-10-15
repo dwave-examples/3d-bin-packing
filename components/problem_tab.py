@@ -16,6 +16,7 @@ import dash
 import dash_bootstrap_components as dbc
 import numpy as np
 import pandas as pd
+from itertools import chain
 from functools import lru_cache
 from dash import html, dcc, Input, Output, State, ctx, dash_table
 from .utils import selector
@@ -58,7 +59,7 @@ def build_problem_tab():
                                              n_clicks=0),
                                  style={'margin': '20px 0px 0px 10px'}),
                         dbc.Card(children='Press Solve...', id='info-card',
-                                 style={'color': 'black',
+                                 style={'color': 'black', 'display': 'none',
                                         'margin': '20px 0px 0px 10px'})
                     ]
                     , width=2),
@@ -74,6 +75,7 @@ def build_problem_tab():
         Output('output', 'children'),
         Output('info-card', 'children'),
         Output('info-card', 'color'),
+        Output('info-card', 'style'),
         Output('models', 'data')
     ],
     [
@@ -120,10 +122,12 @@ def solve(di_nc, sb_nc, *args):
                 page_size=20,
             )
             table = dbc.Row(dbc.Col(table, width=6))
-            return table, "Display Data", "True", dash.no_update
+            return table, "", "True", dash.no_update, dash.no_update
         figure, message, feasible, model = _solve(*args)
         models.append(model)
-        return figure, message, feasible, models
+        style = {'color': 'black', 'display': 'block',
+                 'margin': '20px 0px 0px 10px'}
+        return figure, message, feasible, style, models
     return dash.no_update
 
 
@@ -236,7 +240,6 @@ def generate_data(num_bins, num_cases,
 
 
 def file_name(p):
-    from itertools import chain
     p = dict(p)
     if 'Random' in p['input_type']:
         p.pop('data_filepath')

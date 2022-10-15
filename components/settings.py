@@ -15,7 +15,17 @@
 settings = [
     {
         'name': 'Choose input type', 'type': 'menu', 'id': 'input_type',
-        'options': ['Random', 'File upload', 'Random Cut'], 'value': 'Random',
+        'options': [
+            {'label': 'Random', 'value': 'Random',
+             'title': 'Generate a bin-packing problem '
+                      'with random box dimensions'},
+            {'label': 'File upload', 'value': 'File upload',
+             'title': 'Load an instance from a file'},
+            {'label': 'Random Cut', 'value': 'Random Cut',
+             'title': 'Generate a random bin-packing problem with a known '
+                      'solution by iteratively cutting a half-bin along '
+                      'the longest dimension'}
+        ], 'value': 'Random',
     },
     {
         'name': 'Input file', 'type': 'text', 'id': 'data_filepath',
@@ -26,11 +36,13 @@ settings = [
     {
         'name': 'Number of bins', 'type': 'number', 'id': 'num_bins',
         'options': [],
+        'min': 1,
         'value': 1,
     },
     {
         'name': 'Number of cases', 'type': 'number', 'id': 'num_cases',
         'options': [],
+        'min': 1,
         'value': 20,
     },
     {
@@ -38,6 +50,7 @@ settings = [
         'id': 'case_size_range_min',
         'options': [],
         'value': 5,
+        'min': 1,
         'display': 'none',
     },
     {
@@ -48,35 +61,39 @@ settings = [
         'display': 'none'
     },
     {
-        'name': 'Bin Dimensions (LxWxH)', 'type': 'text', 'id': 'bin_dimensions',
+        'name': 'Bin Dimensions (LxWxH)', 'type': 'text',
+        'id': 'bin_dimensions',
         'options': [],
         'value': '50x50x50',
     },
     {
-        'name': 'Seed', 'type': 'number', 'id': 'seed',
+        'name': 'Seed for random problems', 'type': 'number', 'id': 'seed',
         'options': [],
+        'min': 0,
         'value': 42,
     },
     {
         'name': 'Bin length', 'type': 'number', 'id': 'bin_length',
         'options': [],
         'value': 50,
+        'min': 1,
         'display': 'none',
     },
     {
         'name': 'Bin width', 'type': 'number', 'id': 'bin_width',
         'options': [],
         'value': 50,
+        'min': 1,
         'display': 'none',
     },
     {
         'name': 'Bin height', 'type': 'number', 'id': 'bin_height',
         'options': [],
         'value': 50,
+        'min': 1,
         'display': 'none',
     },
 ]
-
 
 _options = ['Constrained Quadratic Model', 'CBC (Python-MIP)']
 settings_solve = [
@@ -88,6 +105,7 @@ settings_solve = [
     {
         'name': 'Hybrid solver time (s)', 'type': 'number', 'id': 'time_limit',
         'options': [],
+        'min': 0.001,
         'value': 20,
     },
 ]

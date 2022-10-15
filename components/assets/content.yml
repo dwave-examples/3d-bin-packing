@@ -4,16 +4,16 @@ subtitle: Quantum Optimization of Bin Packing
 tabs:
   - Introduction
   - Problem
-  - Benchmark
+  - Benchmarks
 benchmark_tab_trace_colors:
   - #B52626
   - #092286
   - #890690
-content: The Bin Packing Problem is defined as the placement of a  set of
+content: The bin packing problem is defined as the placement of a  set of
   different-sized items into bins so that the number of bins used is minimized.
-  Specific cases of the problem vary according to the dimensions of items/bins,
+  Realizations of the problem vary according to the dimensions of cases/bins,
   priority and placement constraints, and the planning horizon. The problem
-  has important applications in Supply Chain Management, including vehicle,
+  has important applications in supply chain management, including vehicle,
   container, pallet or cargo loading, cutting stock and trim loss problems,
   packaging design, resource allocation, load balancing, scheduling, project
   management and financial budgeting.
