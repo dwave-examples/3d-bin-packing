@@ -1,14 +1,10 @@
 tasks:
-  - name: Open streamlit app in a new browser window
+  - name: Open Dash app in a new browser window
     command: |
-      port=8501
+      port=8000
       gp await-port "$port" && gp preview "$(gp url "$port")" --external
-
-  - name: Run streamlit app
+  - name: Run dash application
     init: |
       pip install -r requirements.txt
     command: |
-      port=8501
-      url=$(gp url "$port")
-      host=${url#"https://"}
-      streamlit run --server.port "$port" --browser.serverAddress "$host" --browser.serverPort 80 bin_packing_app.py
+      PORT=8000 python app.py
