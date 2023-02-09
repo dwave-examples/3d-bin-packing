@@ -124,7 +124,7 @@ These are the parameters of the problem:
  - `L` : length of the bins
  - `W` : width of bins 
  - `H`: height of the bins
- - `l_i`: height of case `i`
+ - `l_i`: length of case `i`
  - `w_i`: width of case `i`
  - `h_i`: height of case `i`
  
