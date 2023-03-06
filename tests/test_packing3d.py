@@ -18,8 +18,8 @@ import unittest
 from unittest.mock import patch
 
 import dimod
-from dwave.system import LeapHybridCQMSampler
 from mip_solver import MIPCQMSolver
+import packing3d
 from packing3d import build_cqm, Cases, Bins, Variables, call_solver
 from packing3d import _add_orientation_constraints, _add_bin_on_constraint
 from packing3d import _add_boundary_constraints, _add_geometric_constraints
@@ -225,9 +225,9 @@ class TestPacking3d(unittest.TestCase):
     def test_call_solver(self):
         cqm, _ = build_cqm(self.variables, self.bins, self.cases)
 
-        with patch.object(LeapHybridCQMSampler, 'sample_cqm') as mock:
+        with patch('packing3d.LeapHybridCQMSampler') as mock:
             call_solver(cqm, time_limit=5, use_cqm_solver=True)
-            mock.assert_called_with(cqm, time_limit=5, label='3d bin packing')
+            mock.return_value.sample_cqm.assert_called_with(cqm, time_limit=5, label='3d bin packing')
 
         with patch.object(MIPCQMSolver, 'sample_cqm') as mock:
             call_solver(cqm, time_limit=5, use_cqm_solver=False)
