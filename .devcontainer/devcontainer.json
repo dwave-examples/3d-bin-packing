@@ -1,0 +1,52 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/debian
+{
+	"name": "Ocean Development Environment",
+
+	// python 3.11 on debian, with latest Ocean and optional packages
+	// source repo: https://github.com/dwavesystems/ocean-dev-docker
+	"image": "docker.io/dwavesys/ocean-dev:latest",
+
+	// install repo requirements on create and content update
+	"updateContentCommand": "pip install -r requirements.txt",
+
+	// forward/expose container services (relevant only when run locally)
+	"forwardPorts": [
+		// dwave-inspector web app
+		18000, 18001, 18002, 18003, 18004,
+		// OAuth connect redirect URIs
+		36000, 36001, 36002, 36003, 36004
+	],
+
+	"portsAttributes": {
+		"18000-18004": {
+			"label": "D-Wave Problem Inspector",
+			"requireLocalPort": true
+		},
+		"36000-36004": {
+			"label": "OAuth 2.0 authorization code redirect URI",
+			"requireLocalPort": true
+		}
+	},
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {},
+			"extensions": [
+				"ms-python.python",
+				"ms-toolsai.jupyter"
+			]
+		},
+
+		// Configure properties specific to Codespaces.
+		"codespaces": {
+			"openFiles": [
+				"README.md",
+				"README.rst"
+			]
+		}
+	}
+}
