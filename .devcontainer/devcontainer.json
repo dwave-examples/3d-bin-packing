@@ -34,18 +34,17 @@
 		// Configure properties specific to VS Code.
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
-			"settings": {},
+			"settings": {
+				"workbench": {
+					"editorAssociations": {
+						"*.md": "vscode.markdown.preview.editor"
+					},
+					"startupEditor": "readme"
+				}
+			},
 			"extensions": [
 				"ms-python.python",
 				"ms-toolsai.jupyter"
-			]
-		},
-
-		// Configure properties specific to Codespaces.
-		"codespaces": {
-			"openFiles": [
-				"README.md",
-				"README.rst"
 			]
 		}
 	}
