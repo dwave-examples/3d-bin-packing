@@ -26,14 +26,18 @@ Below is an example output of the program:
 
 ## Installation
 
-This example can be run in the Leap IDE by accessing the following URL:
-    
-    https://ide.dwavesys.io/#https://github.com/dwave-examples/3d-bin-packing
+You can run this example without installation in cloud-based IDEs that support 
+the [Development Containers specification](https://containers.dev/supporting)
+(aka "devcontainers").
 
-
-Alternatively, install requirements locally. Ideally, in a virtual environment.
+For development environments that do not support ``devcontainers``, install 
+requirements:
 
     pip install -r requirements.txt
+
+If you are cloning the repo to your local system, working in a 
+[virtual environment](https://docs.python.org/3/library/venv.html) is 
+recommended.
 
 ## Usage
 
