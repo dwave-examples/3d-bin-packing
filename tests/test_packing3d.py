@@ -80,28 +80,31 @@ class TestPacking3d(unittest.TestCase):
 
     def test_add_bin_on_constraint(self):
         bins = Bins(self.data, self.cases)
-        bins.num_bins = 2
+        bins.num_bins = 3
         vars = Variables(self.cases, bins)
         cqm = dimod.ConstrainedQuadraticModel()
         _add_bin_on_constraint(cqm, vars, bins, self.cases)
 
         # check a feasible solution
         sample = {
-            'bin_0_is_used': 1, 'case_0_in_bin_0': 0, 'case_1_in_bin_0': 1,
-            'bin_1_is_used': 1, 'case_0_in_bin_1': 1, 'case_1_in_bin_1': 0}
+            'bin_0_is_used': 1, 'case_0_in_bin_0': 1, 'case_1_in_bin_0': 0,
+            'bin_1_is_used': 1, 'case_0_in_bin_1': 0, 'case_1_in_bin_1': 1,
+            'bin_2_is_used': 0, 'case_0_in_bin_2': 0, 'case_1_in_bin_2': 0}
         self.assertEqual(cqm.check_feasible(sample), True)
 
         # check sequence bin use constraint
         sample = {
-            'bin_0_is_used': 0, 'case_0_in_bin_0': 0, 'case_1_in_bin_0': 0,
-            'bin_1_is_used': 1, 'case_0_in_bin_1': 1, 'case_1_in_bin_1': 1}
+            'bin_0_is_used': 1, 'case_0_in_bin_0': 1, 'case_1_in_bin_0': 0,
+            'bin_1_is_used': 0, 'case_0_in_bin_1': 0, 'case_1_in_bin_1': 0,
+            'bin_2_is_used': 1, 'case_0_in_bin_2': 0, 'case_1_in_bin_2': 1}
 
         self.assertEqual(cqm.check_feasible(sample), False)
 
         # check that it is not possible to put item in a bin that is off
         sample = {
             'bin_0_is_used': 1, 'case_0_in_bin_0': 1, 'case_1_in_bin_0': 0,
-            'bin_1_is_used': 0, 'case_0_in_bin_1': 0, 'case_1_in_bin_1': 1}
+            'bin_1_is_used': 0, 'case_0_in_bin_1': 0, 'case_1_in_bin_1': 1,
+            'bin_2_is_used': 0, 'case_0_in_bin_2': 0, 'case_1_in_bin_2': 0}
         self.assertEqual(cqm.check_feasible(sample), False)
 
     def test_add_geometric(self):
@@ -167,7 +170,7 @@ class TestPacking3d(unittest.TestCase):
                                                             self.cases)
         _add_boundary_constraints(cqm, vars, bins, 
                                   self.cases, effective_dimensions)
-        self.assertEqual(len(cqm.constraints), 18)
+        self.assertEqual(len(cqm.constraints), 14)
 
         original_sample = {k: 0 for k in cqm.variables.copy()}
         original_sample['o_0_0'] = 1
@@ -175,19 +178,17 @@ class TestPacking3d(unittest.TestCase):
         for v in ['x', 'y', 'z']:
             # check boundary when items are assigned to bin 1
             sample = original_sample.copy()
-            sample['case_0_in_bin_0'] = 1
             sample['case_1_in_bin_0'] = 1
             sample['upper_bound_0'] = 12
             sample[f'{v}_0'] = 10
             self.assertTrue(cqm.check_feasible(sample))
 
-            # # check boundary when items are assigned to bins 1 and 2
+            # check boundary when items are assigned to bins 1 and 2
             sample = original_sample.copy()
-            sample[f'{v}_0'] = 35
-            sample[f'x_0'] = 35
-            sample['case_0_in_bin_1'] = 1
-            sample['case_1_in_bin_0'] = 1
-            sample['upper_bound_1'] = 37
+            sample[f'{v}_1'] = 35
+            sample[f'x_1'] = 35
+            sample['case_1_in_bin_1'] = 1
+            sample['upper_bound_1'] = 38
             sample['upper_bound_0'] = 37
             self.assertTrue(cqm.check_feasible(sample))
 
@@ -195,7 +196,6 @@ class TestPacking3d(unittest.TestCase):
             sample = original_sample.copy()
             sample[f'{v}_0'] = 35
             sample[f'z_0'] = 35
-            sample['case_0_in_bin_0'] = 1
             sample['case_1_in_bin_0'] = 1
             sample['upper_bound_1'] = 30
             self.assertFalse(cqm.check_feasible(sample))

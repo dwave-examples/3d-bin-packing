@@ -240,10 +240,11 @@ def write_solution_to_file(solution_file_path: str,
     """
     num_cases = cases.num_cases
     num_bins = bins.num_bins
+    lowest_num_bin = bins.lowest_num_bin
     dx, dy, dz = effective_dimensions
     if num_bins > 1:
-        num_bin_used = sum([vars.bin_on[j].energy(sample)
-                            for j in range(num_bins)])
+        num_bin_used = lowest_num_bin + sum([vars.bin_on[j].energy(sample)
+                            for j in range(lowest_num_bin, num_bins)])
     else:
         num_bin_used = 1
 
@@ -252,8 +253,8 @@ def write_solution_to_file(solution_file_path: str,
            "y'", "z'"]]
     for i in range(num_cases):
         vs.append([cases.case_ids[i],
-                   int(sum((j + 1) * vars.bin_loc[i, j].energy(sample)
-                           if num_bins > 1 else 1
+                   int(sum(int(j == 0) if i == 0 or num_bins == 1 else
+                           (j + 1) * vars.bin_loc[i, j].energy(sample)
                            for j in range(num_bins))),
                    int(sum((r + 1) * vars.o[i, r].energy(sample) for r in
                            range(6))),
