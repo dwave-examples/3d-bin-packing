@@ -92,12 +92,15 @@ class Variables:
             j: Real(label=f'upper_bound_{j}', upper_bound=bins.height)
             for j in range(num_bins)}
 
-        # the first case always goes to the first bin
+        # the first case always goes to the first bin  
         self.bin_loc = {
-            (i, j): 1 if num_bins == 1 or (i == 0 and j == 0) else Binary(f'case_{i}_in_bin_{j}')
-            for i in range(num_cases) for j in range(num_bins)}
+            (i, j): Binary(f'case_{i}_in_bin_{j}')
+            for i in range(1, num_cases) for j in range(num_bins)}
+        
+        self.bin_loc.update(
+            {(0, j): int(j == 0) for j in range(num_bins)})
 
-        self.bin_on = {j: Binary(f'bin_{j}_is_used') if num_bins > lowest_num_bin else 1
+        self.bin_on = {j: 1 if j < lowest_num_bin else Binary(f'bin_{j}_is_used')
                        for j in range(num_bins)}
 
         self.o = {(i, k): Binary(f'o_{i}_{k}') for i in range(num_cases)
@@ -155,7 +158,7 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
     dx, dy, dz = effective_dimensions
     # adding discrete constraints first
     if num_bins > 1:
-        for i in range(num_cases):
+        for i in range(1, num_cases):
             cqm.add_discrete(
                 quicksum([vars.bin_loc[i, j] for j in range(num_bins)]),
                 label=f'case_{i}_max_packed')
@@ -231,6 +234,7 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
                       bins: Bins, cases: Cases, effective_dimensions: list):
     num_cases = cases.num_cases
     num_bins = bins.num_bins
+    lowest_num_bin = bins.lowest_num_bin
     dx, dy, dz = effective_dimensions
 
     # First term of objective: minimize average height of cases
@@ -243,7 +247,7 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
 
     # Third term of the objective:
     third_obj_term = quicksum(
-        bins.height * vars.bin_on[j] for j in range(num_bins))
+        bins.height * vars.bin_on[j] for j in range(lowest_num_bin, num_bins))
     first_obj_coefficient = 1
     second_obj_coefficient = 1
     third_obj_coefficient = 1
@@ -303,6 +307,12 @@ def call_solver(cqm: ConstrainedQuadraticModel,
     try:
         best_feasible = feasible_sampleset.first.sample
 
+        for j in range(bins.lowest_num_bin):
+            best_feasible[f'bin_{j}_is_used'] = 1
+
+        best_feasible[f'case_{0}_in_bin_{0}'] = 1
+        for j in range(1, bins.num_bins):
+            best_feasible[f'case_{0}_in_bin_{j}'] = 0
         return best_feasible
         
     except ValueError:

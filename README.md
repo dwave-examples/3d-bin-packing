@@ -148,6 +148,14 @@ These are the parameters of the problem:
  - $r_{i,k}$: binary variable defining $k$ orientations for case $i$
  - $x_i$, $y_i$, $z_i$: continuous variable defining location of the back lower left corner of case $i$ along $x$, $y$, and $z$ axes of the bin
 
+Note that we can set some variables *before* the optimization. For example, without loss of generality we can assign the first case to 
+the first bin. Therefore $u_{0,0} = 1$ and $u_{0,j} = 0$ for any $j\ne 0$. Further, we can estimate a lower bound on the number of occupied bins:
+
+$$j_{\rm min} = \left \lceil{\frac{\sum\limits_{i\in I} l_i \cdot w_i \cdot h_i}{L \cdot W \cdot H}}\right \rceil$$
+
+Therfore the first $j_{\rm min}$ bin variables $v_j$ can be set equal to $1$ without
+loss of generality
+
 ### Expressions 
  Expressions are linear or quadratic combinations of variables used for easier representations of the models. 
  - $x'_i$, $y'_i$, $z'_i$: effective length, width and height of case $i$, considering orientation, 
