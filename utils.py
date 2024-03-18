@@ -253,7 +253,7 @@ def write_solution_to_file(solution_file_path: str,
            "y'", "z'"]]
     for i in range(num_cases):
         vs.append([cases.case_ids[i],
-                   int(sum(int(j == 0) if i == 0 else
+                   int(sum(int(j == 0) if i == 0 or num_bins == 1 else
                            (j + 1) * vars.bin_loc[i, j].energy(sample)
                            for j in range(num_bins))),
                    int(sum((r + 1) * vars.o[i, r].energy(sample) for r in

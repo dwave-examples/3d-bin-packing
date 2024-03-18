@@ -94,7 +94,7 @@ class Variables:
 
         # the first case always goes to the first bin  
         self.bin_loc = {
-            (i, j): Binary(f'case_{i}_in_bin_{j}')
+            (i, j): Binary(f'case_{i}_in_bin_{j}') if num_bins > 1 else 1
             for i in range(1, num_cases) for j in range(num_bins)}
         
         self.bin_loc.update(
@@ -307,12 +307,6 @@ def call_solver(cqm: ConstrainedQuadraticModel,
     try:
         best_feasible = feasible_sampleset.first.sample
 
-        for j in range(bins.lowest_num_bin):
-            best_feasible[f'bin_{j}_is_used'] = 1
-
-        best_feasible[f'case_{0}_in_bin_{0}'] = 1
-        for j in range(1, bins.num_bins):
-            best_feasible[f'case_{0}_in_bin_{j}'] = 0
         return best_feasible
         
     except ValueError:
@@ -326,7 +320,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_filepath", type=str, nargs="?",
                         help="Filename with path to bin-packing data file.",
-                        default="input/sample_data_1.txt")
+                        default="input/sample_data_2.txt")
     
     parser.add_argument("--output_filepath", type=str,  nargs="?",
                         help="Path for the output solution file.",
@@ -366,6 +360,7 @@ if __name__ == '__main__':
 
     print_cqm_stats(cqm)
 
+    import json 
     best_feasible = call_solver(cqm, time_limit, use_cqm_solver)
 
     if output_filepath is not None:
