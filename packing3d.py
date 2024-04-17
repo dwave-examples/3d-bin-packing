@@ -320,7 +320,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_filepath", type=str, nargs="?",
                         help="Filename with path to bin-packing data file.",
-                        default="input/sample_data_2.txt")
+                        default="input/sample_data_1.txt")
     
     parser.add_argument("--output_filepath", type=str,  nargs="?",
                         help="Path for the output solution file.",
@@ -360,7 +360,6 @@ if __name__ == '__main__':
 
     print_cqm_stats(cqm)
 
-    import json 
     best_feasible = call_solver(cqm, time_limit, use_cqm_solver)
 
     if output_filepath is not None:
