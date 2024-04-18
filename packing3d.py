@@ -164,7 +164,7 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                 label=f'case_{i}_max_packed')
     for i, k in combinations(range(num_cases), r=2):
         cqm.add_discrete(quicksum([vars.selector[i, k, s] for s in range(6)]),
-                         label=f'discrete_{i}_{k}')            
+                         label=f'discrete_{i}_{k}')
     for i, k in combinations(range(num_cases), r=2):
         for j in range(num_bins):
             cases_on_same_bin = vars.bin_loc[i, j] * vars.bin_loc[k, j]
@@ -245,12 +245,11 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
     # bin
     second_obj_term = quicksum(vars.bin_height[j] for j in range(num_bins))
 
-    # Third term of the objective:
-    third_obj_term = quicksum(
-        bins.height * vars.bin_on[j] for j in range(lowest_num_bin, num_bins))
+    # Third term of the objective: minimize the number of used bins
+    third_obj_term = quicksum(vars.bin_on[j] for j in range(lowest_num_bin, num_bins))
     first_obj_coefficient = 1
     second_obj_coefficient = 1
-    third_obj_coefficient = 1
+    third_obj_coefficient = bins.height
     cqm.set_objective(first_obj_coefficient * first_obj_term +
                       second_obj_coefficient * second_obj_term +
                       third_obj_coefficient * third_obj_term)
