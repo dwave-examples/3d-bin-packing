@@ -112,6 +112,18 @@ The [graphic](#plot) at the top of the README is a visualization of this solutio
 Note that in this example, we do not model support or load-bearing constraints for cases.
 Therefore, it is possible that larger cases are packed over smaller cases without having full support.
 
+## Problem Description
+The goal of the 3D-bin packing problem is to ensure that the cases are securely packed within the fewest 
+bins possible. The model sets the following objectives and constraints to achieve this goal:
+
+**Objectives:** minimize the height of the packed cases and number of bins used.  
+
+**Constraints:** the constraints for this problem fall into multiple categories. Orientation constraints focus on restricting
+cases to a single orientation. Case and bin assignment constraints ensure that each case is placed in exactly 
+one bin, that the chosen bin is in use, and that there are no gaps between bins. Geometric constraints
+are used to make sure cases aren't assigned to positions that would cause an overlap with another case. Bin 
+boundary constraints enforce that cases are placed completely inside their designated bin.
+
 ## Model Overview
 
 In this example, to model multiple bins we assume that bins are located back-to-back 
