@@ -138,10 +138,10 @@ We apply necessary constraints to ensure that cases are not placed between two b
 
 These are the parameters of the problem:
 
- - `J`: set of bins
  - `n`: number of bins
- - `I`: set of cases
+ - `J`: set of bins `{1, ..., n}`
  - `m` : number of cases
+ - `I`: set of cases `{1, ..., m}`
  - `K` : possible orientations `{0, 1, ..., 5}`
  - `Q` : possible relation (e.g., behind, above, etc) between every pair of cases `{0, 1, ..., 5}`
  - `L` : length of the bins
@@ -159,6 +159,16 @@ These are the parameters of the problem:
  - `s_j`:  continuous variable showing height of the topmost case in bin `j`
  - `r_(i,k)`: binary variable defining `k` orientations for case `i`
  - `x_i`,`y_i`,`z_i`: continuous variable defining location of the back lower left corner of case `i` along `x`, `y`, and `z` axes of the bin
+
+Note that we can determine some variables before the optimization. For example, without loss of generality we can assign the first case to 
+the first bin. Therefore `u_{0,0} = 1` and `u_{0,j} = 0` for any `j\ne 0`. 
+
+We can also estimate a lower bound on the number of occupied bins:
+
+![jmin](_static/jmin.png)
+
+The first `jmin` bin variables `v_j` can therefore be set equal to 1 without
+loss of generality. In what follows, the set of bins `J` is `{jmin, ..., n}`.
 
 ### Expressions 
  Expressions are linear or quadratic combinations of variables used for easier representations of the models. 
@@ -260,7 +270,9 @@ These sets of constraints ensure that case `i` is not placed outside the bins.
 
 ![eq21](_static/eq21.png)
 
-When `u_(i,j)` is `0` these constraints are relaxed.
+When `u_{i,j}` is 0 these constraints are relaxed.
+
+Note that the width constraints do not involve the variables `u_{i,j}`. This is because the bins are virtually placed along the x-axis and all the cases have to satisfy the width constraints in a similar manner. Similar considerations apply for the height constraints, however, here we want to track the bin height `s_j`.
 
 ## References
 

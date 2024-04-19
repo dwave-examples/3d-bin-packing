@@ -55,9 +55,9 @@ class Bins:
         self.width = data["bin_dimensions"][1]
         self.height = data["bin_dimensions"][2]
         self.num_bins = data["num_bins"]
-        self.lowest_num_bin = np.ceil(
+        self.lowest_num_bin = int(np.ceil(
             np.sum(cases.length * cases.width * cases.height) / (
-                    self.length * self.width * self.height))
+                    self.length * self.width * self.height)))
         if self.lowest_num_bin > self.num_bins:
             raise RuntimeError(
                 f'number of bins is at least {self.lowest_num_bin}, ' +
@@ -78,6 +78,7 @@ class Variables:
     def __init__(self, cases: Cases, bins: Bins):
         num_cases = cases.num_cases
         num_bins = bins.num_bins
+        lowest_num_bin = bins.lowest_num_bin        
         self.x = {i: Real(f'x_{i}',
                           lower_bound=0,
                           upper_bound=bins.length * bins.num_bins)
@@ -91,11 +92,15 @@ class Variables:
             j: Real(label=f'upper_bound_{j}', upper_bound=bins.height)
             for j in range(num_bins)}
 
+        # the first case always goes to the first bin  
         self.bin_loc = {
             (i, j): Binary(f'case_{i}_in_bin_{j}') if num_bins > 1 else 1
-            for i in range(num_cases) for j in range(num_bins)}
+            for i in range(1, num_cases) for j in range(num_bins)}
+        
+        self.bin_loc.update(
+            {(0, j): int(j == 0) for j in range(num_bins)})
 
-        self.bin_on = {j: Binary(f'bin_{j}_is_used') if num_bins > 1 else 1
+        self.bin_on = {j: 1 if j < lowest_num_bin else Binary(f'bin_{j}_is_used')
                        for j in range(num_bins)}
 
         self.o = {(i, k): Binary(f'o_{i}_{k}') for i in range(num_cases)
@@ -110,14 +115,15 @@ def _add_bin_on_constraint(cqm: ConstrainedQuadraticModel, vars: Variables,
                            bins: Bins, cases: Cases):
     num_cases = cases.num_cases
     num_bins = bins.num_bins
+    lowest_num_bin = bins.lowest_num_bin
     if num_bins > 1:
-        for j in range(num_bins):
+        for j in range(lowest_num_bin, num_bins):
             cqm.add_constraint((1 - vars.bin_on[j]) * quicksum(
                 vars.bin_loc[i, j] for i in range(num_cases)) <= 0,
                                label=f'bin_on_{j}')
 
-        for j in range(num_bins - 1):
-            cqm.add_constraint(vars.bin_on[j] - vars.bin_on[j + 1] >= 0,
+        for j in range(lowest_num_bin, num_bins - 1):
+            cqm.add_constraint(vars.bin_on[j + 1] - vars.bin_on[j] <= 0,
                                label=f'bin_use_order_{j}')
 
 
@@ -150,10 +156,16 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
     num_cases = cases.num_cases
     num_bins = bins.num_bins
     dx, dy, dz = effective_dimensions
-
+    # adding discrete constraints first
+    if num_bins > 1:
+        for i in range(1, num_cases):
+            cqm.add_discrete(
+                quicksum([vars.bin_loc[i, j] for j in range(num_bins)]),
+                label=f'case_{i}_max_packed')
     for i, k in combinations(range(num_cases), r=2):
         cqm.add_discrete(quicksum([vars.selector[i, k, s] for s in range(6)]),
                          label=f'discrete_{i}_{k}')
+    for i, k in combinations(range(num_cases), r=2):
         for j in range(num_bins):
             cases_on_same_bin = vars.bin_loc[i, j] * vars.bin_loc[k, j]
             cqm.add_constraint(
@@ -192,12 +204,6 @@ def _add_geometric_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                 (vars.z[k] + dz[k] - vars.z[i]) <= 0,
                 label=f'overlap_{i}_{k}_{j}_5')
 
-    if num_bins > 1:
-        for i in range(num_cases):
-                cqm.add_discrete(
-                quicksum([vars.bin_loc[i, j] for j in range(num_bins)]),
-                label=f'case_{i}_max_packed')
-
 
 def _add_boundary_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                               bins: Bins, cases: Cases,
@@ -206,6 +212,9 @@ def _add_boundary_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
     num_bins = bins.num_bins
     dx, dy, dz = effective_dimensions
     for i in range(num_cases):
+        cqm.add_constraint(
+            vars.y[i] + dy[i] <= bins.width,
+            label=f'maxy_{i}_less')
         for j in range(num_bins):
             cqm.add_constraint(vars.z[i] + dz[i] - vars.bin_height[j] -
                                (1 - vars.bin_loc[i, j]) * bins.height <= 0,
@@ -215,20 +224,17 @@ def _add_boundary_constraints(cqm: ConstrainedQuadraticModel, vars: Variables,
                                - (1 - vars.bin_loc[i, j]) *
                                num_bins * bins.length <= 0,
                                label=f'maxx_{i}_{j}_less')
-
-            cqm.add_constraint(
-                vars.x[i] - bins.length * j * vars.bin_loc[i, j] >= 0,
-                label=f'maxx_{i}_{j}_greater')
-
-            cqm.add_constraint(
-                vars.y[i] + dy[i] <= bins.width,
-                label=f'maxy_{i}_{j}_less')
+            if j > 0:
+                cqm.add_constraint(
+                    bins.length * j * vars.bin_loc[i, j] - vars.x[i] <= 0,
+                    label=f'maxx_{i}_{j}_greater')
 
 
 def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
                       bins: Bins, cases: Cases, effective_dimensions: list):
     num_cases = cases.num_cases
     num_bins = bins.num_bins
+    lowest_num_bin = bins.lowest_num_bin
     dx, dy, dz = effective_dimensions
 
     # First term of objective: minimize average height of cases
@@ -239,12 +245,11 @@ def _define_objective(cqm: ConstrainedQuadraticModel, vars: Variables,
     # bin
     second_obj_term = quicksum(vars.bin_height[j] for j in range(num_bins))
 
-    # Third term of the objective:
-    third_obj_term = quicksum(
-        bins.height * vars.bin_on[j] for j in range(num_bins))
+    # Third term of the objective: minimize the number of used bins
+    third_obj_term = quicksum(vars.bin_on[j] for j in range(lowest_num_bin, num_bins))
     first_obj_coefficient = 1
     second_obj_coefficient = 1
-    third_obj_coefficient = 1
+    third_obj_coefficient = bins.height
     cqm.set_objective(first_obj_coefficient * first_obj_term +
                       second_obj_coefficient * second_obj_term +
                       third_obj_coefficient * third_obj_term)
@@ -267,8 +272,8 @@ def build_cqm(vars: Variables, bins: Bins,
     """
     cqm = ConstrainedQuadraticModel()
     effective_dimensions = _add_orientation_constraints(cqm, vars, cases)
-    _add_bin_on_constraint(cqm, vars, bins, cases)
     _add_geometric_constraints(cqm, vars, bins, cases, effective_dimensions)
+    _add_bin_on_constraint(cqm, vars, bins, cases)
     _add_boundary_constraints(cqm, vars, bins, cases, effective_dimensions)
     _define_objective(cqm, vars, bins, cases, effective_dimensions)
 
