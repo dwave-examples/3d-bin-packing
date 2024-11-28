@@ -55,3 +55,39 @@ custom CSS can be added below.
     font-size: 1.2rem;
     text-transform: uppercase;
 }
+
+.advanced-settings label {
+    color: var(--theme);
+    letter-spacing: normal;
+    text-transform: uppercase;
+    font-size: 1.3rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.details-collapse.advanced-settings .collapse-arrow {
+    margin-top: 2rem;
+    border-width: 3px;
+    height: 1rem;
+    width: 1rem;
+}
+
+.collapsed .details-collapse.advanced-settings .collapse-arrow {
+    margin-top: 1.8rem;
+}
+
+.advanced-collapse {
+    background: white;
+    padding: 0 1rem 1rem;
+    border: 1px solid var(--grey-light);
+}
+
+.details-collapse-wrapper.collapsed .advanced-collapse {
+    padding-bottom: 0;
+    border-top: none;
+    border-bottom: none;
+}
+
+.details-collapse-wrapper:not(.collapsed) .details-to-collapse.advanced-collapse {
+    height: var(--advanced-settings-height) !important;
+}

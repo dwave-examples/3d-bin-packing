@@ -16,10 +16,6 @@ from enum import Enum
 
 
 class SolverType(Enum):
-    """Add a list of solver options here. If this demo only requires 1 solver,
-    this functionality can be removed.
-    """
-
     CQM = 0
     MIP = 1
 
@@ -28,4 +24,16 @@ class SolverType(Enum):
         return {
             SolverType.CQM: "Quantum Hybrid (CQM)",
             SolverType.MIP: "CBC (Python-MIP)",
+        }[self]
+
+
+class ProblemType(Enum):
+    GENERATED = 0
+    FILE = 1
+
+    @property
+    def label(self):
+        return {
+            ProblemType.GENERATED: "Generated",
+            ProblemType.FILE: "Uploaded",
         }[self]

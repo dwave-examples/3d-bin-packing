@@ -30,6 +30,8 @@ pack items with different dimensions, weights and properties. In this example, b
 are cuboids, and the sides of the items must be packed parallel to the sides of bins.
 """
 
+RANDOM_SEED = None
+
 #######################################
 # Sliders, buttons and option entries #
 #######################################
@@ -62,14 +64,7 @@ BIN_DIM = {
     "value": 50,
 }
 
-# an example dropdown
-DROPDOWN = ["Option 1", "Option 2"]
-
-# an example checklist
-CHECKLIST = ["Option 1", "Option 2"]
-
-# an example radio list
-RADIO = ["Option 1", "Option 2"]
+ADVANCED_SETTINGS = ["Color coded cases", "Display input data"]
 
 # solver time limits in seconds (value means default)
 SOLVER_TIME = {

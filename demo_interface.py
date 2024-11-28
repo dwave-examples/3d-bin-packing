@@ -20,18 +20,16 @@ from dash import dcc, html
 from demo_configs import (
     BIN_DIM,
     CASE_DIM,
-    CHECKLIST,
+    ADVANCED_SETTINGS,
     DESCRIPTION,
-    DROPDOWN,
     MAIN_HEADER,
     NUM_BINS,
     NUM_CASES,
-    RADIO,
     SOLVER_TIME,
     THEME_COLOR_SECONDARY,
     THUMBNAIL,
 )
-from src.demo_enums import SolverType
+from src.demo_enums import ProblemType, SolverType
 
 
 def slider(label: str, id: str, config: dict) -> html.Div:
@@ -147,9 +145,11 @@ def generate_settings_form() -> html.Div:
     Returns:
         html.Div: A Div containing the settings for selecting the scenario, model, and solver.
     """
-    dropdown_options = generate_options(DROPDOWN)
-    checklist_options = generate_options(CHECKLIST)
-    radio_options = generate_options(RADIO)
+    checklist_options = generate_options(ADVANCED_SETTINGS)
+
+    problem_type_options = [
+        {"label": problem_type.label, "value": problem_type.value} for problem_type in ProblemType
+    ]
 
     solver_options = [
         {"label": solver_type.label, "value": solver_type.value} for solver_type in SolverType
@@ -158,69 +158,73 @@ def generate_settings_form() -> html.Div:
     return html.Div(
         className="settings",
         children=[
-            slider(
-                "Number of Bins",
-                "num-bins",
-                NUM_BINS,
+            dropdown(
+                "Problem Type",
+                "problem-type",
+                sorted(problem_type_options, key=lambda op: op["value"]),
             ),
-            slider(
-                "Number of Cases",
-                "num-cases",
-                NUM_CASES,
-            ),
-            slider(
-                "Case Dimension Range",
-                "case-dim",
-                CASE_DIM,
-            ),
-            html.Label("Bin Dimensions"),
             html.Div(
                 [
-                    html.Div([
-                        html.Label("Length"),
-                        dcc.Input(
-                            id="bin-length",
-                            type="number",
-                            **BIN_DIM,
-                        ),
-                    ]),
-                    html.Div([
-                        html.Label("Width"),
-                        dcc.Input(
-                            id="bin-width",
-                            type="number",
-                            **BIN_DIM,
-                        ),
-                    ]),
-                    html.Div([
-                        html.Label("Height"),
-                        dcc.Input(
-                            id="bin-height",
-                            type="number",
-                            **BIN_DIM,
-                        ),
-                    ])
+                    html.Label("Problem File Path"),
+                    dcc.Input(
+                        id="input-file",
+                        type="text",
+                        placeholder="input/sample_data_1.txt",
+                    ),
                 ],
-                className="display-flex-settings"
+                id="uploaded-settings",
+                className="display-none",
             ),
-            
-            # dropdown(
-            #     "Example Dropdown",
-            #     "dropdown",
-            #     sorted(dropdown_options, key=lambda op: op["value"]),
-            # ),
-            # checklist(
-            #     "Example Checklist",
-            #     "checklist",
-            #     sorted(checklist_options, key=lambda op: op["value"]),
-            #     [0],
-            # ),
-            # radio(
-            #     "Example Radio",
-            #     "radio",
-            #     sorted(radio_options, key=lambda op: op["value"]),
-            #     0,
-            # ),
+            html.Div(
+                [
+                    slider(
+                        "Number of Bins",
+                        "num-bins",
+                        NUM_BINS,
+                    ),
+                    html.Label("Bin Dimensions"),
+                    html.Div(
+                        [
+                            html.Div([
+                                html.Label("Length"),
+                                dcc.Input(
+                                    id="bin-length",
+                                    type="number",
+                                    **BIN_DIM,
+                                ),
+                            ]),
+                            html.Div([
+                                html.Label("Width"),
+                                dcc.Input(
+                                    id="bin-width",
+                                    type="number",
+                                    **BIN_DIM,
+                                ),
+                            ]),
+                            html.Div([
+                                html.Label("Height"),
+                                dcc.Input(
+                                    id="bin-height",
+                                    type="number",
+                                    **BIN_DIM,
+                                ),
+                            ])
+                        ],
+                        className="display-flex-settings"
+                    ),
+                    slider(
+                        "Number of Cases",
+                        "num-cases",
+                        NUM_CASES,
+                    ),
+                    slider(
+                        "Case Dimension Range",
+                        "case-dim",
+                        CASE_DIM,
+                    ),
+                ],
+                id={"type": "generated-settings", "index": 0}
+            ),
             dropdown(
                 "Solver",
                 "solver-type-select",
@@ -231,6 +235,51 @@ def generate_settings_form() -> html.Div:
                 id="solver-time-limit",
                 type="number",
                 **SOLVER_TIME,
+            ),
+            html.Div(
+                id={
+                    "type": "to-collapse-class",
+                    "index": 3,
+                },
+                className="details-collapse-wrapper collapsed",
+                children=[
+                    html.Button(
+                        id={
+                            "type": "collapse-trigger",
+                            "index": 3,
+                        },
+                        className="details-collapse advanced-settings",
+                        children=[
+                            html.Label("Advanced settings"),
+                            html.Div(className="collapse-arrow"),
+                        ],
+                    ),
+                    html.Div(
+                        className="details-to-collapse advanced-collapse",
+                        children=[
+                            checklist(
+                                "",
+                                "checklist",
+                                sorted(checklist_options, key=lambda op: op["value"]),
+                                [0],
+                            ),
+                            html.Div([
+                                html.Label("Save Input Data to File"),
+                                dcc.Input(
+                                    id="save-input-file",
+                                    type="text",
+                                    placeholder="File Name",
+                                ),
+                            ], id={"type": "generated-settings", "index": 1}),
+                            html.Label("Write Solution to File"),
+                            dcc.Input(
+                                id="solution-file",
+                                type="text",
+                                placeholder="File Name"
+                            ),
+                        ],
+                    ),
+                ],
             ),
         ],
     )

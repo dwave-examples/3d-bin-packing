@@ -17,12 +17,12 @@ from __future__ import annotations
 from typing import NamedTuple, Union
 
 import dash
-from dash import MATCH, ctx
+from dash import ALL, MATCH, ctx
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 from demo_interface import generate_problem_details_table_rows
-from src.demo_enums import SolverType
+from src.demo_enums import ProblemType, SolverType
 
 
 @dash.callback(
@@ -50,6 +50,30 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
         classes.remove("collapsed")
         return " ".join(classes)
     return to_collapse_class + " collapsed" if to_collapse_class else "collapsed"
+
+
+@dash.callback(
+    Output({"type": "generated-settings", "index": ALL}, "className"),
+    Output("uploaded-settings", "className"),
+    inputs=[
+        Input("problem-type", "value"),
+        State({"type": "generated-settings", "index": ALL}, "children"),
+    ],
+)
+def update_problem_type(problem_type: Union[ProblemType, int], gen_settings: list) -> tuple[str, str]:
+    """Runs on load and any time the value of the slider is updated.
+        Add `prevent_initial_call=True` to skip on load runs.
+
+    Args:
+        slider_value: The value of the slider.
+
+    Returns:
+        str: The content of the input tab.
+    """
+    if problem_type is ProblemType.FILE.value:
+        return ["display-none"]*len(gen_settings), ""
+
+    return [""]*len(gen_settings), "display-none"
 
 
 @dash.callback(
