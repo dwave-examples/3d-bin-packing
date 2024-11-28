@@ -1,0 +1,57 @@
+/*
+Copyright 2024 D-Wave
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/*******************************************************************
+This file contains all custom CSS for this demo.
+The following style rules can be altered or removed and any additional
+custom CSS can be added below.
+*******************************************************************/
+
+.tab-content-results {
+    padding: 0 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.solution-stats-table td:nth-child(2n) {
+    text-align: right;
+}
+
+.solution-stats-table td:nth-child(2n+1) {
+    border-right: none;
+}
+
+.input, .results {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.display-flex-settings {
+    display: flex;
+    justify-content: space-between;
+    max-width: 24rem;
+}
+
+.display-flex-settings label {
+    margin-top: 0;
+    font-weight: 400;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}

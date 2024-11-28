@@ -1,0 +1,60 @@
+/*
+Copyright 2024 D-Wave
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/* Style rules for tabs like the input and results tabs */
+
+.tab-container {
+    border-bottom: 3px solid var(--theme-secondary);
+    flex-direction: row;
+}
+
+.tab {
+    margin: 0 2rem;
+    border-top-left-radius: 0.6rem;
+    border-top-right-radius: 0.6rem;
+}
+
+div.tab.tab--selected {
+    border: 3px solid var(--theme-secondary) !important;
+    border-bottom: none !important;
+    cursor: default;
+    box-shadow: 0 6px 0 -3px white;
+}
+
+div.tab.tab--disabled {
+    cursor: not-allowed !important;
+}
+
+.tab:first-child {
+    margin-right: 1rem;
+}
+
+.tab:last-child {
+    margin-left: 1rem;
+}
+
+.tab-content,
+.tab-parent {
+    height: 100%;
+}
+
+.tab-content > div:not(.tab-content-results) {
+    height: inherit;
+}
+
+.tab-content {
+    background-color: white;
+}

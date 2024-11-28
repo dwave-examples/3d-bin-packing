@@ -1,0 +1,168 @@
+/*
+Copyright 2024 D-Wave
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/* A custom base of style rules defined specifically for the demos */
+
+body {
+    background-color: #f9f9f9;
+    color: var(--grey-dark);
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6, td, th,
+span, a, p, label, button, input {
+    font-family: var(--font);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--theme);
+    font-weight: 400;
+}
+
+h1 {
+    font-size: 3.2rem;
+}
+
+h2 {
+    font-size: 2.6rem;
+}
+
+h3 {
+    font-size: 2.4rem;
+}
+
+h4 {
+    font-size: 2rem;
+    margin-top: 0;
+    font-weight: 500;
+}
+
+h5 {
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+label {
+    margin: 2rem 0 0.2rem;
+    font-weight: 500;
+}
+
+hr {
+    margin: 1rem 0;
+}
+
+table {
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    border: 1px solid var(--grey-light);
+}
+
+th, td {
+    color: var(--grey-dark);
+    padding: 0.5rem 1rem;
+    border-right: 1px solid var(--grey-light);
+}
+
+th:first-child, td:first-child {
+    padding-left: 1.2rem;
+}
+
+th:last-child, td:last-child {
+    padding-right: 1.2rem;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--theme);
+    margin: 0 0.6rem 0 0;
+}
+
+.display-none {
+    display: none;
+}
+  
+#app-container {
+    min-width: 100rem;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.banner {
+    height: var(--banner-height);
+    box-sizing: border-box;
+    background-color: var(--theme);
+    padding: 1.4rem 2rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.banner img {
+    height: 100%;
+}
+
+.columns-main {
+    display: flex;
+    flex: 1;
+}
+
+.left-column {
+    display: flex;
+    height: calc(100vh - var(--banner-height));
+}
+
+.right-column {
+    background-color: var(--grey-light);
+    padding: 2rem 0 0;
+    width: 100%;
+}
+
+.settings {
+    margin: 2rem 0;
+}
+
+.radio label,
+.checklist label {
+    margin-top: 0.2rem;
+    font-weight: 400;
+}
+
+.radio--inline label:first-child,
+.checklist--inline label:first-child {
+    margin-right: 1.4rem;
+}
+
+/* The following rules are overwriting Dash styling */
+.VirtualizedSelectFocusedOption {
+    background-color: var(--grey-lighter);
+}
+
+.is-focused:not(.is-open) > .Select-control {
+    border-color: var(--theme-secondary);
+    box-shadow: none;
+}
+
+.Select {
+    font-family: var(--font);
+}
+
+div.dash-sk-circle {
+    height: 6rem;
+    width: 6rem;
+}
