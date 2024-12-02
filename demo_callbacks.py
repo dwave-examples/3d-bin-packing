@@ -14,15 +14,19 @@
 
 from __future__ import annotations
 
+import base64
 from typing import NamedTuple, Union
 
 import dash
 from dash import ALL, MATCH, ctx
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
+from demo_configs import RANDOM_SEED
+import numpy as np
 
-from demo_interface import generate_problem_details_table_rows
+from demo_interface import generate_problem_details_table_rows, generate_table
 from src.demo_enums import ProblemType, SolverType
+from utils import data_to_lists, write_input_data
 
 
 @dash.callback(
@@ -79,10 +83,16 @@ def update_problem_type(problem_type: Union[ProblemType, int], gen_settings: lis
 @dash.callback(
     Output("input", "children"),
     inputs=[
-        Input("slider", "value"),
+        Input("problem-type", "value"),
+        Input("num-cases", "value"),
+        Input("case-dim", "value"),
     ],
 )
-def render_initial_state(slider_value: int) -> str:
+def update_input_graph_generated(
+    problem_type: Union[ProblemType, int],
+    num_cases: int,
+    case_size_range: int,
+) -> str:
     """Runs on load and any time the value of the slider is updated.
         Add `prevent_initial_call=True` to skip on load runs.
 
@@ -92,7 +102,129 @@ def render_initial_state(slider_value: int) -> str:
     Returns:
         str: The content of the input tab.
     """
-    return f"Put demo input here. The current slider value is {slider_value}."
+    if ProblemType(problem_type) is ProblemType.FILE:
+        raise PreventUpdate
+
+    rng = np.random.default_rng(RANDOM_SEED)
+
+    data = {
+        "case_length": rng.integers(
+            case_size_range[0], case_size_range[1], 
+            num_cases, endpoint=True
+        ),
+        "case_width": rng.integers(
+            case_size_range[0], case_size_range[1], 
+            num_cases, endpoint=True
+        ),
+        "case_height": rng.integers(
+            case_size_range[0], case_size_range[1], 
+            num_cases, endpoint=True
+        ),
+    }
+
+    # Determine quantities and case_ids
+    case_dimensions = np.vstack(
+        [data["case_length"], data["case_width"], data["case_height"]]
+    )
+    unique_dimensions, data["quantity"] = np.unique(case_dimensions, 
+                                                    axis=1,
+                                                    return_counts=True)
+    
+    data["case_length"] = unique_dimensions[0,:]
+    data["case_width"] = unique_dimensions[1,:]
+    data["case_height"] = unique_dimensions[2,:]
+    
+    data["case_ids"] = np.array(range(len(data["quantity"])))
+
+    return generate_table(*data_to_lists(data))
+
+
+@dash.callback(
+    Output("max-bins", "children"),
+    Output("bin-dims", "children"),
+    inputs=[
+        Input("problem-type", "value"),
+        Input("num-bins", "value"),
+        Input("bin-length", "value"),
+        Input("bin-width", "value"),
+        Input("bin-height", "value"),
+    ],
+)
+def update_input_generated(
+    problem_type: Union[ProblemType, int],
+    num_bins: int,
+    bin_length: int,
+    bin_width: int,
+    bin_height: int,
+) -> str:
+    """Runs on load and any time the value of the slider is updated.
+        Add `prevent_initial_call=True` to skip on load runs.
+
+    Args:
+        slider_value: The value of the slider.
+
+    Returns:
+        str: The content of the input tab.
+    """
+    if ProblemType(problem_type) is ProblemType.FILE:
+        raise PreventUpdate
+
+    return num_bins, f"{bin_length} * {bin_width} * {bin_height}"
+
+
+@dash.callback(
+    Output("input", "children", allow_duplicate=True),
+    Output("max-bins", "children", allow_duplicate=True),
+    Output("bin-dims", "children", allow_duplicate=True),
+    Output("filename", "children"),
+    inputs=[
+        Input("input-file", 'contents'),
+        Input("problem-type", "value"),
+        State("input-file", 'filename'),
+    ],
+    prevent_initial_call=True,
+)
+def update_input_file(
+    file_contents: str,
+    problem_type: Union[ProblemType, int],
+    filename: str,
+) -> str:
+    """Runs on load and any time the value of the slider is updated.
+        Add `prevent_initial_call=True` to skip on load runs.
+
+    Args:
+        slider_value: The value of the slider.
+
+    Returns:
+        str: The content of the input tab.
+    """
+    if ProblemType(problem_type) is ProblemType.GENERATED:
+        raise PreventUpdate
+
+    if file_contents is not None:
+        decoded = base64.b64decode(file_contents)
+
+        try:
+            lines = decoded.decode('ISO-8859-1').splitlines()
+
+            num_bins = int(lines[0].split(":")[1].strip())
+            bin_length, bin_width, bin_height = map(int, lines[1].split(":")[1].split())
+
+            table_data = []
+            for line in lines[5:]:
+                if line.strip():
+                    table_data.append(list(map(int, line.split())))
+
+        except Exception as e:
+            print(e)
+            return 'There was an error processing this file.'
+
+        return (
+            generate_table(["Case ID", "Quantity", "Length", "Width", "Height"], table_data),
+            num_bins,
+            f"{bin_length} * {bin_width} * {bin_height}", filename)
+
+    raise PreventUpdate
 
 
 class RunOptimizationReturn(NamedTuple):
@@ -115,10 +247,17 @@ class RunOptimizationReturn(NamedTuple):
         Input("run-button", "n_clicks"),
         State("solver-type-select", "value"),
         State("solver-time-limit", "value"),
-        State("slider", "value"),
-        State("dropdown", "value"),
+        State("problem-type", "value"),
+        State("input-file", "contents"),
+        State("num-bins", "value"),
+        State("bin-length", "value"),
+        State("bin-width", "value"),
+        State("bin-height", "value"),
+        State("num-cases", "value"),
+        State("case-dim", "value"),
         State("checklist", "value"),
-        State("radio", "value"),
+        State("save-input", "value"),
+        State("save-solution", "value"),
     ],
     running=[
         (Output("cancel-button", "className"), "", "display-none"),  # Show/hide cancel button.
@@ -137,10 +276,17 @@ def run_optimization(
     run_click: int,
     solver_type: Union[SolverType, int],
     time_limit: float,
-    slider_value: int,
-    dropdown_value: int,
-    checklist_value: list,
-    radio_value: int,
+    problem_type: Union[ProblemType, int],
+    input_file: str,
+    num_bins: int,
+    bin_length: int,
+    bin_width: int,
+    bin_height: int,
+    num_cases: int,
+    case_dim: int,
+    checklist: list,
+    save_input: str,
+    save_solution: str,
 ) -> RunOptimizationReturn:
     """Runs the optimization and updates UI accordingly.
 

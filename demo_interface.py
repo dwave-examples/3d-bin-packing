@@ -134,6 +134,28 @@ def radio(label: str, id: str, options: list, value: int, inline: bool = True) -
     )
 
 
+def range_slider(label: str, id: str, config: dict) -> html.Div:
+    """Range slider element for value selection."""
+    return html.Div(
+        className="range-slider",
+        children=[
+            html.Label(label),
+            dcc.RangeSlider(
+                id=id,
+                **config,
+                marks={
+                    config["min"]: str(config["min"]),
+                    config["max"]: str(config["max"]),
+                },
+                tooltip={
+                    "placement": "bottom",
+                    "always_visible": True,
+                },
+            ),
+        ],
+    )
+
+
 def generate_options(options_list: list) -> list[dict]:
     """Generates options for dropdowns, checklists, radios, etc."""
     return [{"label": label, "value": i} for i, label in enumerate(options_list)]
@@ -165,12 +187,15 @@ def generate_settings_form() -> html.Div:
             ),
             html.Div(
                 [
-                    html.Label("Problem File Path"),
-                    dcc.Input(
+                    html.Label("Problem File"),
+                    dcc.Upload(
                         id="input-file",
-                        type="text",
-                        placeholder="input/sample_data_1.txt",
-                    ),
+                        children=html.Div([
+                            "Drag and Drop or ",
+                            html.A('Select Files'),
+                            html.Div(id="filename")
+                        ])
+                    )
                 ],
                 id="uploaded-settings",
                 className="display-none",
@@ -217,8 +242,8 @@ def generate_settings_form() -> html.Div:
                         "num-cases",
                         NUM_CASES,
                     ),
-                    slider(
-                        "Case Dimension Range",
+                    range_slider(
+                        "Case Dimension Bounds",
                         "case-dim",
                         CASE_DIM,
                     ),
@@ -266,14 +291,14 @@ def generate_settings_form() -> html.Div:
                             html.Div([
                                 html.Label("Save Input Data to File"),
                                 dcc.Input(
-                                    id="save-input-file",
+                                    id="save-input",
                                     type="text",
                                     placeholder="File Name",
                                 ),
                             ], id={"type": "generated-settings", "index": 1}),
                             html.Label("Write Solution to File"),
                             dcc.Input(
-                                id="solution-file",
+                                id="save-solution",
                                 type="text",
                                 placeholder="File Name"
                             ),
@@ -299,6 +324,21 @@ def generate_run_buttons() -> html.Div:
             ),
         ],
     )
+
+
+def generate_table(headers: list, body: list) -> list[html.Thead, html.Tbody]:
+    """Generates solution table.
+
+    Args:
+        results_dict: Dictionary of lists of results values from all previous runs.
+
+    Returns:
+        list: The table head and table body of the results table.
+    """
+    return [
+        html.Thead([html.Tr([html.Th(header) for header in headers])]),
+        html.Tbody([html.Tr([html.Td(cell) for cell in cells]) for cells in body]),
+    ]
 
 
 def generate_problem_details_table_rows(solver: str, time_limit: int) -> list[html.Tr]:
@@ -433,12 +473,23 @@ def create_interface():
                                         value="input-tab",  # used for switching tabs programatically
                                         className="tab",
                                         children=[
-                                            dcc.Loading(
-                                                parent_className="input",
-                                                type="circle",
-                                                color=THEME_COLOR_SECONDARY,
+                                            html.Div(
+                                                className="input",
+                                                # type="circle",
+                                                # color=THEME_COLOR_SECONDARY,
                                                 # A Dash callback (in app.py) will generate content in the Div below
-                                                children=html.Div(id="input"),
+                                                children=[
+                                                    html.Div(
+                                                        html.Table(
+                                                            id="input",
+                                                            # add children dynamically using 'generate_table'
+                                                        )
+                                                    ),
+                                                    html.Div([
+                                                        html.H6(["Maximum bins: ", html.Span(id="max-bins")]),
+                                                        html.H6(["Bin dimensions: ", html.Span(id="bin-dims"), " (L*W*H)"])
+                                                    ])
+                                                ],
                                             ),
                                         ],
                                     ),

@@ -28,19 +28,52 @@ custom CSS can be added below.
     height: 100%;
 }
 
-.solution-stats-table td:nth-child(2n) {
+.tab-content {
+    padding: 3rem 5rem;
+}
+
+/* .solution-stats-table td:nth-child(2n) {
     text-align: right;
 }
 
 .solution-stats-table td:nth-child(2n+1) {
     border-right: none;
-}
+} */
 
 .input, .results {
     display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100%;
+    width: 100%;
+}
+
+.input h6 {
+    font-size: 1.6rem;
+}
+
+.input h6 span {
+    font-weight: bold;
+    margin: 0 0.4rem 0 1rem;
+}
+
+.input > *:last-child {
+    margin-left: 5rem;
+}
+
+.input > div:first-child {
+    height: calc(100vh - var(--banner-height) - 160px);
+    overflow-y: auto;
+}
+
+#input thead {
+    position: sticky;
+    top: 0;
+}
+
+#input-file {
+    padding: 1rem;
+    border: 1px dashed var(--grey-dark);
+    border-radius: 0.5rem;
+    text-align: center;
 }
 
 .display-flex-settings {
@@ -90,4 +123,19 @@ custom CSS can be added below.
 
 .details-collapse-wrapper:not(.collapsed) .details-to-collapse.advanced-collapse {
     height: var(--advanced-settings-height) !important;
+}
+
+.range-slider > div {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+}
+
+th {
+    background-color: var(--blue-dark);
+    color: white;
+    font-weight: 500;
+}
+
+tr:nth-child(even) {
+    background-color: var(--grey-lighter);
 }

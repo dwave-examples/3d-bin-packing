@@ -287,11 +287,7 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
         input_string: input data information
 
     """
-    header = ["case_id", "quantity", "length", "width", "height"]
-
-    case_info = [[i, data["quantity"][i], data["case_length"][i],
-                  data["case_width"][i], data["case_height"][i]]
-                 for i in range(len(data['case_ids']))]
+    header, case_info = data_to_lists(data)
 
     input_string = f'# Max num of bins : {data["num_bins"]} \n'
     input_string += (f'# Bin dimensions '
@@ -308,3 +304,22 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
         f.close()
 
     return input_string
+
+
+def data_to_lists(data: dict) -> tuple[list[str], list[list]]:
+    """Convert input data dictionary to a list to prepare for display.
+
+    Args:
+        data: dictionary containing raw information for both bins and cases
+
+    Returns:
+        header: A list of headers for the case_info columns.
+        case_info: a list of lists of rows that fall under the headers.
+    """
+    header = ["Case ID", "Quantity", "Length", "Width", "Height"]
+
+    case_info = [[i, data["quantity"][i], data["case_length"][i],
+                  data["case_width"][i], data["case_height"][i]]
+                 for i in range(len(data['case_ids']))]
+
+    return header, case_info

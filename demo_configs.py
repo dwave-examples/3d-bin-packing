@@ -30,7 +30,7 @@ pack items with different dimensions, weights and properties. In this example, b
 are cuboids, and the sides of the items must be packed parallel to the sides of bins.
 """
 
-RANDOM_SEED = None
+RANDOM_SEED = 4
 
 #######################################
 # Sliders, buttons and option entries #
@@ -54,7 +54,7 @@ CASE_DIM = {
     "min": 1,
     "max": 30,
     "step": 1,
-    "value": 15,
+    "value": [2, 15],
 }
 
 BIN_DIM = {
@@ -64,7 +64,7 @@ BIN_DIM = {
     "value": 50,
 }
 
-ADVANCED_SETTINGS = ["Color coded cases", "Display input data"]
+ADVANCED_SETTINGS = ["Color coded cases"]
 
 # solver time limits in seconds (value means default)
 SOLVER_TIME = {
