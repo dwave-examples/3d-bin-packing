@@ -32,6 +32,8 @@ are cuboids, and the sides of the items must be packed parallel to the sides of 
 
 RANDOM_SEED = 4
 
+TABLE_HEADERS = ["Case ID", "Quantity", "Length", "Width", "Height"]
+
 #######################################
 # Sliders, buttons and option entries #
 #######################################

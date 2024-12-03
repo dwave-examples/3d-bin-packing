@@ -21,26 +21,19 @@ custom CSS can be added below.
 *******************************************************************/
 
 .tab-content-results {
-    padding: 0 3rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    height: 100%;
+    padding-right: 5rem;
+}
+
+.results, #results {
     height: 100%;
 }
 
-.tab-content {
+.input-wrapper {
     padding: 3rem 5rem;
 }
 
-/* .solution-stats-table td:nth-child(2n) {
-    text-align: right;
-}
-
-.solution-stats-table td:nth-child(2n+1) {
-    border-right: none;
-} */
-
-.input, .results {
+.input {
     display: flex;
     height: 100%;
     width: 100%;

@@ -422,7 +422,9 @@ def create_interface():
         id="app-container",
         children=[
             # Below are any temporary storage items, e.g., for sharing data between callbacks.
-            dcc.Store(id="run-in-progress", data=False),  # Indicates whether run is in progress
+            dcc.Store(id="data-table-store"),
+            dcc.Store(id="max-bins-store"),
+            dcc.Store(id="bin-dimensions-store"),
             # Header brand banner
             html.Div(className="banner", children=[html.Img(src=THUMBNAIL)]),
             # Settings and results columns
@@ -474,22 +476,22 @@ def create_interface():
                                         className="tab",
                                         children=[
                                             html.Div(
-                                                className="input",
-                                                # type="circle",
-                                                # color=THEME_COLOR_SECONDARY,
-                                                # A Dash callback (in app.py) will generate content in the Div below
-                                                children=[
-                                                    html.Div(
-                                                        html.Table(
-                                                            id="input",
-                                                            # add children dynamically using 'generate_table'
-                                                        )
-                                                    ),
-                                                    html.Div([
-                                                        html.H6(["Maximum bins: ", html.Span(id="max-bins")]),
-                                                        html.H6(["Bin dimensions: ", html.Span(id="bin-dims"), " (L*W*H)"])
-                                                    ])
-                                                ],
+                                                html.Div(
+                                                    className="input",
+                                                    children=[
+                                                        html.Div(
+                                                            html.Table(
+                                                                id="input",
+                                                                # add children dynamically using 'generate_table'
+                                                            )
+                                                        ),
+                                                        html.Div([
+                                                            html.H6(["Maximum bins: ", html.Span(id="max-bins")]),
+                                                            html.H6(["Bin dimensions: ", html.Span(id="bin-dims"), " (L*W*H)"])
+                                                        ])
+                                                    ],
+                                                ),
+                                                className="input-wrapper"
                                             ),
                                         ],
                                     ),
@@ -507,10 +509,12 @@ def create_interface():
                                                         type="circle",
                                                         color=THEME_COLOR_SECONDARY,
                                                         # A Dash callback (in app.py) will generate content in the Div below
-                                                        children=html.Div(id="results"),
+                                                        children=dcc.Graph(
+                                                            id="results",
+                                                            responsive=True,
+                                                            config={"displayModeBar": False},
+                                                        ),
                                                     ),
-                                                    # Problem details dropdown
-                                                    html.Div([html.Hr(), problem_details(1)]),
                                                 ],
                                             )
                                         ],

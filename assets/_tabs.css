@@ -51,10 +51,6 @@ div.tab.tab--disabled {
     height: 100%;
 }
 
-.tab-content > div:not(.tab-content-results) {
-    height: inherit;
-}
-
 .tab-content {
     background-color: white;
 }

@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 import os
+from demo_configs import TABLE_HEADERS
 import plotly.colors as colors
 import plotly.graph_objects as go
 import numpy as np
@@ -184,6 +185,29 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
     return fig
 
 
+def case_list_to_dict(num_bins: int, bin_dimensions: list, case_info: list) -> dict:
+    """Convert instance input files into raw problem data.
+
+    Args:
+        instance_path:  Path to the bin packing problem instance file.
+
+    Returns:
+        data: dictionary containing raw information for both bins and cases.
+    """
+
+    data = {"num_bins": num_bins, "bin_dimensions": bin_dimensions, "quantity": [], "case_ids": [],
+            "case_length": [], "case_width": [], "case_height": []}
+
+    for case_info_line in case_info:
+        data["case_ids"].append(case_info_line[0])
+        data["quantity"].append(case_info_line[1])
+        data["case_length"].append(case_info_line[2])
+        data["case_width"].append(case_info_line[3])
+        data["case_height"].append(case_info_line[4])
+
+    return data
+
+
 def read_instance(instance_path: str) -> dict:
     """Convert instance input files into raw problem data.
 
@@ -194,27 +218,20 @@ def read_instance(instance_path: str) -> dict:
         data: dictionary containing raw information for both bins and cases.
 
     """
-
-    data = {"num_bins": 0, "bin_dimensions": [], "quantity": [], "case_ids": [],
-            "case_length": [], "case_width": [], "case_height": []}
-
     with open(instance_path) as f:
+        case_info = []
+
         for i, line in enumerate(f):
             if i == 0:
-                data["num_bins"] = int(line.split()[-1])
+                num_bins = int(line.split()[-1])
             elif i == 1:
-                data["bin_dimensions"] = [int(i) for i in line.split()[-3:]]
+                bin_dimensions = [int(i) for i in line.split()[-3:]]
             elif 2 <= i <= 4:
                 continue
             else:
-                case_info = list(map(int, line.split()))
-                data["case_ids"].append(case_info[0])
-                data["quantity"].append(case_info[1])
-                data["case_length"].append(case_info[2])
-                data["case_width"].append(case_info[3])
-                data["case_height"].append(case_info[4])
+                case_info.append(list(map(int, line.split())))
 
-        return data
+        return case_list_to_dict(num_bins, bin_dimensions, case_info)
 
 
 def write_solution_to_file(solution_file_path: str,
@@ -287,14 +304,14 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
         input_string: input data information
 
     """
-    header, case_info = data_to_lists(data)
+    case_info = data_to_lists(data)
 
     input_string = f'# Max num of bins : {data["num_bins"]} \n'
     input_string += (f'# Bin dimensions '
                      f'(L * W * H): {data["bin_dimensions"][0]} '
                      f'{data["bin_dimensions"][1]} '
                      f'{data["bin_dimensions"][2]} \n \n')
-    input_string += tabulate([header, *[v for v in case_info]],
+    input_string += tabulate([TABLE_HEADERS, *[v for v in case_info]],
                              headers="firstrow", colalign='right')
 
     if input_filename is not None:
@@ -306,20 +323,17 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
     return input_string
 
 
-def data_to_lists(data: dict) -> tuple[list[str], list[list]]:
+def data_to_lists(data: dict) -> list[int]:
     """Convert input data dictionary to a list to prepare for display.
 
     Args:
         data: dictionary containing raw information for both bins and cases
 
     Returns:
-        header: A list of headers for the case_info columns.
         case_info: a list of lists of rows that fall under the headers.
     """
-    header = ["Case ID", "Quantity", "Length", "Width", "Height"]
-
     case_info = [[i, data["quantity"][i], data["case_length"][i],
                   data["case_width"][i], data["case_height"][i]]
                  for i in range(len(data['case_ids']))]
 
-    return header, case_info
+    return case_info

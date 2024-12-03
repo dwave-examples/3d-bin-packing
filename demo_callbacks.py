@@ -21,12 +21,14 @@ import dash
 from dash import ALL, MATCH, ctx
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from demo_configs import RANDOM_SEED
+from demo_configs import RANDOM_SEED, TABLE_HEADERS
 import numpy as np
+import plotly.graph_objs as go
 
-from demo_interface import generate_problem_details_table_rows, generate_table
+from demo_interface import generate_table
+from packing3d import Bins, Cases, Variables, build_cqm, call_solver
 from src.demo_enums import ProblemType, SolverType
-from utils import data_to_lists, write_input_data
+from utils import case_list_to_dict, data_to_lists, plot_cuboids, write_solution_to_file
 
 
 @dash.callback(
@@ -82,6 +84,7 @@ def update_problem_type(problem_type: Union[ProblemType, int], gen_settings: lis
 
 @dash.callback(
     Output("input", "children"),
+    Output("data-table-store", "data"),
     inputs=[
         Input("problem-type", "value"),
         Input("num-cases", "value"),
@@ -136,12 +139,16 @@ def update_input_graph_generated(
     
     data["case_ids"] = np.array(range(len(data["quantity"])))
 
-    return generate_table(*data_to_lists(data))
+    data_lists = data_to_lists(data)
+
+    return generate_table(TABLE_HEADERS, data_lists), data_lists
 
 
 @dash.callback(
     Output("max-bins", "children"),
     Output("bin-dims", "children"),
+    Output("max-bins-store", "data"),
+    Output("bin-dimensions-store", "data"),
     inputs=[
         Input("problem-type", "value"),
         Input("num-bins", "value"),
@@ -169,7 +176,7 @@ def update_input_generated(
     if ProblemType(problem_type) is ProblemType.FILE:
         raise PreventUpdate
 
-    return num_bins, f"{bin_length} * {bin_width} * {bin_height}"
+    return num_bins, f"{bin_length} * {bin_width} * {bin_height}", num_bins, [bin_length, bin_width, bin_height]
 
 
 @dash.callback(
@@ -177,6 +184,9 @@ def update_input_generated(
     Output("max-bins", "children", allow_duplicate=True),
     Output("bin-dims", "children", allow_duplicate=True),
     Output("filename", "children"),
+    Output("data-table-store", "data", allow_duplicate=True),
+    Output("max-bins-store", "data", allow_duplicate=True),
+    Output("bin-dimensions-store", "data", allow_duplicate=True),
     inputs=[
         Input("input-file", 'contents'),
         Input("problem-type", "value"),
@@ -220,41 +230,29 @@ def update_input_file(
             return 'There was an error processing this file.'
 
         return (
-            generate_table(["Case ID", "Quantity", "Length", "Width", "Height"], table_data),
+            generate_table(TABLE_HEADERS, table_data),
             num_bins,
-            f"{bin_length} * {bin_width} * {bin_height}", filename)
+            f"{bin_length} * {bin_width} * {bin_height}",
+            filename,
+            table_data,
+            num_bins,
+            [bin_length, bin_width, bin_height]
+        )
 
     raise PreventUpdate
 
 
-class RunOptimizationReturn(NamedTuple):
-    """Return type for the ``run_optimization`` callback function."""
-
-    results: str = dash.no_update
-    problem_details_table: list = dash.no_update
-    # Add more return variables here. Return values for callback functions
-    # with many variables should be returned as a NamedTuple for clarity.
-
-
 @dash.callback(
     # The Outputs below must align with `RunOptimizationReturn`.
-    Output("results", "children"),
-    Output("problem-details", "children"),
+    Output("results", "figure"),
     background=True,
     inputs=[
-        # The first string in the Input/State elements below must match an id in demo_interface.py
-        # Remove or alter the following id's to match any changes made to demo_interface.py
         Input("run-button", "n_clicks"),
         State("solver-type-select", "value"),
         State("solver-time-limit", "value"),
-        State("problem-type", "value"),
-        State("input-file", "contents"),
-        State("num-bins", "value"),
-        State("bin-length", "value"),
-        State("bin-width", "value"),
-        State("bin-height", "value"),
-        State("num-cases", "value"),
-        State("case-dim", "value"),
+        State("data-table-store", "data"),
+        State("max-bins-store", "data"),
+        State("bin-dimensions-store", "data"),
         State("checklist", "value"),
         State("save-input", "value"),
         State("save-solution", "value"),
@@ -265,29 +263,21 @@ class RunOptimizationReturn(NamedTuple):
         (Output("results-tab", "disabled"), True, False),  # Disables results tab while running.
         (Output("results-tab", "label"), "Loading...", "Results"),
         (Output("tabs", "value"), "input-tab", "input-tab"),  # Switch to input tab while running.
-        (Output("run-in-progress", "data"), True, False),  # Can block certain callbacks.
     ],
     cancel=[Input("cancel-button", "n_clicks")],
     prevent_initial_call=True,
 )
 def run_optimization(
-    # The parameters below must match the `Input` and `State` variables found
-    # in the `inputs` list above.
     run_click: int,
     solver_type: Union[SolverType, int],
     time_limit: float,
-    problem_type: Union[ProblemType, int],
-    input_file: str,
+    data_table: list[int],
     num_bins: int,
-    bin_length: int,
-    bin_width: int,
-    bin_height: int,
-    num_cases: int,
-    case_dim: int,
+    bin_dimensions: list[int],
     checklist: list,
     save_input: str,
-    save_solution: str,
-) -> RunOptimizationReturn:
+    save_solution_filepath: str,
+) -> go.Figure:
     """Runs the optimization and updates UI accordingly.
 
     This is the main function which is called when the ``Run Optimization`` button is clicked.
@@ -299,10 +289,6 @@ def run_optimization(
         run_click: The (total) number of times the run button has been clicked.
         solver_type: The solver to use for the optimization run defined by SolverType in demo_enums.py.
         time_limit: The solver time limit.
-        slider_value: The value of the slider.
-        dropdown_value: The value of the dropdown.
-        checklist_value: A list of the values of the checklist.
-        radio_value: The value of the radio.
 
     Returns:
         A NamedTuple (RunOptimizationReturn) containing all outputs to be used when updating the HTML
@@ -311,28 +297,23 @@ def run_optimization(
             results: The results to display in the results tab.
             problem-details: List of the table rows for the problem details table.
     """
-
-    # Only run optimization code if this function was triggered by a click on `run-button`.
-    # Setting `Input` as exclusively `run-button` and setting `prevent_initial_call=True`
-    # also accomplishes this.
-    if run_click == 0 or ctx.triggered_id != "run-button":
-        raise PreventUpdate
-
     solver_type = SolverType(solver_type)
 
+    data = case_list_to_dict(num_bins, bin_dimensions, data_table)
+    cases = Cases(data)
+    bins = Bins(data, cases)
 
-    ###########################
-    ### YOUR CODE GOES HERE ###
-    ###########################
+    vars = Variables(cases, bins)
 
+    cqm, effective_dimensions = build_cqm(vars, bins, cases)
 
-    # Generates a list of table rows for the problem details table.
-    problem_details_table = generate_problem_details_table_rows(
-        solver=solver_type.label,
-        time_limit=time_limit,
-    )
+    best_feasible = call_solver(cqm, time_limit, solver_type is SolverType.CQM)
 
-    return RunOptimizationReturn(
-        results="Put demo results here.",
-        problem_details_table=problem_details_table,
-    )
+    if save_solution_filepath is not None:
+        write_solution_to_file(save_solution_filepath, cqm, vars, best_feasible,
+                               cases, bins, effective_dimensions)
+
+    fig = plot_cuboids(best_feasible, vars, cases,
+                       bins, effective_dimensions, checklist)
+
+    return fig
