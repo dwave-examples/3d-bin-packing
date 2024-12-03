@@ -290,11 +290,15 @@ def generate_settings_form() -> html.Div:
                             ),
                             html.Div([
                                 html.Label("Save Input Data to File"),
-                                dcc.Input(
-                                    id="save-input",
-                                    type="text",
-                                    placeholder="File Name",
-                                ),
+                                html.Div([
+                                    dcc.Input(
+                                        id="save-input-filename",
+                                        type="text",
+                                        placeholder="File Name",
+                                    ),
+                                    html.Button(id="save-input-button", children="Save", n_clicks=0),
+                                    html.P("Saved!", className="display-none", id="saved")
+                                ]),
                             ], id={"type": "generated-settings", "index": 1}),
                             html.Label("Write Solution to File"),
                             dcc.Input(

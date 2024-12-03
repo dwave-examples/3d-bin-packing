@@ -28,7 +28,7 @@ import plotly.graph_objs as go
 from demo_interface import generate_table
 from packing3d import Bins, Cases, Variables, build_cqm, call_solver
 from src.demo_enums import ProblemType, SolverType
-from utils import case_list_to_dict, data_to_lists, plot_cuboids, write_solution_to_file
+from utils import case_list_to_dict, data_to_lists, plot_cuboids, write_input_data, write_solution_to_file
 
 
 @dash.callback(
@@ -85,11 +85,13 @@ def update_problem_type(problem_type: Union[ProblemType, int], gen_settings: lis
 @dash.callback(
     Output("input", "children"),
     Output("data-table-store", "data"),
+    Output("saved", "className", allow_duplicate=True),
     inputs=[
         Input("problem-type", "value"),
         Input("num-cases", "value"),
         Input("case-dim", "value"),
     ],
+    prevent_initial_call='initial_duplicate'
 )
 def update_input_graph_generated(
     problem_type: Union[ProblemType, int],
@@ -141,7 +143,7 @@ def update_input_graph_generated(
 
     data_lists = data_to_lists(data)
 
-    return generate_table(TABLE_HEADERS, data_lists), data_lists
+    return generate_table(TABLE_HEADERS, data_lists), data_lists, "display-none"
 
 
 @dash.callback(
@@ -149,6 +151,7 @@ def update_input_graph_generated(
     Output("bin-dims", "children"),
     Output("max-bins-store", "data"),
     Output("bin-dimensions-store", "data"),
+    Output("saved", "className"),
     inputs=[
         Input("problem-type", "value"),
         Input("num-bins", "value"),
@@ -176,7 +179,13 @@ def update_input_generated(
     if ProblemType(problem_type) is ProblemType.FILE:
         raise PreventUpdate
 
-    return num_bins, f"{bin_length} * {bin_width} * {bin_height}", num_bins, [bin_length, bin_width, bin_height]
+    return (
+        num_bins,
+        f"{bin_length} * {bin_width} * {bin_height}",
+        num_bins,
+        [bin_length, bin_width, bin_height],
+        "display-none"
+    )
 
 
 @dash.callback(
@@ -236,10 +245,47 @@ def update_input_file(
             filename,
             table_data,
             num_bins,
-            [bin_length, bin_width, bin_height]
+            [bin_length, bin_width, bin_height],
         )
 
     raise PreventUpdate
+
+
+@dash.callback(
+    Output("saved", "className", allow_duplicate=True),
+    inputs=[
+        Input("save-input-button", "n_clicks"),
+        State("save-input-filename", "value"),
+        State("data-table-store", "data"),
+        State("max-bins-store", "data"),
+        State("bin-dimensions-store", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def save_input_to_file(
+    save_button: int,
+    filename: str,
+    data_table: list[int],
+    num_bins: int,
+    bin_dimensions: list[int],
+) -> go.Figure:
+    """Runs the optimization and updates UI accordingly.
+
+    This is the main function which is called when the ``Run Optimization`` button is clicked.
+    This function takes in all form values and runs the optimization, updates the run/cancel
+    buttons, deactivates (and reactivates) the results tab, and updates all relevant HTML
+    components.
+
+    Args:
+        run_click: The (total) number of times the run button has been clicked.
+        solver_type: The solver to use for the optimization run defined by SolverType in demo_enums.py.
+        time_limit: The solver time limit.
+
+    Returns:
+        results: The results to display in the results tab.
+    """
+    write_input_data(case_list_to_dict(num_bins, bin_dimensions, data_table), filename)
+    return ""
 
 
 @dash.callback(
@@ -254,7 +300,7 @@ def update_input_file(
         State("max-bins-store", "data"),
         State("bin-dimensions-store", "data"),
         State("checklist", "value"),
-        State("save-input", "value"),
+        State("save-input-filename", "value"),
         State("save-solution", "value"),
     ],
     running=[
@@ -291,11 +337,7 @@ def run_optimization(
         time_limit: The solver time limit.
 
     Returns:
-        A NamedTuple (RunOptimizationReturn) containing all outputs to be used when updating the HTML
-        template (in ``demo_interface.py``). These are:
-
-            results: The results to display in the results tab.
-            problem-details: List of the table rows for the problem details table.
+        results: The results to display in the results tab.
     """
     solver_type = SolverType(solver_type)
 

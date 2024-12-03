@@ -132,3 +132,18 @@ th {
 tr:nth-child(even) {
     background-color: var(--grey-lighter);
 }
+
+#save-input-button {
+    margin-left: 0.5rem;
+    padding: 1.2rem 1.8rem;
+    font-size: 1.2rem;
+}
+
+#save-input-filename {
+    display: inline-block;
+}
+
+#saved {
+    display: inline;
+    margin-left: 0.8rem;
+}
