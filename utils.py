@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from packing3d import Cases, Bins, Variables
 
 
-def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
+def get_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
     """Print some information about the CQM model defining the 3D bin packing problem.
 
     Args:
@@ -58,20 +58,37 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
     assert (num_quadratic_constraints + num_linear_constraints ==
             len(cqm.constraints))
 
+    return [
+        ["Binary", "Integer", "Continuous", "Quad", "Linear", "One-hot", "EQ  ", "LT", "GT"],
+        [
+            num_binaries,
+            num_integers,
+            num_continuous,
+            num_quadratic_constraints,
+            num_linear_constraints,
+            num_discretes,
+            num_equality_constraints,
+            num_le_inequality_constraints,
+            num_ge_inequality_constraints
+        ]
+    ]
+
+
+def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
+    """Print some information about the CQM model defining the 3D bin packing problem.
+
+    Args:
+        cqm: A dimod constrained quadratic model.
+
+    """
+    cqm_stats = get_cqm_stats(cqm)
+
     print(" \n" + "=" * 35 + "MODEL INFORMATION" + "=" * 35)
     print(
         ' ' * 10 + 'Variables' + " " * 20 + 'Constraints' + " " * 15 +
         'Sensitivity')
     print('-' * 30 + " " + '-' * 28 + ' ' + '-' * 18)
-    print(tabulate([["Binary", "Integer", "Continuous", "Quad", "Linear",
-                     "One-hot", "EQ  ", "LT", "GT"],
-                    [num_binaries, num_integers, num_continuous,
-                     num_quadratic_constraints,
-                     num_linear_constraints, num_discretes,
-                     num_equality_constraints,
-                     num_le_inequality_constraints,
-                     num_ge_inequality_constraints]],
-                   headers="firstrow"))
+    print(tabulate(cqm_stats, headers="firstrow"))
 
 
 def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):

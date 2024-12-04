@@ -345,7 +345,7 @@ def generate_table(headers: list, body: list) -> list[html.Thead, html.Tbody]:
     ]
 
 
-def generate_problem_details_table_rows(solver: str, time_limit: int) -> list[html.Tr]:
+def generate_problem_details_table_rows(table_data: list[list]) -> list[html.Tr]:
     """Generates table rows for the problem details table.
 
     Args:
@@ -356,12 +356,7 @@ def generate_problem_details_table_rows(solver: str, time_limit: int) -> list[ht
         list[html.Tr]: List of rows for the problem details table.
     """
 
-    table_rows = (
-        ("Solver:", solver, "Time Limit:", f"{time_limit}s"),
-        ### Add more table rows here. Each tuple is a row in the table.
-    )
-
-    return [html.Tr([html.Td(cell) for cell in row]) for row in table_rows]
+    return [html.Tr([html.Td(cell) for cell in row]) for row in table_data]
 
 
 def problem_details(index: int) -> html.Div:
@@ -383,7 +378,7 @@ def problem_details(index: int) -> html.Div:
                 id={"type": "collapse-trigger", "index": index},
                 className="details-collapse",
                 children=[
-                    html.H5("Problem Details"),
+                    html.H5("Model Details"),
                     html.Div(className="collapse-arrow"),
                 ],
             ),
@@ -399,12 +394,16 @@ def problem_details(index: int) -> html.Div:
                                     html.Tr(
                                         [
                                             html.Th(
-                                                colSpan=2,
-                                                children=["Problem Specifics"],
+                                                colSpan=3,
+                                                children=["Variables"],
                                             ),
                                             html.Th(
-                                                colSpan=2,
-                                                children=["Run Time"],
+                                                colSpan=3,
+                                                children=["Constraints"],
+                                            ),
+                                            html.Th(
+                                                colSpan=3,
+                                                children=["Sensitivity"],
                                             ),
                                         ]
                                     )
@@ -513,12 +512,14 @@ def create_interface():
                                                         type="circle",
                                                         color=THEME_COLOR_SECONDARY,
                                                         # A Dash callback (in app.py) will generate content in the Div below
-                                                        children=dcc.Graph(
+                                                        children=html.Div(dcc.Graph(
                                                             id="results",
                                                             responsive=True,
                                                             config={"displayModeBar": False},
-                                                        ),
+                                                        ), className="graph"),
                                                     ),
+                                                    # Problem details dropdown
+                                                    html.Div([html.Hr(), problem_details(1)]),
                                                 ],
                                             )
                                         ],

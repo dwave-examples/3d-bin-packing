@@ -25,10 +25,10 @@ from demo_configs import RANDOM_SEED, TABLE_HEADERS
 import numpy as np
 import plotly.graph_objs as go
 
-from demo_interface import generate_table
+from demo_interface import generate_problem_details_table_rows, generate_table
 from packing3d import Bins, Cases, Variables, build_cqm, call_solver
 from src.demo_enums import ProblemType, SolverType
-from utils import case_list_to_dict, data_to_lists, plot_cuboids, write_input_data, write_solution_to_file
+from utils import case_list_to_dict, data_to_lists, get_cqm_stats, plot_cuboids, print_cqm_stats, write_input_data, write_solution_to_file
 
 
 @dash.callback(
@@ -291,6 +291,7 @@ def save_input_to_file(
 @dash.callback(
     # The Outputs below must align with `RunOptimizationReturn`.
     Output("results", "figure"),
+    Output("problem-details", "children"),
     background=True,
     inputs=[
         Input("run-button", "n_clicks"),
@@ -358,4 +359,7 @@ def run_optimization(
     fig = plot_cuboids(best_feasible, vars, cases,
                        bins, effective_dimensions, checklist)
 
-    return fig
+     # Generates a list of table rows for the problem details table.
+    problem_details_table = generate_problem_details_table_rows(get_cqm_stats(cqm))
+
+    return fig, problem_details_table
