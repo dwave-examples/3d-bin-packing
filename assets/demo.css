@@ -26,6 +26,7 @@ custom CSS can be added below.
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    position: relative;
 }
 
 .tab-content-results > div:last-child {
@@ -64,7 +65,7 @@ table {
 }
 
 .input > div:first-child {
-    height: calc(100vh - var(--banner-height) - 160px);
+    height: calc(100vh - var(--banner-height) - 160px);  /* minus height of tabs and padding */
     overflow-y: auto;
 }
 
@@ -166,4 +167,11 @@ th {
 #saved {
     display: inline;
     margin-left: 0.8rem;
+}
+
+.checklist-wrapper {
+    position: absolute;
+    z-index: 5;
+    right: 4rem;
+    top: 4rem;
 }

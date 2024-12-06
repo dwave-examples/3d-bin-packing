@@ -28,7 +28,7 @@ import plotly.graph_objs as go
 from demo_interface import generate_problem_details_table_rows, generate_table
 from packing3d import Bins, Cases, Variables, build_cqm, call_solver
 from src.demo_enums import ProblemType, SolverType
-from utils import case_list_to_dict, data_to_lists, get_cqm_stats, plot_cuboids, print_cqm_stats, write_input_data, write_solution_to_file
+from utils import case_list_to_dict, data_to_lists, get_cqm_stats, plot_cuboids, print_cqm_stats, update_colors, write_input_data, write_solution_to_file
 
 
 @dash.callback(
@@ -289,7 +289,36 @@ def save_input_to_file(
 
 
 @dash.callback(
-    # The Outputs below must align with `RunOptimizationReturn`.
+    Output("results", "figure", allow_duplicate=True),
+    inputs=[
+        Input("checklist", "value"),
+        State("results", "figure"),
+    ],
+    prevent_initial_call=True,
+)
+def update_graph_colors(
+    checklist: list,
+    fig: go.Figure,
+) -> go.Figure:
+    """Runs the optimization and updates UI accordingly.
+
+    This is the main function which is called when the ``Run Optimization`` button is clicked.
+    This function takes in all form values and runs the optimization, updates the run/cancel
+    buttons, deactivates (and reactivates) the results tab, and updates all relevant HTML
+    components.
+
+    Args:
+        run_click: The (total) number of times the run button has been clicked.
+        solver_type: The solver to use for the optimization run defined by SolverType in demo_enums.py.
+        time_limit: The solver time limit.
+
+    Returns:
+        results: The results to display in the results tab.
+    """
+    return update_colors(fig, bool(checklist))
+
+
+@dash.callback(
     Output("results", "figure"),
     Output("problem-details", "children"),
     background=True,
@@ -301,7 +330,6 @@ def save_input_to_file(
         State("max-bins-store", "data"),
         State("bin-dimensions-store", "data"),
         State("checklist", "value"),
-        State("save-input-filename", "value"),
         State("save-solution", "value"),
     ],
     running=[
@@ -322,7 +350,6 @@ def run_optimization(
     num_bins: int,
     bin_dimensions: list[int],
     checklist: list,
-    save_input: str,
     save_solution_filepath: str,
 ) -> go.Figure:
     """Runs the optimization and updates UI accordingly.
@@ -357,7 +384,7 @@ def run_optimization(
                                cases, bins, effective_dimensions)
 
     fig = plot_cuboids(best_feasible, vars, cases,
-                       bins, effective_dimensions, checklist)
+                       bins, effective_dimensions, bool(checklist))
 
      # Generates a list of table rows for the problem details table.
     problem_details_table = generate_problem_details_table_rows(get_cqm_stats(cqm))

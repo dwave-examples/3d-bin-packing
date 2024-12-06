@@ -91,6 +91,22 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
     print(tabulate(cqm_stats, headers="firstrow"))
 
 
+def update_colors(fig: go.Figure, color_coded: bool):
+    if color_coded:
+        case_ids = np.array(
+            [
+                int(trace["name"].split("_")[1]) for trace in fig["data"] if trace["name"][:4] == "case"
+            ]
+        )
+        colors = _get_colors(case_ids)
+
+    for i, trace in enumerate(fig["data"]):
+        if trace["name"][:4] == "case":
+            trace["color"] = colors[i] if color_coded else ""
+
+    return fig
+
+
 def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],

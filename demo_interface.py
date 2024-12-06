@@ -167,8 +167,6 @@ def generate_settings_form() -> html.Div:
     Returns:
         html.Div: A Div containing the settings for selecting the scenario, model, and solver.
     """
-    checklist_options = generate_options(ADVANCED_SETTINGS)
-
     problem_type_options = [
         {"label": problem_type.label, "value": problem_type.value} for problem_type in ProblemType
     ]
@@ -282,12 +280,6 @@ def generate_settings_form() -> html.Div:
                     html.Div(
                         className="details-to-collapse advanced-collapse",
                         children=[
-                            checklist(
-                                "",
-                                "checklist",
-                                sorted(checklist_options, key=lambda op: op["value"]),
-                                [0],
-                            ),
                             html.Div([
                                 html.Label("Save Input Data to File"),
                                 html.Div([
@@ -421,6 +413,8 @@ def problem_details(index: int) -> html.Div:
 
 def create_interface():
     """Set the application HTML."""
+    checklist_options = generate_options(ADVANCED_SETTINGS)
+
     return html.Div(
         id="app-container",
         children=[
@@ -507,6 +501,12 @@ def create_interface():
                                             html.Div(
                                                 className="tab-content-results",
                                                 children=[
+                                                    checklist(
+                                                        "",
+                                                        "checklist",
+                                                        sorted(checklist_options, key=lambda op: op["value"]),
+                                                        [],
+                                                    ),
                                                     dcc.Loading(
                                                         parent_className="results",
                                                         type="circle",

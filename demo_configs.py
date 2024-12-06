@@ -66,7 +66,7 @@ BIN_DIM = {
     "value": 50,
 }
 
-ADVANCED_SETTINGS = ["Color coded cases"]
+ADVANCED_SETTINGS = ["Color by Case ID"]
 
 # solver time limits in seconds (value means default)
 SOLVER_TIME = {
