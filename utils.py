@@ -1,4 +1,4 @@
-# Copyright 2022 D-Wave Systems Inc.
+# Copyright 2024 D-Wave
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ if TYPE_CHECKING:
     from packing3d import Cases, Bins, Variables
 
 
-def get_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
-    """Print some information about the CQM model defining the 3D bin packing problem.
+def get_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> list[list]:
+    """Get information about the CQM model defining the 3D bin packing problem.
 
     Args:
         cqm: A dimod constrained quadratic model.
 
+    Returns:
+        list[list]: A list of CQM data ready to be printed or displayed in a table.
     """
     if not isinstance(cqm, dimod.ConstrainedQuadraticModel):
         raise ValueError("input instance should be a dimod CQM model")
@@ -59,7 +61,7 @@ def get_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
             len(cqm.constraints))
 
     return [
-        ["Binary", "Integer", "Continuous", "Quad", "Linear", "One-hot", "EQ  ", "LT", "GT"],
+        ["Binary", "Integer", "Continuous", "Quad", "Linear", "One-hot", "EQ", "LT", "GT"],
         [
             num_binaries,
             num_integers,
@@ -91,7 +93,16 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
     print(tabulate(cqm_stats, headers="firstrow"))
 
 
-def update_colors(fig: go.Figure, color_coded: bool):
+def update_colors(fig: go.Figure, color_coded: bool) -> go.Figure:
+    """Update the case colors given a figure and the color coding rule.
+
+    Args:
+        fig: A go.Figure containing colored cases with case IDs of the form ``case_#``.
+        color_coded: Whether the cases should be colored based on their ID.
+
+    Returns:
+        go.Figure: The go.Figure with updated colors.
+    """
     if color_coded:
         case_ids = np.array(
             [

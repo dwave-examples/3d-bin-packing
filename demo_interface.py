@@ -273,25 +273,13 @@ def generate_settings_form() -> html.Div:
                         },
                         className="details-collapse advanced-settings",
                         children=[
-                            html.Label("Advanced settings"),
+                            html.Label("More settings"),
                             html.Div(className="collapse-arrow"),
                         ],
                     ),
                     html.Div(
                         className="details-to-collapse advanced-collapse",
                         children=[
-                            html.Div([
-                                html.Label("Save Input Data to File"),
-                                html.Div([
-                                    dcc.Input(
-                                        id="save-input-filename",
-                                        type="text",
-                                        placeholder="File Name",
-                                    ),
-                                    html.Button(id="save-input-button", children="Save", n_clicks=0),
-                                    html.P("Saved!", className="display-none", id="saved")
-                                ]),
-                            ], id={"type": "generated-settings", "index": 1}),
                             html.Label("Write Solution to File"),
                             dcc.Input(
                                 id="save-solution",
@@ -484,7 +472,22 @@ def create_interface():
                                                         ),
                                                         html.Div([
                                                             html.H6(["Maximum bins: ", html.Span(id="max-bins")]),
-                                                            html.H6(["Bin dimensions: ", html.Span(id="bin-dims"), " (L*W*H)"])
+                                                            html.H6(["Bin dimensions: ", html.Span(id="bin-dims"), " (L*W*H)"]),
+                                                            html.Div(
+                                                                [
+                                                                    html.Label("Save Input Data to File"),
+                                                                    html.Div([
+                                                                        dcc.Input(
+                                                                            id="save-input-filename",
+                                                                            type="text",
+                                                                            placeholder="File Name",
+                                                                        ),
+                                                                        html.Button(id="save-input-button", children="Save", n_clicks=0),
+                                                                        html.P("Saved!", className="display-none", id="saved")
+                                                                    ]),
+                                                                ],
+                                                                id={"type": "generated-settings", "index": 1},
+                                                            ),
                                                         ])
                                                     ],
                                                 ),

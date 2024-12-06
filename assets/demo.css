@@ -60,6 +60,10 @@ table {
     margin: 0 0.4rem 0 1rem;
 }
 
+.input label {
+    margin-top: 6rem;
+}
+
 .input > *:last-child {
     margin-left: 5rem;
 }

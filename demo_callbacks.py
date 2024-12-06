@@ -18,7 +18,7 @@ import base64
 from typing import NamedTuple, Union
 
 import dash
-from dash import ALL, MATCH, ctx
+from dash import ALL, MATCH
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from demo_configs import RANDOM_SEED, TABLE_HEADERS
@@ -28,7 +28,7 @@ import plotly.graph_objs as go
 from demo_interface import generate_problem_details_table_rows, generate_table
 from packing3d import Bins, Cases, Variables, build_cqm, call_solver
 from src.demo_enums import ProblemType, SolverType
-from utils import case_list_to_dict, data_to_lists, get_cqm_stats, plot_cuboids, print_cqm_stats, update_colors, write_input_data, write_solution_to_file
+from utils import case_list_to_dict, data_to_lists, get_cqm_stats, plot_cuboids, update_colors, write_input_data, write_solution_to_file
 
 
 @dash.callback(
@@ -66,15 +66,19 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
         State({"type": "generated-settings", "index": ALL}, "children"),
     ],
 )
-def update_problem_type(problem_type: Union[ProblemType, int], gen_settings: list) -> tuple[str, str]:
-    """Runs on load and any time the value of the slider is updated.
-        Add `prevent_initial_call=True` to skip on load runs.
+def update_problem_type(
+    problem_type: Union[ProblemType, int],
+    gen_settings: list,
+) -> tuple[list[str], str]:
+    """Updates the visible settings when the Problem Type is changed.
 
     Args:
-        slider_value: The value of the slider.
+        problem_type: The ProblemType that was just selected from the dropdown.
+        gen_settings: The settings for the `Generated` ProblemType.
 
     Returns:
-        str: The content of the input tab.
+        list[str]: The classe names for the settings for the `Generated` ProblemType.
+        str: The class name for the `Uploaded` ProblemType.
     """
     if problem_type is ProblemType.FILE.value:
         return ["display-none"]*len(gen_settings), ""
@@ -93,19 +97,23 @@ def update_problem_type(problem_type: Union[ProblemType, int], gen_settings: lis
     ],
     prevent_initial_call='initial_duplicate'
 )
-def update_input_graph_generated(
+def update_input_table_generated(
     problem_type: Union[ProblemType, int],
     num_cases: int,
-    case_size_range: int,
-) -> str:
-    """Runs on load and any time the value of the slider is updated.
-        Add `prevent_initial_call=True` to skip on load runs.
+    case_size_range: list[int],
+) -> tuple[list, list, str]:
+    """Updates the input table when ProblemType is `Generated` and any relevant settings have been
+    changed.
 
     Args:
-        slider_value: The value of the slider.
+        problem_type: The input problem type. Either Generated or Uploaded.
+        num_cases: The value of the number of cases setting.
+        case_size_range: The values of the case size range setting.
 
     Returns:
-        str: The content of the input tab.
+        list: The input table.
+        list: The data that was generated for the table.
+        str: The class name for the `Saved!` feedback.
     """
     if ProblemType(problem_type) is ProblemType.FILE:
         raise PreventUpdate
@@ -166,15 +174,23 @@ def update_input_generated(
     bin_length: int,
     bin_width: int,
     bin_height: int,
-) -> str:
-    """Runs on load and any time the value of the slider is updated.
-        Add `prevent_initial_call=True` to skip on load runs.
+) -> tuple[int, str, int, list, str]:
+    """Updates the number of bins and bin dimensions store and input when ProblemType is `Generated`
+    and any relevant form fields are updated.
 
     Args:
-        slider_value: The value of the slider.
+        problem_type: The input problem type. Either Generated or Uploaded.
+        num_bins: The current value of the number of bins setting.
+        bin_length: The current value of the bin length setting.
+        bin_width: The current value of the bin width setting.
+        bin_height: The current value of the bin height setting.
 
     Returns:
-        str: The content of the input tab.
+        max_bins: The maximum bins to display in the input UI.
+        bin_dimensions: The bin dimension string to display in the UI.
+        max_bins_store: The value to update the maximum bins store.
+        bin_dimensions_store: The value to update the bin dimensions store.
+        saved_classname: The `Saved!` text class name.
     """
     if ProblemType(problem_type) is ProblemType.FILE:
         raise PreventUpdate
@@ -187,6 +203,17 @@ def update_input_generated(
         "display-none"
     )
 
+
+class UpdateInputFileReturn(NamedTuple):
+    """Return type for the ``update_input_file`` callback function."""
+
+    table_input: list = dash.no_update
+    max_bins: int = dash.no_update
+    bin_dimensions: str = dash.no_update
+    filename: str = dash.no_update
+    data_table_store: list = dash.no_update
+    max_bins_store: int = dash.no_update
+    bin_dimensions_store: list = dash.no_update
 
 @dash.callback(
     Output("input", "children", allow_duplicate=True),
@@ -207,15 +234,23 @@ def update_input_file(
     file_contents: str,
     problem_type: Union[ProblemType, int],
     filename: str,
-) -> str:
-    """Runs on load and any time the value of the slider is updated.
-        Add `prevent_initial_call=True` to skip on load runs.
+) -> UpdateInputFileReturn:
+    """Reads input file and displays data in a table.
 
     Args:
-        slider_value: The value of the slider.
+        file_contents: The encoded contents of the uploaded input file.
+        problem_type: The input problem type. Either Generated or Uploaded.
+        filename: The name of the uploaded file.
 
     Returns:
-        str: The content of the input tab.
+        A NamedTuple (UpdateInputFileReturn) with the following parameters:
+            table_input: The input table containing problem data from the file.
+            max_bins: The maximum bins to display in the input UI.
+            bin_dimensions: The bin dimension string to display in the UI.
+            filename: The name of the file that was uploaded to display in the UI.
+            data_table_store: The value to update the table data store.
+            max_bins_store: The value to update the maximum bins store.
+            bin_dimensions_store: The value to update the bin dimensions store.
     """
     if ProblemType(problem_type) is ProblemType.GENERATED:
         raise PreventUpdate
@@ -236,16 +271,16 @@ def update_input_file(
 
         except Exception as e:
             print(e)
-            return 'There was an error processing this file.'
+            return UpdateInputFileReturn(filename='There was an error processing this file.')
 
-        return (
-            generate_table(TABLE_HEADERS, table_data),
-            num_bins,
-            f"{bin_length} * {bin_width} * {bin_height}",
-            filename,
-            table_data,
-            num_bins,
-            [bin_length, bin_width, bin_height],
+        return UpdateInputFileReturn(
+            table_input=generate_table(TABLE_HEADERS, table_data),
+            max_bins=num_bins,
+            bin_dimensions=f"{bin_length} * {bin_width} * {bin_height}",
+            filename=filename,
+            data_table_store=table_data,
+            max_bins_store=num_bins,
+            bin_dimensions_store=[bin_length, bin_width, bin_height],
         )
 
     raise PreventUpdate
@@ -268,21 +303,18 @@ def save_input_to_file(
     data_table: list[int],
     num_bins: int,
     bin_dimensions: list[int],
-) -> go.Figure:
-    """Runs the optimization and updates UI accordingly.
-
-    This is the main function which is called when the ``Run Optimization`` button is clicked.
-    This function takes in all form values and runs the optimization, updates the run/cancel
-    buttons, deactivates (and reactivates) the results tab, and updates all relevant HTML
-    components.
+) -> str:
+    """Saves input data to a text file when the `save-input-button` is clicked.
 
     Args:
-        run_click: The (total) number of times the run button has been clicked.
-        solver_type: The solver to use for the optimization run defined by SolverType in demo_enums.py.
-        time_limit: The solver time limit.
+        save_button: How many times the save to file button has been clicked.
+        filename: The file name to save the input data to.
+        data_table: The data from the table of input values.
+        num_bins: The number of bins.
+        bin_dimensions: The bin dimensions.
 
     Returns:
-        results: The results to display in the results tab.
+        str: The `Saved!` text class name.
     """
     write_input_data(case_list_to_dict(num_bins, bin_dimensions, data_table), filename)
     return ""
@@ -300,20 +332,14 @@ def update_graph_colors(
     checklist: list,
     fig: go.Figure,
 ) -> go.Figure:
-    """Runs the optimization and updates UI accordingly.
-
-    This is the main function which is called when the ``Run Optimization`` button is clicked.
-    This function takes in all form values and runs the optimization, updates the run/cancel
-    buttons, deactivates (and reactivates) the results tab, and updates all relevant HTML
-    components.
+    """Updates the colors of the figure when the value of the checklist changes.
 
     Args:
-        run_click: The (total) number of times the run button has been clicked.
-        solver_type: The solver to use for the optimization run defined by SolverType in demo_enums.py.
-        time_limit: The solver time limit.
+        checklist: A list of the current values of the checklist.
+        fig: The current figure that is displayed.
 
     Returns:
-        results: The results to display in the results tab.
+        go.Figure: The updated figure.
     """
     return update_colors(fig, bool(checklist))
 
@@ -351,7 +377,7 @@ def run_optimization(
     bin_dimensions: list[int],
     checklist: list,
     save_solution_filepath: str,
-) -> go.Figure:
+) -> tuple[go.Figure, list]:
     """Runs the optimization and updates UI accordingly.
 
     This is the main function which is called when the ``Run Optimization`` button is clicked.
@@ -360,12 +386,18 @@ def run_optimization(
     components.
 
     Args:
-        run_click: The (total) number of times the run button has been clicked.
-        solver_type: The solver to use for the optimization run defined by SolverType in demo_enums.py.
-        time_limit: The solver time limit.
+        run_click: The number of times the run button has been clicked.
+        solver_type: The value of the Solver form field.
+        time_limit: The value of the Solver Time Limit form field.
+        data_table: The stored generated data.
+        num_bins: The stored number of bins.
+        bin_dimensions: The stored bin dimensions.
+        checklist: The current value of the checklist.
+        save_solution_filepath: The filepath to save the solution to.
 
     Returns:
-        results: The results to display in the results tab.
+        fig: The results figure.
+        problem_details_table: The table and information to display in the problem details table.
     """
     solver_type = SolverType(solver_type)
 
