@@ -251,7 +251,7 @@ def read_input_file(
                 if line.strip():
                     case_data.append(list(map(int, line.split())))
 
-            problem_data = case_list_to_dict(num_bins, [bin_length, bin_width, bin_height], case_data)
+            problem_data = case_list_to_dict(case_data, num_bins, [bin_length, bin_width, bin_height])
 
             return ReadInputFileReturn(
                 table_input=generate_table(problem_data),

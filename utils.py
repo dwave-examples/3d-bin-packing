@@ -230,11 +230,13 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
     return fig
 
 
-def case_list_to_dict(num_bins: int, bin_dimensions: list, case_info: list) -> dict:
-    """Convert instance input files into raw problem data.
+def case_list_to_dict(case_info: list[list], num_bins: int, bin_dimensions: list) -> dict:
+    """Convert a case info list and bin information into a dictionary.
 
     Args:
-        instance_path:  Path to the bin packing problem instance file.
+        case_info: A list of lists of case dimensions and info.
+        num_bins: The number of bins.
+        bin_dimensions: The bin dimensions [length, width, height].
 
     Returns:
         data: dictionary containing raw information for both bins and cases.
@@ -274,7 +276,7 @@ def read_instance(instance_path: str) -> dict:
             else:
                 case_info.append(list(map(int, line.split())))
 
-        return case_list_to_dict(num_bins, bin_dimensions, case_info)
+        return case_list_to_dict(case_info, num_bins, bin_dimensions)
 
 
 def write_solution_to_file(solution_file_path: str,
@@ -309,7 +311,7 @@ def write_solution_to_file(solution_file_path: str,
         num_bin_used = 1
 
     objective_value = cqm.objective.energy(sample)
-    vs = [['case_id', 'bin-location', 'orientation', 'x', 'y', 'z', "x'",
+    vs = [['case_id', 'bin_location', 'orientation', 'x', 'y', 'z', "x'",
            "y'", "z'"]]
     for i in range(num_cases):
         vs.append([cases.case_ids[i],
