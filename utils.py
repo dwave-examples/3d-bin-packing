@@ -349,12 +349,13 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
         input_string: input data information
 
     """
-    num_bins = data.pop('num_bins')
-    bin_dimensions = data.pop('bin_dimensions')
+    problem_data = data.copy()
+    num_bins = problem_data.pop('num_bins')
+    bin_dimensions = problem_data.pop('bin_dimensions')
 
     case_info = [
-        [data[table_header][i] for table_header in TABLE_HEADERS]
-        for i in range(len(data[TABLE_HEADERS[0]]))
+        [problem_data[table_header][i] for table_header in TABLE_HEADERS]
+        for i in range(len(problem_data[TABLE_HEADERS[0]]))
     ]
 
     input_string = f'# Max num of bins : {num_bins} \n'

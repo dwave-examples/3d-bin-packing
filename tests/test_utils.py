@@ -19,7 +19,7 @@ import sys
 from tempfile import TemporaryDirectory
 import unittest
 
-from utils import (print_cqm_stats,
+from utils import (case_list_to_dict, print_cqm_stats,
                    plot_cuboids,
                    read_instance, 
                    write_input_data, 
@@ -30,6 +30,8 @@ from packing3d import (Cases,
                        Variables,
                        build_cqm,
                        call_solver)
+
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class TestUtils(unittest.TestCase):
@@ -58,7 +60,7 @@ class TestUtils(unittest.TestCase):
                          expected_field_values)
 
     def test_plot_cuboids(self):
-        data = read_instance(instance_path='./tests/test_data_1.txt')
+        data = read_instance(instance_path=project_dir+'/tests/test_data_1.txt')
         cases = Cases(data)
         bins = Bins(data, cases=cases)
         variables = Variables(cases, bins)
@@ -76,35 +78,36 @@ class TestUtils(unittest.TestCase):
         )
 
     def test_read_write_input_data(self):
-        data = read_instance(instance_path='./tests/test_data_1.txt')
+        data = read_instance(instance_path=project_dir+'/tests/test_data_1.txt')
         out_file_string = write_input_data(data)
-        data1 = {"num_bins": 0, "bin_dimensions": [], "Quantity": [],
-                 "Case ID": [], "Length": [], "Width": [],
-                 "Height": []}
+
         out_list = (out_file_string.split(sep='\n'))
+        case_info = []
         for i, line in enumerate(out_list):
             if i == 0:
-                data1["num_bins"] = int(line.split()[-1])
+                num_bins = int(line.split()[-1])
             elif i == 1:
-                data1["bin_dimensions"] = [int(i) for i in line.split()[-3:]]
+                bin_dimensions = [int(i) for i in line.split()[-3:]]
             elif 2 <= i <= 4:
                 continue
             else:
-                case_info = list(map(int, line.split()))
-                data1["Case ID"].append(case_info[0])
-                data1["Quantity"].append(case_info[1])
-                data1["Length"].append(case_info[2])
-                data1["Width"].append(case_info[3])
-                data1["Height"].append(case_info[4])
+                case_info.append(list(map(int, line.split())))
 
-        self.assertEqual(data1, {'num_bins': 1, 'bin_dimensions': [30, 40, 50],
-                                 'Quantity': [1, 1], 'Case ID': [0, 1],
-                                 'Length': [2, 3], 'Width': [2, 3],
-                                 'Height': [2, 3]})
+        data1 = case_list_to_dict(case_info, num_bins, bin_dimensions)
+
+        self.assertEqual(data1, {
+            'Case ID': [0, 1],
+            'Quantity': [1, 1],
+            'Length': [2, 3],
+            'Width': [2, 3],
+            'Height': [2, 3],
+            'num_bins': 1,
+            'bin_dimensions': [30, 40, 50]
+        })
         self.assertEqual(data1, data)
 
     def test_write_solution_to_file(self):
-        data = read_instance(instance_path='./tests/test_data_1.txt')
+        data = read_instance(instance_path=project_dir+'/tests/test_data_1.txt')
         cases = Cases(data)
         bins = Bins(data, cases=cases)
         variables = Variables(cases, bins)

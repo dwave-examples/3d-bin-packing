@@ -12,6 +12,9 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import os
+import sys
+
 from itertools import combinations
 import numpy as np
 import unittest
@@ -19,17 +22,18 @@ from unittest.mock import patch
 
 import dimod
 from mip_solver import MIPCQMSolver
-import packing3d
 from packing3d import build_cqm, Cases, Bins, Variables, call_solver
 from packing3d import _add_orientation_constraints, _add_bin_on_constraint
 from packing3d import _add_boundary_constraints, _add_geometric_constraints
 
 from utils import read_instance
 
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 class TestPacking3d(unittest.TestCase):
     def setUp(self):
-        self.data = read_instance("./tests/test_data_1.txt")
+        self.data = read_instance(project_dir + "/tests/test_data_1.txt")
         self.cases = Cases(self.data)
         self.bins = Bins(self.data, self.cases)
         self.variables = Variables(self.cases, self.bins)
