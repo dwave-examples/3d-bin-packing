@@ -13,7 +13,6 @@
 #    limitations under the License.
 
 import os
-from demo_configs import TABLE_HEADERS
 import plotly.colors as colors
 import plotly.graph_objects as go
 import numpy as np
@@ -23,6 +22,8 @@ import dimod
 
 if TYPE_CHECKING:
     from packing3d import Cases, Bins, Variables
+
+TABLE_HEADERS = ["Case ID", "Quantity", "Length", "Width", "Height"]
 
 
 def get_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> list[list]:
@@ -238,16 +239,14 @@ def case_list_to_dict(num_bins: int, bin_dimensions: list, case_info: list) -> d
     Returns:
         data: dictionary containing raw information for both bins and cases.
     """
-
-    data = {"num_bins": num_bins, "bin_dimensions": bin_dimensions, "quantity": [], "case_ids": [],
-            "case_length": [], "case_width": [], "case_height": []}
+    data = {table_header: [] for table_header in TABLE_HEADERS}
 
     for case_info_line in case_info:
-        data["case_ids"].append(case_info_line[0])
-        data["quantity"].append(case_info_line[1])
-        data["case_length"].append(case_info_line[2])
-        data["case_width"].append(case_info_line[3])
-        data["case_height"].append(case_info_line[4])
+        for i, table_header in enumerate(TABLE_HEADERS):
+            data[table_header].append(case_info_line[i])
+
+    data["num_bins"] = num_bins
+    data["bin_dimensions"] = bin_dimensions
 
     return data
 
@@ -348,13 +347,19 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
         input_string: input data information
 
     """
-    case_info = data_to_lists(data)
+    num_bins = data.pop('num_bins')
+    bin_dimensions = data.pop('bin_dimensions')
 
-    input_string = f'# Max num of bins : {data["num_bins"]} \n'
+    case_info = [
+        [data[table_header][i] for table_header in TABLE_HEADERS]
+        for i in range(len(data[TABLE_HEADERS[0]]))
+    ]
+
+    input_string = f'# Max num of bins : {num_bins} \n'
     input_string += (f'# Bin dimensions '
-                     f'(L * W * H): {data["bin_dimensions"][0]} '
-                     f'{data["bin_dimensions"][1]} '
-                     f'{data["bin_dimensions"][2]} \n \n')
+                     f'(L * W * H): {bin_dimensions[0]} '
+                     f'{bin_dimensions[1]} '
+                     f'{bin_dimensions[2]} \n \n')
     input_string += tabulate([TABLE_HEADERS, *[v for v in case_info]],
                              headers="firstrow", colalign='right')
 
@@ -365,19 +370,3 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
         f.close()
 
     return input_string
-
-
-def data_to_lists(data: dict) -> list[int]:
-    """Convert input data dictionary to a list to prepare for display.
-
-    Args:
-        data: dictionary containing raw information for both bins and cases
-
-    Returns:
-        case_info: a list of lists of rows that fall under the headers.
-    """
-    case_info = [[i, data["quantity"][i], data["case_length"][i],
-                  data["case_width"][i], data["case_height"][i]]
-                 for i in range(len(data['case_ids']))]
-
-    return case_info

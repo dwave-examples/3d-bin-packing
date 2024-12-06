@@ -33,11 +33,11 @@ class Cases:
     """
 
     def __init__(self, data):
-        self.case_ids = np.repeat(data["case_ids"], data["quantity"])
-        self.num_cases = np.sum(data["quantity"], dtype=np.int32)
-        self.length = np.repeat(data["case_length"], data["quantity"])
-        self.width = np.repeat(data["case_width"], data["quantity"])
-        self.height = np.repeat(data["case_height"], data["quantity"])
+        self.case_ids = np.repeat(data["Case ID"], data["Quantity"])
+        self.num_cases = np.sum(data["Quantity"], dtype=np.int32)
+        self.length = np.repeat(data["Length"], data["Quantity"])
+        self.width = np.repeat(data["Width"], data["Quantity"])
+        self.height = np.repeat(data["Height"], data["Quantity"])
         print(f'Number of cases: {self.num_cases}')
 
 

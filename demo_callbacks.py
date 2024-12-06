@@ -21,14 +21,14 @@ import dash
 from dash import ALL, MATCH
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from demo_configs import RANDOM_SEED, TABLE_HEADERS
+from demo_configs import RANDOM_SEED
 import numpy as np
 import plotly.graph_objs as go
 
-from demo_interface import generate_problem_details_table_rows, generate_table
+from demo_interface import generate_table_rows, generate_table
 from packing3d import Bins, Cases, Variables, build_cqm, call_solver
 from src.demo_enums import ProblemType, SolverType
-from utils import case_list_to_dict, data_to_lists, get_cqm_stats, plot_cuboids, update_colors, write_input_data, write_solution_to_file
+from utils import case_list_to_dict, get_cqm_stats, plot_cuboids, update_colors, write_input_data, write_solution_to_file
 
 
 @dash.callback(
@@ -88,19 +88,21 @@ def update_problem_type(
 
 @dash.callback(
     Output("input", "children"),
-    Output("data-table-store", "data"),
+    Output("problem-data-store", "data", allow_duplicate=True),
     Output("saved", "className", allow_duplicate=True),
     inputs=[
         Input("problem-type", "value"),
         Input("num-cases", "value"),
         Input("case-dim", "value"),
+        State("problem-data-store", "data"),
     ],
     prevent_initial_call='initial_duplicate'
 )
-def update_input_table_generated(
+def generate_data(
     problem_type: Union[ProblemType, int],
     num_cases: int,
     case_size_range: list[int],
+    problem_data: dict,
 ) -> tuple[list, list, str]:
     """Updates the input table when ProblemType is `Generated` and any relevant settings have been
     changed.
@@ -109,6 +111,7 @@ def update_input_table_generated(
         problem_type: The input problem type. Either Generated or Uploaded.
         num_cases: The value of the number of cases setting.
         case_size_range: The values of the case size range setting.
+        problem_data: The stored problem data.
 
     Returns:
         list: The input table.
@@ -120,45 +123,26 @@ def update_input_table_generated(
 
     rng = np.random.default_rng(RANDOM_SEED)
 
-    data = {
-        "case_length": rng.integers(
+    case_dimensions = np.array([
+        rng.integers(
             case_size_range[0], case_size_range[1], 
             num_cases, endpoint=True
-        ),
-        "case_width": rng.integers(
-            case_size_range[0], case_size_range[1], 
-            num_cases, endpoint=True
-        ),
-        "case_height": rng.integers(
-            case_size_range[0], case_size_range[1], 
-            num_cases, endpoint=True
-        ),
-    }
+        ) for i in range(3)
+    ])
 
     # Determine quantities and case_ids
-    case_dimensions = np.vstack(
-        [data["case_length"], data["case_width"], data["case_height"]]
-    )
-    unique_dimensions, data["quantity"] = np.unique(case_dimensions, 
-                                                    axis=1,
-                                                    return_counts=True)
-    
-    data["case_length"] = unique_dimensions[0,:]
-    data["case_width"] = unique_dimensions[1,:]
-    data["case_height"] = unique_dimensions[2,:]
-    
-    data["case_ids"] = np.array(range(len(data["quantity"])))
+    unique_dimensions, problem_data["Quantity"] = np.unique(case_dimensions, axis=1, return_counts=True)
 
-    data_lists = data_to_lists(data)
+    problem_data["Case ID"] = np.arange(len(problem_data["Quantity"]))
+    problem_data["Length"], problem_data["Width"], problem_data["Height"] = unique_dimensions
 
-    return generate_table(TABLE_HEADERS, data_lists), data_lists, "display-none"
+    return generate_table(problem_data), problem_data, "display-none"
 
 
 @dash.callback(
     Output("max-bins", "children"),
     Output("bin-dims", "children"),
-    Output("max-bins-store", "data"),
-    Output("bin-dimensions-store", "data"),
+    Output("problem-data-store", "data"),
     Output("saved", "className"),
     inputs=[
         Input("problem-type", "value"),
@@ -166,14 +150,16 @@ def update_input_table_generated(
         Input("bin-length", "value"),
         Input("bin-width", "value"),
         Input("bin-height", "value"),
+        State("problem-data-store", "data"),
     ],
 )
-def update_input_generated(
+def generate_bins(
     problem_type: Union[ProblemType, int],
     num_bins: int,
     bin_length: int,
     bin_width: int,
     bin_height: int,
+    problem_data: dict,
 ) -> tuple[int, str, int, list, str]:
     """Updates the number of bins and bin dimensions store and input when ProblemType is `Generated`
     and any relevant form fields are updated.
@@ -184,45 +170,43 @@ def update_input_generated(
         bin_length: The current value of the bin length setting.
         bin_width: The current value of the bin width setting.
         bin_height: The current value of the bin height setting.
+        problem_data: The stored problem data.
 
     Returns:
         max_bins: The maximum bins to display in the input UI.
         bin_dimensions: The bin dimension string to display in the UI.
-        max_bins_store: The value to update the maximum bins store.
-        bin_dimensions_store: The value to update the bin dimensions store.
+        problem_data: The problem data to store.
         saved_classname: The `Saved!` text class name.
     """
     if ProblemType(problem_type) is ProblemType.FILE:
         raise PreventUpdate
+    
+    problem_data["num_bins"] = num_bins
+    problem_data["bin_dimensions"] = [bin_length, bin_width, bin_height]
 
     return (
         num_bins,
         f"{bin_length} * {bin_width} * {bin_height}",
-        num_bins,
-        [bin_length, bin_width, bin_height],
+        problem_data,
         "display-none"
     )
 
 
-class UpdateInputFileReturn(NamedTuple):
-    """Return type for the ``update_input_file`` callback function."""
+class ReadInputFileReturn(NamedTuple):
+    """Return type for the ``read_input_file`` callback function."""
 
     table_input: list = dash.no_update
     max_bins: int = dash.no_update
     bin_dimensions: str = dash.no_update
     filename: str = dash.no_update
-    data_table_store: list = dash.no_update
-    max_bins_store: int = dash.no_update
-    bin_dimensions_store: list = dash.no_update
+    problem_data_store: list = dash.no_update
 
 @dash.callback(
     Output("input", "children", allow_duplicate=True),
     Output("max-bins", "children", allow_duplicate=True),
     Output("bin-dims", "children", allow_duplicate=True),
     Output("filename", "children"),
-    Output("data-table-store", "data", allow_duplicate=True),
-    Output("max-bins-store", "data", allow_duplicate=True),
-    Output("bin-dimensions-store", "data", allow_duplicate=True),
+    Output("problem-data-store", "data", allow_duplicate=True),
     inputs=[
         Input("input-file", 'contents'),
         Input("problem-type", "value"),
@@ -230,11 +214,11 @@ class UpdateInputFileReturn(NamedTuple):
     ],
     prevent_initial_call=True,
 )
-def update_input_file(
+def read_input_file(
     file_contents: str,
     problem_type: Union[ProblemType, int],
     filename: str,
-) -> UpdateInputFileReturn:
+) -> ReadInputFileReturn:
     """Reads input file and displays data in a table.
 
     Args:
@@ -243,14 +227,12 @@ def update_input_file(
         filename: The name of the uploaded file.
 
     Returns:
-        A NamedTuple (UpdateInputFileReturn) with the following parameters:
+        A NamedTuple (ReadInputFileReturn) with the following parameters:
             table_input: The input table containing problem data from the file.
             max_bins: The maximum bins to display in the input UI.
             bin_dimensions: The bin dimension string to display in the UI.
             filename: The name of the file that was uploaded to display in the UI.
-            data_table_store: The value to update the table data store.
-            max_bins_store: The value to update the maximum bins store.
-            bin_dimensions_store: The value to update the bin dimensions store.
+            problem_data_store: The value to update the table data store.
     """
     if ProblemType(problem_type) is ProblemType.GENERATED:
         raise PreventUpdate
@@ -264,24 +246,24 @@ def update_input_file(
             num_bins = int(lines[0].split(":")[1].strip())
             bin_length, bin_width, bin_height = map(int, lines[1].split(":")[1].split())
 
-            table_data = []
+            case_data = []
             for line in lines[5:]:
                 if line.strip():
-                    table_data.append(list(map(int, line.split())))
+                    case_data.append(list(map(int, line.split())))
+
+            problem_data = case_list_to_dict(num_bins, [bin_length, bin_width, bin_height], case_data)
+
+            return ReadInputFileReturn(
+                table_input=generate_table(problem_data),
+                max_bins=num_bins,
+                bin_dimensions=f"{bin_length} * {bin_width} * {bin_height}",
+                filename=filename,
+                problem_data_store=problem_data,
+            )
 
         except Exception as e:
             print(e)
-            return UpdateInputFileReturn(filename='There was an error processing this file.')
-
-        return UpdateInputFileReturn(
-            table_input=generate_table(TABLE_HEADERS, table_data),
-            max_bins=num_bins,
-            bin_dimensions=f"{bin_length} * {bin_width} * {bin_height}",
-            filename=filename,
-            data_table_store=table_data,
-            max_bins_store=num_bins,
-            bin_dimensions_store=[bin_length, bin_width, bin_height],
-        )
+            return ReadInputFileReturn(filename='There was an error processing this file.')
 
     raise PreventUpdate
 
@@ -291,32 +273,27 @@ def update_input_file(
     inputs=[
         Input("save-input-button", "n_clicks"),
         State("save-input-filename", "value"),
-        State("data-table-store", "data"),
-        State("max-bins-store", "data"),
-        State("bin-dimensions-store", "data"),
+        State("problem-data-store", "data"),
     ],
     prevent_initial_call=True,
 )
 def save_input_to_file(
     save_button: int,
     filename: str,
-    data_table: list[int],
-    num_bins: int,
-    bin_dimensions: list[int],
+    problem_data: list[int],
 ) -> str:
     """Saves input data to a text file when the `save-input-button` is clicked.
 
     Args:
         save_button: How many times the save to file button has been clicked.
         filename: The file name to save the input data to.
-        data_table: The data from the table of input values.
-        num_bins: The number of bins.
-        bin_dimensions: The bin dimensions.
+        problem_data: The data from the table of input values.
 
     Returns:
         str: The `Saved!` text class name.
     """
-    write_input_data(case_list_to_dict(num_bins, bin_dimensions, data_table), filename)
+    write_input_data(problem_data, filename)
+
     return ""
 
 
@@ -352,9 +329,7 @@ def update_graph_colors(
         Input("run-button", "n_clicks"),
         State("solver-type-select", "value"),
         State("solver-time-limit", "value"),
-        State("data-table-store", "data"),
-        State("max-bins-store", "data"),
-        State("bin-dimensions-store", "data"),
+        State("problem-data-store", "data"),
         State("checklist", "value"),
         State("save-solution", "value"),
     ],
@@ -372,9 +347,7 @@ def run_optimization(
     run_click: int,
     solver_type: Union[SolverType, int],
     time_limit: float,
-    data_table: list[int],
-    num_bins: int,
-    bin_dimensions: list[int],
+    problem_data: dict,
     checklist: list,
     save_solution_filepath: str,
 ) -> tuple[go.Figure, list]:
@@ -389,9 +362,7 @@ def run_optimization(
         run_click: The number of times the run button has been clicked.
         solver_type: The value of the Solver form field.
         time_limit: The value of the Solver Time Limit form field.
-        data_table: The stored generated data.
-        num_bins: The stored number of bins.
-        bin_dimensions: The stored bin dimensions.
+        problem_data: The stored generated data.
         checklist: The current value of the checklist.
         save_solution_filepath: The filepath to save the solution to.
 
@@ -399,26 +370,21 @@ def run_optimization(
         fig: The results figure.
         problem_details_table: The table and information to display in the problem details table.
     """
-    solver_type = SolverType(solver_type)
-
-    data = case_list_to_dict(num_bins, bin_dimensions, data_table)
-    cases = Cases(data)
-    bins = Bins(data, cases)
-
+    cases = Cases(problem_data)
+    bins = Bins(problem_data, cases)
     vars = Variables(cases, bins)
 
     cqm, effective_dimensions = build_cqm(vars, bins, cases)
 
-    best_feasible = call_solver(cqm, time_limit, solver_type is SolverType.CQM)
+    best_feasible = call_solver(cqm, time_limit, solver_type is SolverType.CQM.value)
 
     if save_solution_filepath is not None:
         write_solution_to_file(save_solution_filepath, cqm, vars, best_feasible,
                                cases, bins, effective_dimensions)
 
-    fig = plot_cuboids(best_feasible, vars, cases,
-                       bins, effective_dimensions, bool(checklist))
+    fig = plot_cuboids(best_feasible, vars, cases, bins, effective_dimensions, bool(checklist))
 
      # Generates a list of table rows for the problem details table.
-    problem_details_table = generate_problem_details_table_rows(get_cqm_stats(cqm))
+    problem_details_table = generate_table_rows(get_cqm_stats(cqm))
 
     return fig, problem_details_table

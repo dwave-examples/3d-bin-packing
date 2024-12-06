@@ -78,9 +78,9 @@ class TestUtils(unittest.TestCase):
     def test_read_write_input_data(self):
         data = read_instance(instance_path='./tests/test_data_1.txt')
         out_file_string = write_input_data(data)
-        data1 = {"num_bins": 0, "bin_dimensions": [], "quantity": [],
-                 "case_ids": [], "case_length": [], "case_width": [],
-                 "case_height": []}
+        data1 = {"num_bins": 0, "bin_dimensions": [], "Quantity": [],
+                 "Case ID": [], "Length": [], "Width": [],
+                 "Height": []}
         out_list = (out_file_string.split(sep='\n'))
         for i, line in enumerate(out_list):
             if i == 0:
@@ -91,16 +91,16 @@ class TestUtils(unittest.TestCase):
                 continue
             else:
                 case_info = list(map(int, line.split()))
-                data1["case_ids"].append(case_info[0])
-                data1["quantity"].append(case_info[1])
-                data1["case_length"].append(case_info[2])
-                data1["case_width"].append(case_info[3])
-                data1["case_height"].append(case_info[4])
+                data1["Case ID"].append(case_info[0])
+                data1["Quantity"].append(case_info[1])
+                data1["Length"].append(case_info[2])
+                data1["Width"].append(case_info[3])
+                data1["Height"].append(case_info[4])
 
         self.assertEqual(data1, {'num_bins': 1, 'bin_dimensions': [30, 40, 50],
-                                 'quantity': [1, 1], 'case_ids': [0, 1],
-                                 'case_length': [2, 3], 'case_width': [2, 3],
-                                 'case_height': [2, 3]})
+                                 'Quantity': [1, 1], 'Case ID': [0, 1],
+                                 'Length': [2, 3], 'Width': [2, 3],
+                                 'Height': [2, 3]})
         self.assertEqual(data1, data)
 
     def test_write_solution_to_file(self):

@@ -14,6 +14,7 @@
 
 """This file stores the Dash HTML layout for the app."""
 from __future__ import annotations
+from collections import defaultdict
 
 from dash import dcc, html
 
@@ -30,6 +31,7 @@ from demo_configs import (
     THUMBNAIL,
 )
 from src.demo_enums import ProblemType, SolverType
+from utils import TABLE_HEADERS
 
 
 def slider(label: str, id: str, config: dict) -> html.Div:
@@ -310,30 +312,33 @@ def generate_run_buttons() -> html.Div:
     )
 
 
-def generate_table(headers: list, body: list) -> list[html.Thead, html.Tbody]:
-    """Generates solution table.
+def generate_table(table_data: dict) -> list[html.Thead, html.Tbody]:
+    """Generates the input table.
 
     Args:
-        results_dict: Dictionary of lists of results values from all previous runs.
+        table_data: Dictionary of lists of input data.
 
     Returns:
         list: The table head and table body of the results table.
     """
+    body = [
+        [table_data[table_header][i] for table_header in TABLE_HEADERS]
+        for i in range(len(table_data[TABLE_HEADERS[0]]))
+    ]
     return [
-        html.Thead([html.Tr([html.Th(header) for header in headers])]),
-        html.Tbody([html.Tr([html.Td(cell) for cell in cells]) for cells in body]),
+        html.Thead([html.Tr([html.Th(header) for header in TABLE_HEADERS])]),
+        html.Tbody(generate_table_rows(body)),
     ]
 
 
-def generate_problem_details_table_rows(table_data: list[list]) -> list[html.Tr]:
-    """Generates table rows for the problem details table.
+def generate_table_rows(table_data: list[list]) -> list[html.Tr]:
+    """Generates table rows.
 
     Args:
-        solver: The solver used for optimization.
-        time_limit: The solver time limit.
+        table_data: A list of lists to display in table rows.
 
     Returns:
-        list[html.Tr]: List of rows for the problem details table.
+        list[html.Tr]: List of rows.
     """
 
     return [html.Tr([html.Td(cell) for cell in row]) for row in table_data]
@@ -407,7 +412,7 @@ def create_interface():
         id="app-container",
         children=[
             # Below are any temporary storage items, e.g., for sharing data between callbacks.
-            dcc.Store(id="data-table-store"),
+            dcc.Store(id="problem-data-store", data=defaultdict(list)),
             dcc.Store(id="max-bins-store"),
             dcc.Store(id="bin-dimensions-store"),
             # Header brand banner
