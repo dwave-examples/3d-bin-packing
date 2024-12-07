@@ -14,14 +14,15 @@
 
 """This file stores the Dash HTML layout for the app."""
 from __future__ import annotations
+
 from collections import defaultdict
 
 from dash import dcc, html
 
 from demo_configs import (
+    ADVANCED_SETTINGS,
     BIN_DIM,
     CASE_DIM,
-    ADVANCED_SETTINGS,
     DESCRIPTION,
     MAIN_HEADER,
     NUM_BINS,
@@ -190,12 +191,10 @@ def generate_settings_form() -> html.Div:
                     html.Label("Problem File"),
                     dcc.Upload(
                         id="input-file",
-                        children=html.Div([
-                            "Drag and Drop or ",
-                            html.A('Select Files'),
-                            html.Div(id="filename")
-                        ])
-                    )
+                        children=html.Div(
+                            ["Drag and Drop or ", html.A("Select Files"), html.Div(id="filename")]
+                        ),
+                    ),
                 ],
                 id="uploaded-settings",
                 className="display-none",
@@ -210,32 +209,38 @@ def generate_settings_form() -> html.Div:
                     html.Label("Bin Dimensions"),
                     html.Div(
                         [
-                            html.Div([
-                                html.Label("Length"),
-                                dcc.Input(
-                                    id="bin-length",
-                                    type="number",
-                                    **BIN_DIM,
-                                ),
-                            ]),
-                            html.Div([
-                                html.Label("Width"),
-                                dcc.Input(
-                                    id="bin-width",
-                                    type="number",
-                                    **BIN_DIM,
-                                ),
-                            ]),
-                            html.Div([
-                                html.Label("Height"),
-                                dcc.Input(
-                                    id="bin-height",
-                                    type="number",
-                                    **BIN_DIM,
-                                ),
-                            ])
+                            html.Div(
+                                [
+                                    html.Label("Length"),
+                                    dcc.Input(
+                                        id="bin-length",
+                                        type="number",
+                                        **BIN_DIM,
+                                    ),
+                                ]
+                            ),
+                            html.Div(
+                                [
+                                    html.Label("Width"),
+                                    dcc.Input(
+                                        id="bin-width",
+                                        type="number",
+                                        **BIN_DIM,
+                                    ),
+                                ]
+                            ),
+                            html.Div(
+                                [
+                                    html.Label("Height"),
+                                    dcc.Input(
+                                        id="bin-height",
+                                        type="number",
+                                        **BIN_DIM,
+                                    ),
+                                ]
+                            ),
                         ],
-                        className="display-flex-settings"
+                        className="display-flex-settings",
                     ),
                     slider(
                         "Number of Cases",
@@ -248,7 +253,7 @@ def generate_settings_form() -> html.Div:
                         CASE_DIM,
                     ),
                 ],
-                id={"type": "generated-settings", "index": 0}
+                id={"type": "generated-settings", "index": 0},
             ),
             dropdown(
                 "Solver",
@@ -283,11 +288,7 @@ def generate_settings_form() -> html.Div:
                         className="details-to-collapse advanced-collapse",
                         children=[
                             html.Label("Write Solution to File"),
-                            dcc.Input(
-                                id="save-solution",
-                                type="text",
-                                placeholder="File Name"
-                            ),
+                            dcc.Input(id="save-solution", type="text", placeholder="File Name"),
                         ],
                     ),
                 ],
@@ -475,28 +476,56 @@ def create_interface():
                                                                 # add children dynamically using 'generate_table'
                                                             )
                                                         ),
-                                                        html.Div([
-                                                            html.H6(["Maximum bins: ", html.Span(id="max-bins")]),
-                                                            html.H6(["Bin dimensions: ", html.Span(id="bin-dims"), " (L*W*H)"]),
-                                                            html.Div(
-                                                                [
-                                                                    html.Label("Save Input Data to File"),
-                                                                    html.Div([
-                                                                        dcc.Input(
-                                                                            id="save-input-filename",
-                                                                            type="text",
-                                                                            placeholder="File Name",
+                                                        html.Div(
+                                                            [
+                                                                html.H6(
+                                                                    [
+                                                                        "Maximum bins: ",
+                                                                        html.Span(id="max-bins"),
+                                                                    ]
+                                                                ),
+                                                                html.H6(
+                                                                    [
+                                                                        "Bin dimensions: ",
+                                                                        html.Span(id="bin-dims"),
+                                                                        " (L*W*H)",
+                                                                    ]
+                                                                ),
+                                                                html.Div(
+                                                                    [
+                                                                        html.Label(
+                                                                            "Save Input Data to File"
                                                                         ),
-                                                                        html.Button(id="save-input-button", children="Save", n_clicks=0),
-                                                                        html.P("Saved!", className="display-none", id="saved")
-                                                                    ]),
-                                                                ],
-                                                                id={"type": "generated-settings", "index": 1},
-                                                            ),
-                                                        ])
+                                                                        html.Div(
+                                                                            [
+                                                                                dcc.Input(
+                                                                                    id="save-input-filename",
+                                                                                    type="text",
+                                                                                    placeholder="File Name",
+                                                                                ),
+                                                                                html.Button(
+                                                                                    id="save-input-button",
+                                                                                    children="Save",
+                                                                                    n_clicks=0,
+                                                                                ),
+                                                                                html.P(
+                                                                                    "Saved!",
+                                                                                    className="display-none",
+                                                                                    id="saved",
+                                                                                ),
+                                                                            ]
+                                                                        ),
+                                                                    ],
+                                                                    id={
+                                                                        "type": "generated-settings",
+                                                                        "index": 1,
+                                                                    },
+                                                                ),
+                                                            ]
+                                                        ),
                                                     ],
                                                 ),
-                                                className="input-wrapper"
+                                                className="input-wrapper",
                                             ),
                                         ],
                                     ),
@@ -512,7 +541,10 @@ def create_interface():
                                                     checklist(
                                                         "",
                                                         "checklist",
-                                                        sorted(checklist_options, key=lambda op: op["value"]),
+                                                        sorted(
+                                                            checklist_options,
+                                                            key=lambda op: op["value"],
+                                                        ),
                                                         [],
                                                     ),
                                                     dcc.Loading(
@@ -520,11 +552,14 @@ def create_interface():
                                                         type="circle",
                                                         color=THEME_COLOR_SECONDARY,
                                                         # A Dash callback (in app.py) will generate content in the Div below
-                                                        children=html.Div(dcc.Graph(
-                                                            id="results",
-                                                            responsive=True,
-                                                            config={"displayModeBar": False},
-                                                        ), className="graph"),
+                                                        children=html.Div(
+                                                            dcc.Graph(
+                                                                id="results",
+                                                                responsive=True,
+                                                                config={"displayModeBar": False},
+                                                            ),
+                                                            className="graph",
+                                                        ),
                                                     ),
                                                     # Problem details dropdown
                                                     html.Div([html.Hr(), problem_details(1)]),

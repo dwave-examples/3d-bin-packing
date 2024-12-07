@@ -18,17 +18,24 @@ import base64
 from typing import NamedTuple, Union
 
 import dash
+import numpy as np
+import plotly.graph_objs as go
 from dash import ALL, MATCH
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from demo_configs import RANDOM_SEED
-import numpy as np
-import plotly.graph_objs as go
 
-from demo_interface import generate_table_rows, generate_table
+from demo_configs import RANDOM_SEED
+from demo_interface import generate_table, generate_table_rows
 from packing3d import Bins, Cases, Variables, build_cqm, call_solver
 from src.demo_enums import ProblemType, SolverType
-from utils import case_list_to_dict, get_cqm_stats, plot_cuboids, update_colors, write_input_data, write_solution_to_file
+from utils import (
+    case_list_to_dict,
+    get_cqm_stats,
+    plot_cuboids,
+    update_colors,
+    write_input_data,
+    write_solution_to_file,
+)
 
 
 @dash.callback(
@@ -81,9 +88,9 @@ def update_problem_type(
         str: The class name for the `Uploaded` ProblemType.
     """
     if problem_type is ProblemType.FILE.value:
-        return ["display-none"]*len(gen_settings), ""
+        return ["display-none"] * len(gen_settings), ""
 
-    return [""]*len(gen_settings), "display-none"
+    return [""] * len(gen_settings), "display-none"
 
 
 @dash.callback(
@@ -96,7 +103,7 @@ def update_problem_type(
         Input("case-dim", "value"),
         State("problem-data-store", "data"),
     ],
-    prevent_initial_call='initial_duplicate'
+    prevent_initial_call="initial_duplicate",
 )
 def generate_data(
     problem_type: Union[ProblemType, int],
@@ -123,15 +130,17 @@ def generate_data(
 
     rng = np.random.default_rng(RANDOM_SEED)
 
-    case_dimensions = np.array([
-        rng.integers(
-            case_size_range[0], case_size_range[1], 
-            num_cases, endpoint=True
-        ) for i in range(3)
-    ])
+    case_dimensions = np.array(
+        [
+            rng.integers(case_size_range[0], case_size_range[1], num_cases, endpoint=True)
+            for i in range(3)
+        ]
+    )
 
     # Determine quantities and case_ids
-    unique_dimensions, problem_data["Quantity"] = np.unique(case_dimensions, axis=1, return_counts=True)
+    unique_dimensions, problem_data["Quantity"] = np.unique(
+        case_dimensions, axis=1, return_counts=True
+    )
 
     problem_data["Case ID"] = np.arange(len(problem_data["Quantity"]))
     problem_data["Length"], problem_data["Width"], problem_data["Height"] = unique_dimensions
@@ -180,16 +189,11 @@ def generate_bins(
     """
     if ProblemType(problem_type) is ProblemType.FILE:
         raise PreventUpdate
-    
+
     problem_data["num_bins"] = num_bins
     problem_data["bin_dimensions"] = [bin_length, bin_width, bin_height]
 
-    return (
-        num_bins,
-        f"{bin_length} * {bin_width} * {bin_height}",
-        problem_data,
-        "display-none"
-    )
+    return num_bins, f"{bin_length} * {bin_width} * {bin_height}", problem_data, "display-none"
 
 
 class ReadInputFileReturn(NamedTuple):
@@ -201,6 +205,7 @@ class ReadInputFileReturn(NamedTuple):
     filename: str = dash.no_update
     problem_data_store: list = dash.no_update
 
+
 @dash.callback(
     Output("input", "children", allow_duplicate=True),
     Output("max-bins", "children", allow_duplicate=True),
@@ -208,9 +213,9 @@ class ReadInputFileReturn(NamedTuple):
     Output("filename", "children"),
     Output("problem-data-store", "data", allow_duplicate=True),
     inputs=[
-        Input("input-file", 'contents'),
+        Input("input-file", "contents"),
         Input("problem-type", "value"),
-        State("input-file", 'filename'),
+        State("input-file", "filename"),
     ],
     prevent_initial_call=True,
 )
@@ -241,7 +246,7 @@ def read_input_file(
         decoded = base64.b64decode(file_contents)
 
         try:
-            lines = decoded.decode('ISO-8859-1').splitlines()
+            lines = decoded.decode("ISO-8859-1").splitlines()
 
             num_bins = int(lines[0].split(":")[1].strip())
             bin_length, bin_width, bin_height = map(int, lines[1].split(":")[1].split())
@@ -251,7 +256,9 @@ def read_input_file(
                 if line.strip():
                     case_data.append(list(map(int, line.split())))
 
-            problem_data = case_list_to_dict(case_data, num_bins, [bin_length, bin_width, bin_height])
+            problem_data = case_list_to_dict(
+                case_data, num_bins, [bin_length, bin_width, bin_height]
+            )
 
             return ReadInputFileReturn(
                 table_input=generate_table(problem_data),
@@ -263,7 +270,7 @@ def read_input_file(
 
         except Exception as e:
             print(e)
-            return ReadInputFileReturn(filename='There was an error processing this file.')
+            return ReadInputFileReturn(filename="There was an error processing this file.")
 
     raise PreventUpdate
 
@@ -379,12 +386,13 @@ def run_optimization(
     best_feasible = call_solver(cqm, time_limit, solver_type is SolverType.CQM.value)
 
     if save_solution_filepath is not None:
-        write_solution_to_file(save_solution_filepath, cqm, vars, best_feasible,
-                               cases, bins, effective_dimensions)
+        write_solution_to_file(
+            save_solution_filepath, cqm, vars, best_feasible, cases, bins, effective_dimensions
+        )
 
     fig = plot_cuboids(best_feasible, vars, cases, bins, effective_dimensions, bool(checklist))
 
-     # Generates a list of table rows for the problem details table.
+    # Generates a list of table rows for the problem details table.
     problem_details_table = generate_table_rows(get_cqm_stats(cqm))
 
     return fig, problem_details_table

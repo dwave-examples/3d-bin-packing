@@ -13,15 +13,16 @@
 #    limitations under the License.
 
 import os
+from typing import TYPE_CHECKING, List, Optional
+
+import dimod
+import numpy as np
 import plotly.colors as colors
 import plotly.graph_objects as go
-import numpy as np
 from tabulate import tabulate
-from typing import List, Optional, TYPE_CHECKING
-import dimod
 
 if TYPE_CHECKING:
-    from packing3d import Cases, Bins, Variables
+    from packing3d import Bins, Cases, Variables
 
 TABLE_HEADERS = ["Case ID", "Quantity", "Length", "Width", "Height"]
 
@@ -42,24 +43,24 @@ def get_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> list[list]:
     num_continuous = sum(cqm.vartype(v) is dimod.REAL for v in cqm.variables)
     num_discretes = len(cqm.discrete)
     num_linear_constraints = sum(
-        constraint.lhs.is_linear() for constraint in cqm.constraints.values())
+        constraint.lhs.is_linear() for constraint in cqm.constraints.values()
+    )
     num_quadratic_constraints = sum(
-        not constraint.lhs.is_linear() for constraint in
-        cqm.constraints.values())
+        not constraint.lhs.is_linear() for constraint in cqm.constraints.values()
+    )
     num_le_inequality_constraints = sum(
-        constraint.sense is dimod.sym.Sense.Le for constraint in
-        cqm.constraints.values())
+        constraint.sense is dimod.sym.Sense.Le for constraint in cqm.constraints.values()
+    )
     num_ge_inequality_constraints = sum(
-        constraint.sense is dimod.sym.Sense.Ge for constraint in
-        cqm.constraints.values())
+        constraint.sense is dimod.sym.Sense.Ge for constraint in cqm.constraints.values()
+    )
     num_equality_constraints = sum(
-        constraint.sense is dimod.sym.Sense.Eq for constraint in
-        cqm.constraints.values())
+        constraint.sense is dimod.sym.Sense.Eq for constraint in cqm.constraints.values()
+    )
 
-    assert (num_binaries + num_integers + num_continuous == len(cqm.variables))
+    assert num_binaries + num_integers + num_continuous == len(cqm.variables)
 
-    assert (num_quadratic_constraints + num_linear_constraints ==
-            len(cqm.constraints))
+    assert num_quadratic_constraints + num_linear_constraints == len(cqm.constraints)
 
     return [
         ["Binary", "Integer", "Continuous", "Quad", "Linear", "One-hot", "EQ", "LT", "GT"],
@@ -72,8 +73,8 @@ def get_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> list[list]:
             num_discretes,
             num_equality_constraints,
             num_le_inequality_constraints,
-            num_ge_inequality_constraints
-        ]
+            num_ge_inequality_constraints,
+        ],
     ]
 
 
@@ -87,10 +88,8 @@ def print_cqm_stats(cqm: dimod.ConstrainedQuadraticModel) -> None:
     cqm_stats = get_cqm_stats(cqm)
 
     print(" \n" + "=" * 35 + "MODEL INFORMATION" + "=" * 35)
-    print(
-        ' ' * 10 + 'Variables' + " " * 20 + 'Constraints' + " " * 15 +
-        'Sensitivity')
-    print('-' * 30 + " " + '-' * 28 + ' ' + '-' * 18)
+    print(" " * 10 + "Variables" + " " * 20 + "Constraints" + " " * 15 + "Sensitivity")
+    print("-" * 30 + " " + "-" * 28 + " " + "-" * 18)
     print(tabulate(cqm_stats, headers="firstrow"))
 
 
@@ -107,7 +106,9 @@ def update_colors(fig: go.Figure, color_coded: bool) -> go.Figure:
     if color_coded:
         case_ids = np.array(
             [
-                int(trace["name"].split("_")[1]) for trace in fig["data"] if trace["name"][:4] == "case"
+                int(trace["name"].split("_")[1])
+                for trace in fig["data"]
+                if trace["name"][:4] == "case"
             ]
         )
         colors = _get_colors(case_ids)
@@ -120,12 +121,14 @@ def update_colors(fig: go.Figure, color_coded: bool) -> go.Figure:
 
 
 def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):
-    X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
-         [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
-         [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
-         [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
-         [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
-         [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]]]
+    X = [
+        [[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
+        [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
+        [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
+        [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
+        [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
+        [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]],
+    ]
     X = np.array(X).astype(float)
     for i in range(3):
         X[:, :, i] *= size[i]
@@ -134,8 +137,9 @@ def _cuboid_data(origin: tuple, size: tuple = (1, 1, 1)):
     return X
 
 
-def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
-                     color_coded: bool, case_ids: np.array) -> list:
+def _get_all_cuboids(
+    positions: List[tuple], sizes: List[tuple], color_coded: bool, case_ids: np.array
+) -> list:
     case_data = []
     mesh_kwargs = dict(alphahull=0, flatshading=True, showlegend=True)
     colors = _get_colors(case_ids)
@@ -145,40 +149,49 @@ def _get_all_cuboids(positions: List[tuple], sizes: List[tuple],
         x, y, z = np.unique(np.vstack(case_points), axis=0).T
         if color_coded:
             mesh_kwargs["color"] = c
-        case_data.append(go.Mesh3d(x=x, y=y, z=z,
-                                   name=f"case_{id}",
-                                   **mesh_kwargs))
+        case_data.append(go.Mesh3d(x=x, y=y, z=z, name=f"case_{id}", **mesh_kwargs))
 
     return case_data
 
 
-def _plot_cuboids(positions: List[tuple], sizes: List[tuple],
-                  bin_length: int, bin_width: int,
-                  bin_height: int, color_coded: bool,
-                  case_ids: np.array) -> go.Figure:
+def _plot_cuboids(
+    positions: List[tuple],
+    sizes: List[tuple],
+    bin_length: int,
+    bin_width: int,
+    bin_height: int,
+    color_coded: bool,
+    case_ids: np.array,
+) -> go.Figure:
     case_data = _get_all_cuboids(positions, sizes, color_coded, case_ids)
     fig = go.Figure(data=case_data)
-    fig.update_layout(scene=dict(
-        xaxis=dict(range=[0, bin_length * 1.1]),
-        yaxis=dict(range=[0, bin_width * 1.1]),
-        zaxis=dict(range=[0, bin_height * 1.1])
-    ))
+    fig.update_layout(
+        scene=dict(
+            xaxis=dict(range=[0, bin_length * 1.1]),
+            yaxis=dict(range=[0, bin_width * 1.1]),
+            zaxis=dict(range=[0, bin_height * 1.1]),
+        )
+    )
 
     return fig
 
 
 def _get_colors(case_ids: np.array) -> list:
     if len(np.unique(case_ids)) > 1:
-        scaled = (case_ids - np.min(case_ids)) / \
-                 (np.max(case_ids) - np.min(case_ids))
+        scaled = (case_ids - np.min(case_ids)) / (np.max(case_ids) - np.min(case_ids))
         return colors.sample_colorscale(colors.sequential.Rainbow, scaled)
 
     return ["blue"] * len(case_ids)
 
 
-def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
-                 cases: "Cases", bins: "Bins", effective_dimensions: list,
-                 color_coded: bool = True) -> go.Figure:
+def plot_cuboids(
+    sample: dimod.SampleSet,
+    vars: "Variables",
+    cases: "Cases",
+    bins: "Bins",
+    effective_dimensions: list,
+    color_coded: bool = True,
+) -> go.Figure:
     """Visualization utility tool to view 3D bin packing solution.
 
     Args:
@@ -200,29 +213,51 @@ def plot_cuboids(sample: dimod.SampleSet, vars: "Variables",
     sizes = []
     for i in range(num_cases):
         positions.append(
-            (vars.x[i].energy(sample), vars.y[i].energy(sample),
-             vars.z[i].energy(sample)))
-        sizes.append((dx[i].energy(sample),
-                      dy[i].energy(sample),
-                      dz[i].energy(sample)))
-    fig = _plot_cuboids(positions, sizes, bins.length * num_bins,
-                        bins.width, bins.height, color_coded, cases.case_ids)
+            (vars.x[i].energy(sample), vars.y[i].energy(sample), vars.z[i].energy(sample))
+        )
+        sizes.append((dx[i].energy(sample), dy[i].energy(sample), dz[i].energy(sample)))
+    fig = _plot_cuboids(
+        positions,
+        sizes,
+        bins.length * num_bins,
+        bins.width,
+        bins.height,
+        color_coded,
+        cases.case_ids,
+    )
     for i in range(num_bins):
         fig.add_trace(
-            go.Scatter3d(x=[bins.length * i, bins.length * (i + 1)], y=[0, 0],
-                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
-                         line_color="red", line_width=5)
+            go.Scatter3d(
+                x=[bins.length * i, bins.length * (i + 1)],
+                y=[0, 0],
+                z=[0, 0],
+                mode="lines",
+                name=f"Bin Boundary {i + 1}",
+                line_color="red",
+                line_width=5,
+            )
         )
         fig.add_trace(
-            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, bins.width],
-                         z=[0, 0], mode='lines', name=f"Bin Boundary {i + 1}",
-                         line_color="red", line_width=5)
+            go.Scatter3d(
+                x=[bins.length * (i + 1)] * 2,
+                y=[0, bins.width],
+                z=[0, 0],
+                mode="lines",
+                name=f"Bin Boundary {i + 1}",
+                line_color="red",
+                line_width=5,
+            )
         )
         fig.add_trace(
-            go.Scatter3d(x=[bins.length * (i + 1)] * 2, y=[0, 0],
-                         z=[0, bins.height], mode='lines',
-                         name=f"Bin Boundary {i + 1}", line_color="red",
-                         line_width=5)
+            go.Scatter3d(
+                x=[bins.length * (i + 1)] * 2,
+                y=[0, 0],
+                z=[0, bins.height],
+                mode="lines",
+                name=f"Bin Boundary {i + 1}",
+                line_color="red",
+                line_width=5,
+            )
         )
 
     fig.update_layout(scene=dict(aspectmode="data"))
@@ -279,13 +314,15 @@ def read_instance(instance_path: str) -> dict:
         return case_list_to_dict(case_info, num_bins, bin_dimensions)
 
 
-def write_solution_to_file(solution_file_path: str,
-                           cqm: dimod.ConstrainedQuadraticModel,
-                           vars: "Variables",
-                           sample: dimod.SampleSet,
-                           cases: "Cases",
-                           bins: "Bins",
-                           effective_dimensions: list):
+def write_solution_to_file(
+    solution_file_path: str,
+    cqm: dimod.ConstrainedQuadraticModel,
+    vars: "Variables",
+    sample: dimod.SampleSet,
+    cases: "Cases",
+    bins: "Bins",
+    effective_dimensions: list,
+):
     """Write solution to a file.
 
     Args:
@@ -305,37 +342,45 @@ def write_solution_to_file(solution_file_path: str,
     lowest_num_bin = bins.lowest_num_bin
     dx, dy, dz = effective_dimensions
     if num_bins > 1:
-        num_bin_used = lowest_num_bin + sum([vars.bin_on[j].energy(sample)
-                            for j in range(lowest_num_bin, num_bins)])
+        num_bin_used = lowest_num_bin + sum(
+            [vars.bin_on[j].energy(sample) for j in range(lowest_num_bin, num_bins)]
+        )
     else:
         num_bin_used = 1
 
     objective_value = cqm.objective.energy(sample)
-    vs = [['case_id', 'bin_location', 'orientation', 'x', 'y', 'z', "x'",
-           "y'", "z'"]]
+    vs = [["case_id", "bin_location", "orientation", "x", "y", "z", "x'", "y'", "z'"]]
     for i in range(num_cases):
-        vs.append([cases.case_ids[i],
-                   int(sum(int(j == 0) if i == 0 or num_bins == 1 else
-                           (j + 1) * vars.bin_loc[i, j].energy(sample)
-                           for j in range(num_bins))),
-                   int(sum((r + 1) * vars.o[i, r].energy(sample) for r in
-                           range(6))),
-                   np.round(vars.x[i].energy(sample), 2),
-                   np.round(vars.y[i].energy(sample), 2),
-                   np.round(vars.z[i].energy(sample), 2),
-                   np.round(dx[i].energy(sample), 2),
-                   np.round(dy[i].energy(sample), 2),
-                   np.round(dz[i].energy(sample), 2)])
+        vs.append(
+            [
+                cases.case_ids[i],
+                int(
+                    sum(
+                        (
+                            int(j == 0)
+                            if i == 0 or num_bins == 1
+                            else (j + 1) * vars.bin_loc[i, j].energy(sample)
+                        )
+                        for j in range(num_bins)
+                    )
+                ),
+                int(sum((r + 1) * vars.o[i, r].energy(sample) for r in range(6))),
+                np.round(vars.x[i].energy(sample), 2),
+                np.round(vars.y[i].energy(sample), 2),
+                np.round(vars.z[i].energy(sample), 2),
+                np.round(dx[i].energy(sample), 2),
+                np.round(dy[i].energy(sample), 2),
+                np.round(dz[i].energy(sample), 2),
+            ]
+        )
 
-    with open(solution_file_path, 'w') as f:
-        f.write('# Number of bins used: ' + str(int(num_bin_used)) + '\n')
-        f.write('# Number of cases packed: ' + str(int(num_cases)) + '\n')
-        f.write(
-            '# Objective value: ' + str(np.round(objective_value, 3)) + '\n\n')
+    with open(solution_file_path, "w") as f:
+        f.write("# Number of bins used: " + str(int(num_bin_used)) + "\n")
+        f.write("# Number of cases packed: " + str(int(num_cases)) + "\n")
+        f.write("# Objective value: " + str(np.round(objective_value, 3)) + "\n\n")
         f.write(tabulate(vs, headers="firstrow"))
         f.close()
-        print(f'Saved solution to '
-              f'{os.path.join(os.getcwd(), solution_file_path)}')
+        print(f"Saved solution to " f"{os.path.join(os.getcwd(), solution_file_path)}")
 
 
 def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
@@ -350,21 +395,24 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
 
     """
     problem_data = data.copy()
-    num_bins = problem_data.pop('num_bins')
-    bin_dimensions = problem_data.pop('bin_dimensions')
+    num_bins = problem_data.pop("num_bins")
+    bin_dimensions = problem_data.pop("bin_dimensions")
 
     case_info = [
         [problem_data[table_header][i] for table_header in TABLE_HEADERS]
         for i in range(len(problem_data[TABLE_HEADERS[0]]))
     ]
 
-    input_string = f'# Max num of bins : {num_bins} \n'
-    input_string += (f'# Bin dimensions '
-                     f'(L * W * H): {bin_dimensions[0]} '
-                     f'{bin_dimensions[1]} '
-                     f'{bin_dimensions[2]} \n \n')
-    input_string += tabulate([TABLE_HEADERS, *[v for v in case_info]],
-                             headers="firstrow", colalign='right')
+    input_string = f"# Max num of bins : {num_bins} \n"
+    input_string += (
+        f"# Bin dimensions "
+        f"(L * W * H): {bin_dimensions[0]} "
+        f"{bin_dimensions[1]} "
+        f"{bin_dimensions[2]} \n \n"
+    )
+    input_string += tabulate(
+        [TABLE_HEADERS, *[v for v in case_info]], headers="firstrow", colalign="right"
+    )
 
     if input_filename is not None:
         full_file_path = os.path.join("input", input_filename)
