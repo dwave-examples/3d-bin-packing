@@ -15,8 +15,6 @@
 """This file stores the Dash HTML layout for the app."""
 from __future__ import annotations
 
-from collections import defaultdict
-
 from dash import dcc, html
 
 from demo_configs import (
@@ -413,7 +411,7 @@ def create_interface():
         id="app-container",
         children=[
             # Below are any temporary storage items, e.g., for sharing data between callbacks.
-            dcc.Store(id="problem-data-store", data=defaultdict(list)),
+            dcc.Store(id="problem-data-store"),
             dcc.Store(id="max-bins-store"),
             dcc.Store(id="bin-dimensions-store"),
             # Header brand banner

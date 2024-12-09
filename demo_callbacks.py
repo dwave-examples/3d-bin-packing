@@ -95,22 +95,29 @@ def update_problem_type(
 
 @dash.callback(
     Output("input", "children"),
-    Output("problem-data-store", "data", allow_duplicate=True),
-    Output("saved", "className", allow_duplicate=True),
+    Output("max-bins", "children"),
+    Output("bin-dims", "children"),
+    Output("problem-data-store", "data"),
+    Output("saved", "className"),
     inputs=[
         Input("problem-type", "value"),
         Input("num-cases", "value"),
         Input("case-dim", "value"),
-        State("problem-data-store", "data"),
+        Input("num-bins", "value"),
+        Input("bin-length", "value"),
+        Input("bin-width", "value"),
+        Input("bin-height", "value"),
     ],
-    prevent_initial_call="initial_duplicate",
 )
 def generate_data(
     problem_type: Union[ProblemType, int],
     num_cases: int,
     case_size_range: list[int],
-    problem_data: dict,
-) -> tuple[list, list, str]:
+    num_bins: int,
+    bin_length: int,
+    bin_width: int,
+    bin_height: int,
+) -> tuple[list, int, str, dict, str]:
     """Updates the input table when ProblemType is `Generated` and any relevant settings have been
     changed.
 
@@ -118,12 +125,17 @@ def generate_data(
         problem_type: The input problem type. Either Generated or Uploaded.
         num_cases: The value of the number of cases setting.
         case_size_range: The values of the case size range setting.
-        problem_data: The stored problem data.
+        num_bins: The current value of the number of bins setting.
+        bin_length: The current value of the bin length setting.
+        bin_width: The current value of the bin width setting.
+        bin_height: The current value of the bin height setting.
 
     Returns:
-        list: The input table.
-        list: The data that was generated for the table.
-        str: The class name for the `Saved!` feedback.
+        input: The input table.
+        max-bins: The maximum bins to display in the input UI.
+        bin-dimensions: The bin dimension string to display in the UI.
+        problem-data-store: The data that was generated for the table.
+        saved: The class name for the `Saved!` feedback.
     """
     if ProblemType(problem_type) is ProblemType.FILE:
         raise PreventUpdate
@@ -138,62 +150,27 @@ def generate_data(
     )
 
     # Determine quantities and case_ids
-    unique_dimensions, problem_data["Quantity"] = np.unique(
+    unique_dimensions, quantity = np.unique(
         case_dimensions, axis=1, return_counts=True
     )
 
-    problem_data["Case ID"] = np.arange(len(problem_data["Quantity"]))
-    problem_data["Length"], problem_data["Width"], problem_data["Height"] = unique_dimensions
+    problem_data = {
+        "Case ID": np.arange(len(quantity)),
+        "Quantity": quantity,
+        "Length": unique_dimensions[0],
+        "Width": unique_dimensions[1],
+        "Height": unique_dimensions[2],
+        "num_bins": num_bins,
+        "bin_dimensions": [bin_length, bin_width, bin_height],
+    }
 
-    return generate_table(problem_data), problem_data, "display-none"
-
-
-@dash.callback(
-    Output("max-bins", "children"),
-    Output("bin-dims", "children"),
-    Output("problem-data-store", "data"),
-    Output("saved", "className"),
-    inputs=[
-        Input("problem-type", "value"),
-        Input("num-bins", "value"),
-        Input("bin-length", "value"),
-        Input("bin-width", "value"),
-        Input("bin-height", "value"),
-        State("problem-data-store", "data"),
-    ],
-)
-def generate_bins(
-    problem_type: Union[ProblemType, int],
-    num_bins: int,
-    bin_length: int,
-    bin_width: int,
-    bin_height: int,
-    problem_data: dict,
-) -> tuple[int, str, int, list, str]:
-    """Updates the number of bins and bin dimensions store and input when ProblemType is `Generated`
-    and any relevant form fields are updated.
-
-    Args:
-        problem_type: The input problem type. Either Generated or Uploaded.
-        num_bins: The current value of the number of bins setting.
-        bin_length: The current value of the bin length setting.
-        bin_width: The current value of the bin width setting.
-        bin_height: The current value of the bin height setting.
-        problem_data: The stored problem data.
-
-    Returns:
-        max_bins: The maximum bins to display in the input UI.
-        bin_dimensions: The bin dimension string to display in the UI.
-        problem_data: The problem data to store.
-        saved_classname: The `Saved!` text class name.
-    """
-    if ProblemType(problem_type) is ProblemType.FILE:
-        raise PreventUpdate
-
-    problem_data["num_bins"] = num_bins
-    problem_data["bin_dimensions"] = [bin_length, bin_width, bin_height]
-
-    return num_bins, f"{bin_length} * {bin_width} * {bin_height}", problem_data, "display-none"
+    return (
+        generate_table(problem_data),
+        num_bins,
+        f"{bin_length} * {bin_width} * {bin_height}",
+        problem_data,
+        "display-none"
+    )
 
 
 class ReadInputFileReturn(NamedTuple):
@@ -203,7 +180,7 @@ class ReadInputFileReturn(NamedTuple):
     max_bins: int = dash.no_update
     bin_dimensions: str = dash.no_update
     filename: str = dash.no_update
-    problem_data_store: list = dash.no_update
+    problem_data_store: dict = dash.no_update
 
 
 @dash.callback(
@@ -287,7 +264,7 @@ def read_input_file(
 def save_input_to_file(
     save_button: int,
     filename: str,
-    problem_data: list[int],
+    problem_data: dict,
 ) -> str:
     """Saves input data to a text file when the `save-input-button` is clicked.
 
