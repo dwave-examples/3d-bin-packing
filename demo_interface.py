@@ -259,13 +259,17 @@ def generate_settings_form() -> html.Div:
                 ],
                 id={"type": "generated-settings", "index": 0},
             ),
-            html.Div([
-                dropdown(
-                    "Scenario",
-                    "scenario-select",
-                    sorted(scenario_options, key=lambda op: op["value"]),
-                ),
-            ], className="display-none", id="scenario-settings"),
+            html.Div(
+                [
+                    dropdown(
+                        "Scenario",
+                        "scenario-select",
+                        sorted(scenario_options, key=lambda op: op["value"]),
+                    ),
+                ],
+                className="display-none",
+                id="scenario-settings",
+            ),
             dropdown(
                 "Solver",
                 "solver-type-select",
