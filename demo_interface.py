@@ -19,7 +19,9 @@ from dash import dcc, html
 
 from demo_configs import (
     ADVANCED_SETTINGS,
-    BIN_DIM,
+    BIN_HEIGHT,
+    BIN_LENGTH,
+    BIN_WIDTH,
     CASE_DIM,
     DESCRIPTION,
     MAIN_HEADER,
@@ -29,7 +31,7 @@ from demo_configs import (
     THEME_COLOR_SECONDARY,
     THUMBNAIL,
 )
-from src.demo_enums import ProblemType, SolverType
+from src.demo_enums import ProblemType, ScenarioType, SolverType
 from utils import TABLE_HEADERS
 
 
@@ -176,6 +178,10 @@ def generate_settings_form() -> html.Div:
         {"label": solver_type.label, "value": solver_type.value} for solver_type in SolverType
     ]
 
+    scenario_options = [
+        {"label": scenario_type.label, "value": scenario_type.value} for scenario_type in ScenarioType
+    ]
+
     return html.Div(
         className="settings",
         children=[
@@ -213,7 +219,7 @@ def generate_settings_form() -> html.Div:
                                     dcc.Input(
                                         id="bin-length",
                                         type="number",
-                                        **BIN_DIM,
+                                        **BIN_LENGTH,
                                     ),
                                 ]
                             ),
@@ -223,7 +229,7 @@ def generate_settings_form() -> html.Div:
                                     dcc.Input(
                                         id="bin-width",
                                         type="number",
-                                        **BIN_DIM,
+                                        **BIN_WIDTH,
                                     ),
                                 ]
                             ),
@@ -233,7 +239,7 @@ def generate_settings_form() -> html.Div:
                                     dcc.Input(
                                         id="bin-height",
                                         type="number",
-                                        **BIN_DIM,
+                                        **BIN_HEIGHT,
                                     ),
                                 ]
                             ),
@@ -253,6 +259,13 @@ def generate_settings_form() -> html.Div:
                 ],
                 id={"type": "generated-settings", "index": 0},
             ),
+            html.Div([
+                dropdown(
+                    "Scenario",
+                    "scenario-select",
+                    sorted(scenario_options, key=lambda op: op["value"]),
+                ),
+            ], className="display-none", id="scenario-settings"),
             dropdown(
                 "Solver",
                 "solver-type-select",
