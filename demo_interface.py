@@ -18,7 +18,7 @@ from __future__ import annotations
 from dash import dcc, html
 
 from demo_configs import (
-    ADVANCED_SETTINGS,
+    COLOR_BY_CASE,
     BIN_DIM,
     CASE_DIM,
     DESCRIPTION,
@@ -405,7 +405,7 @@ def problem_details(index: int) -> html.Div:
 
 def create_interface():
     """Set the application HTML."""
-    checklist_options = generate_options(ADVANCED_SETTINGS)
+    checklist_options = generate_options(COLOR_BY_CASE)
 
     return html.Div(
         id="app-container",
