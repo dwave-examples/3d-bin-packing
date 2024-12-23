@@ -507,7 +507,7 @@ def create_interface():
                                                                                     n_clicks=0,
                                                                                 ),
                                                                                 html.P(
-                                                                                    "Saved!",
+                                                                                    "Saved to /input folder",
                                                                                     className="display-none",
                                                                                     id="saved",
                                                                                 ),

@@ -415,6 +415,9 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
     )
 
     if input_filename is not None:
+        if len(input_filename.split(".")) < 2:
+            input_filename = input_filename + ".txt"
+
         full_file_path = os.path.join("input", input_filename)
         f = open(full_file_path, "w")
         f.write(input_string)
