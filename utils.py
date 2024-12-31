@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 import os
+from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, List, Optional
 
 import dimod
@@ -415,12 +416,15 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
     )
 
     if input_filename is not None:
-        if len(input_filename.split(".")) < 2:
-            input_filename = input_filename + ".txt"
+        input_file = PurePath(input_filename)
 
-        full_file_path = os.path.join("input", input_filename)
-        f = open(full_file_path, "w")
-        f.write(input_string)
-        f.close()
+        if input_file.suffix != ".txt":
+            input_file = input_file.with_suffix('.txt')
+
+        input_folder = Path(__file__).parent / "input"
+        file_path = input_folder / input_file.name
+
+        with Path(file_path).open("w") as f:
+            f.write(input_string)
 
     return input_string
