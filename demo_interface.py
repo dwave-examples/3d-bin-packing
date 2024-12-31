@@ -190,7 +190,7 @@ def generate_settings_form() -> html.Div:
                     dcc.Upload(
                         id="input-file",
                         children=html.Div(
-                            ["Drag and Drop or ", html.A("Select Files"), html.Div(id="filename")]
+                            ["Drag and Drop or ", html.A("Select File"), html.Div(id="filename")]
                         ),
                     ),
                 ],
@@ -507,7 +507,7 @@ def create_interface():
                                                                                     n_clicks=0,
                                                                                 ),
                                                                                 html.P(
-                                                                                    "Saved to /input folder",
+                                                                                    "Saved to input folder",
                                                                                     className="display-none",
                                                                                     id="saved",
                                                                                 ),
