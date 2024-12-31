@@ -190,7 +190,7 @@ def generate_settings_form() -> html.Div:
                     dcc.Upload(
                         id="input-file",
                         children=html.Div(
-                            ["Drag and Drop or ", html.A("Select File"), html.Div(id="filename")]
+                            ["Drag and Drop or ", html.A("Select a File"), html.Div(id="filename")]
                         ),
                     ),
                 ],
