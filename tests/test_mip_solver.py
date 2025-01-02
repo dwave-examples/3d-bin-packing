@@ -28,7 +28,7 @@ class TestMIPCQMSolver(unittest.TestCase):
     def test_infease(self):
         cqm = dimod.ConstrainedQuadraticModel()
 
-        i, j = dimod.Integers('ij')
+        i, j = dimod.Integers("ij")
 
         cqm.add_constraint(i - j <= -1)
         cqm.add_constraint(i - j >= +1)
@@ -39,22 +39,22 @@ class TestMIPCQMSolver(unittest.TestCase):
     def test_bounds(self):
         cqm = dimod.ConstrainedQuadraticModel()
 
-        i = dimod.Integer('i', lower_bound=-5, upper_bound=5)
+        i = dimod.Integer("i", lower_bound=-5, upper_bound=5)
 
         cqm.set_objective(i)
         sampleset = MIPCQMSolver().sample_cqm(cqm)
-        self.assertEqual(sampleset.first.sample['i'], -5)
+        self.assertEqual(sampleset.first.sample["i"], -5)
 
         cqm.set_objective(-i)
         sampleset = MIPCQMSolver().sample_cqm(cqm)
-        self.assertEqual(sampleset.first.sample['i'], 5)
+        self.assertEqual(sampleset.first.sample["i"], 5)
 
     def test_quadratic(self):
         cqm = dimod.ConstrainedQuadraticModel()
 
-        i, j = dimod.Integers('ij')
+        i, j = dimod.Integers("ij")
 
-        cqm.add_constraint(i*j <= 5)
+        cqm.add_constraint(i * j <= 5)
 
         with self.assertRaises(ValueError):
             MIPCQMSolver().sample_cqm(cqm)
@@ -63,10 +63,10 @@ class TestMIPCQMSolver(unittest.TestCase):
 
         cqm = dimod.ConstrainedQuadraticModel()
 
-        i = dimod.Integer('i')
-        a = dimod.Real('a')
-        x = dimod.Binary('x')
-        s = dimod.Spin('s')
+        i = dimod.Integer("i")
+        a = dimod.Real("a")
+        x = dimod.Binary("x")
+        s = dimod.Spin("s")
 
         cqm.set_objective(-i - a - x)
         cqm.add_constraint(i <= 5.5)
@@ -75,7 +75,7 @@ class TestMIPCQMSolver(unittest.TestCase):
 
         sampleset = MIPCQMSolver().sample_cqm(cqm)
 
-        self.assertEqual(sampleset.first.sample, {'i': 5, 'a': 6.5, 'x': 1})
+        self.assertEqual(sampleset.first.sample, {"i": 5, "a": 6.5, "x": 1})
 
         cqm.add_constraint(s <= 5)
         with self.assertRaises(ValueError):

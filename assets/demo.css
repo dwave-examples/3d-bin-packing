@@ -1,0 +1,181 @@
+/*
+Copyright 2024 D-Wave
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/*******************************************************************
+This file contains all custom CSS for this demo.
+The following style rules can be altered or removed and any additional
+custom CSS can be added below.
+*******************************************************************/
+
+.tab-content-results {
+    height: 100%;
+    padding-right: 5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.tab-content-results > div:last-child {
+    padding-left: 5rem;
+}
+
+table {
+    margin-bottom: 0;
+}
+
+.results, #results, .graph {
+    height: 100%;
+}
+
+.input-wrapper {
+    padding: 3rem 5rem;
+}
+
+.input {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.input h6 {
+    font-size: 1.6rem;
+}
+
+.input h6 span {
+    font-weight: bold;
+    margin: 0 0.4rem 0 1rem;
+}
+
+.input label {
+    margin-top: 6rem;
+}
+
+.input > *:last-child {
+    margin-left: 5rem;
+}
+
+.input > div:first-child {
+    height: calc(100vh - var(--banner-height) - 160px);  /* minus height of tabs and padding */
+    overflow-y: auto;
+}
+
+#input thead {
+    position: sticky;
+    top: 0;
+}
+
+#input-file {
+    padding: 1rem;
+    border: 1px dashed var(--grey-dark);
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.display-flex-settings {
+    display: flex;
+    justify-content: space-between;
+    max-width: 24rem;
+}
+
+.display-flex-settings label {
+    margin-top: 0;
+    font-weight: 400;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+.advanced-settings label {
+    color: var(--theme);
+    letter-spacing: normal;
+    text-transform: uppercase;
+    font-size: 1.3rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.details-collapse.advanced-settings .collapse-arrow {
+    margin-top: 2rem;
+    border-width: 3px;
+    height: 1rem;
+    width: 1rem;
+}
+
+.collapsed .details-collapse.advanced-settings .collapse-arrow {
+    margin-top: 1.8rem;
+}
+
+.advanced-collapse {
+    background: white;
+    padding: 0 1rem 1rem;
+    border: 1px solid var(--grey-light);
+}
+
+.details-collapse-wrapper.collapsed .advanced-collapse {
+    padding-bottom: 0;
+    border-top: none;
+    border-bottom: none;
+}
+
+.details-collapse-wrapper:not(.collapsed) .details-to-collapse.advanced-collapse {
+    height: var(--advanced-settings-height) !important;
+}
+
+.range-slider > div {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+}
+
+th {
+    background-color: var(--blue-dark);
+    color: white;
+    font-weight: 500;
+}
+
+#input tr:nth-child(even) {
+    background-color: var(--grey-lighter);
+}
+
+.solution-stats-table th,
+.solution-stats-table td {
+    text-align: center;
+}
+
+.solution-stats-table tr:nth-child(1) td {
+    font-weight: 600;
+}
+
+#save-input-button {
+    margin-left: 0.5rem;
+    padding: 1.2rem 1.8rem;
+    font-size: 1.2rem;
+}
+
+#save-input-filename {
+    display: inline-block;
+}
+
+#saved {
+    display: inline;
+    margin-left: 0.8rem;
+}
+
+.checklist-wrapper {
+    position: absolute;
+    z-index: 5;
+    right: 4rem;
+    top: 4rem;
+}

@@ -1,5 +1,5 @@
+dash[diskcache]==2.17.1
 dwave-ocean-sdk>=6.3.0
 mip==1.13.0
 plotly==5.6.0
-streamlit==1.22.0
 tabulate==0.8.9

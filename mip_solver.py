@@ -16,8 +16,8 @@ import itertools
 import time
 import typing
 
-import mip
 import dimod
+import mip
 
 
 class MIPCQMSolver:
@@ -25,35 +25,38 @@ class MIPCQMSolver:
 
     See https://www.python-mip.com/
     """
+
     @staticmethod
     def _mip_vartype(vartype: dimod.typing.VartypeLike) -> str:
         vartype = dimod.as_vartype(vartype, extended=True)
         if vartype is dimod.SPIN:
             raise ValueError("MIP cannot handle SPIN variables")
         elif vartype is dimod.BINARY:
-            return 'B'
+            return "B"
         elif vartype is dimod.INTEGER:
-            return 'I'
+            return "I"
         elif vartype is dimod.REAL:
-            return 'C'
+            return "C"
         else:
             raise ValueError("unexpected vartype")
 
     @staticmethod
-    def _qm_to_expression(qm: typing.Union[dimod.QuadraticModel, dimod.BinaryQuadraticModel],
-                          variable_map: typing.Dict[dimod.typing.Variable, mip.Var],
-                          ) -> mip.LinExpr:
+    def _qm_to_expression(
+        qm: typing.Union[dimod.QuadraticModel, dimod.BinaryQuadraticModel],
+        variable_map: typing.Dict[dimod.typing.Variable, mip.Var],
+    ) -> mip.LinExpr:
         if not qm.is_linear():
             raise ValueError("MIP cannot support quadratic interactions")
-        return mip.xsum(itertools.chain(
-            (variable_map[v] * bias for v, bias in qm.iter_linear()),
-            (qm.offset,)
-            ))
+        return mip.xsum(
+            itertools.chain((variable_map[v] * bias for v, bias in qm.iter_linear()), (qm.offset,))
+        )
 
     @classmethod
-    def sample_cqm(cls, cqm: dimod.ConstrainedQuadraticModel,
-                   time_limit: float = float('inf'),
-                   ) -> dimod.SampleSet:
+    def sample_cqm(
+        cls,
+        cqm: dimod.ConstrainedQuadraticModel,
+        time_limit: float = float("inf"),
+    ) -> dimod.SampleSet:
         """Use Python-MIP to solve a constrained quadratic model.
 
         Note that Python-MIP requires the objective and constraints to be
@@ -79,8 +82,8 @@ class MIPCQMSolver:
                 name=v,
                 lb=cqm.lower_bound(v),
                 ub=cqm.upper_bound(v),
-                var_type=cls._mip_vartype(cqm.vartype(v))
-                )
+                var_type=cls._mip_vartype(cqm.vartype(v)),
+            )
 
         model.objective = cls._qm_to_expression(cqm.objective, variable_map)
 
@@ -101,9 +104,9 @@ class MIPCQMSolver:
         run_time = time.perf_counter() - t
 
         samples = [
-            [variable_map[v].xi(k) for v in cqm.variables]
-            for k in range(model.num_solutions)
-            ]
+            [variable_map[v].xi(k) for v in cqm.variables] for k in range(model.num_solutions)
+        ]
 
         return dimod.SampleSet.from_samples_cqm(
-            (samples, cqm.variables), cqm, info=dict(run_time=run_time))
+            (samples, cqm.variables), cqm, info=dict(run_time=run_time)
+        )

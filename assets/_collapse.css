@@ -1,0 +1,109 @@
+/*
+Copyright 2024 D-Wave
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/* Style rules for collapsible dropdowns like left-column-collapse and problem-details-collapse */
+
+.left-column .left-column-layer-1 {
+    width: var(--left-col-width);
+    transition: width 0.6s ease-in-out;
+    overflow-x: hidden;
+    overflow-y: auto;
+    direction: rtl;
+}
+
+.details-to-collapse {
+    height: var(--problem-details-height);
+    transition: height 0.6s ease-in-out;
+    overflow: hidden;
+}
+
+.left-column .left-column-layer-2 {
+    padding: 3rem 2rem 4rem;
+    width: var(--left-col-width);
+    box-sizing: border-box;
+    direction: ltr;
+}
+
+.details-collapse-wrapper {
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.left-column-collapse,
+.left-column-collapse:hover,
+.left-column-collapse:focus {
+    background: white;
+    border-right: 1px solid var(--grey-lighter);
+    height: 100%;
+    border-radius: 0;
+    padding: 0 0 0 0.5rem;
+    filter: none;
+    display: block;
+}
+
+.details-collapse,
+.details-collapse:hover,
+.details-collapse:focus {
+    background: none;
+    display: flex;
+    padding: 0 2rem 0 0;
+    text-transform: none;
+}
+
+.collapse-arrow {
+    border-right: 4px solid var(--grey-light);
+    border-bottom: 4px solid var(--grey-light);
+    transform: rotate(135deg) skew(165deg, 165deg);
+    height: 2rem;
+    width: 2rem;
+    margin-right: -0.3rem;
+    transition: border-color 0.25s ease-in-out;
+}
+
+.details-collapse .collapse-arrow {
+    transform: rotate(225deg) skew(165deg, 165deg);
+    margin: 1.5rem 0 0 1.5rem;
+    border-color: var(--theme);
+    height: 1.2rem;
+    width: 1.2rem;
+}
+
+.left-column-collapse:hover .collapse-arrow {
+    border-color: var(--grey);
+}
+
+.collapsed .left-column-collapse {
+    padding: 0 0.5rem 0 0;
+}
+
+.collapsed .left-column-collapse .collapse-arrow {
+    margin-left: -0.3rem;
+    margin-right: 0;
+    transform: rotate(315deg) skew(165deg, 165deg);
+}
+
+.collapsed .details-collapse .collapse-arrow {
+    margin-top: 1rem;
+    transform: rotate(45deg) skew(165deg, 165deg);
+}
+
+.collapsed .details-to-collapse {
+    height: 0;
+}
+
+.collapsed .left-column-layer-1 {
+    width: 0;
+}
