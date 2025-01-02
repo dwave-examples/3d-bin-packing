@@ -1,4 +1,4 @@
-# Copyright 2024 D-Wave
+# Copyright 2022 D-Wave
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional
 
 import dimod
@@ -414,10 +415,8 @@ def write_input_data(data: dict, input_filename: Optional[str] = None) -> str:
         [TABLE_HEADERS, *[v for v in case_info]], headers="firstrow", colalign="right"
     )
 
-    if input_filename is not None:
-        full_file_path = os.path.join("input", input_filename)
-        f = open(full_file_path, "w")
-        f.write(input_string)
-        f.close()
+    if input_filename:
+        file_path = "input" / Path(input_filename).with_suffix('.txt')
+        file_path.write_text(input_string)
 
     return input_string

@@ -18,7 +18,7 @@ from __future__ import annotations
 from dash import dcc, html
 
 from demo_configs import (
-    ADVANCED_SETTINGS,
+    COLOR_BY_CASE,
     BIN_HEIGHT,
     BIN_LENGTH,
     BIN_WIDTH,
@@ -196,7 +196,7 @@ def generate_settings_form() -> html.Div:
                     dcc.Upload(
                         id="input-file",
                         children=html.Div(
-                            ["Drag and Drop or ", html.A("Select Files"), html.Div(id="filename")]
+                            ["Drag and Drop or ", html.A("Select a File"), html.Div(id="filename")]
                         ),
                     ),
                 ],
@@ -422,7 +422,7 @@ def problem_details(index: int) -> html.Div:
 
 def create_interface():
     """Set the application HTML."""
-    checklist_options = generate_options(ADVANCED_SETTINGS)
+    checklist_options = generate_options(COLOR_BY_CASE)
 
     return html.Div(
         id="app-container",
@@ -524,7 +524,7 @@ def create_interface():
                                                                                     n_clicks=0,
                                                                                 ),
                                                                                 html.P(
-                                                                                    "Saved!",
+                                                                                    "Saved to input folder",
                                                                                     className="display-none",
                                                                                     id="saved",
                                                                                 ),

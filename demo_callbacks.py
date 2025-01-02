@@ -375,6 +375,13 @@ def update_graph_colors(
         (Output("results-tab", "disabled"), True, False),  # Disables results tab while running.
         (Output("results-tab", "label"), "Loading...", "Results"),
         (Output("tabs", "value"), "input-tab", "input-tab"),  # Switch to input tab while running.
+        (Output("problem-type", "disabled"), True, False),
+        (Output("num-cases", "disabled"), True, False),
+        (Output("case-dim", "disabled"), True, False),
+        (Output("num-bins", "disabled"), True, False),
+        (Output("bin-length", "disabled"), True, False),
+        (Output("bin-width", "disabled"), True, False),
+        (Output("bin-height", "disabled"), True, False),
     ],
     cancel=[Input("cancel-button", "n_clicks")],
     prevent_initial_call=True,

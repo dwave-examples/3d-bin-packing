@@ -78,7 +78,8 @@ BIN_HEIGHT = {
     "value": 8,
 }
 
-ADVANCED_SETTINGS = ["Color by Case ID"]
+# checklist to color by case id or color each case separately
+COLOR_BY_CASE = ["Color by Case ID"]
 
 # solver time limits in seconds (value means default)
 SOLVER_TIME = {
