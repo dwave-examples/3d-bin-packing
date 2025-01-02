@@ -30,10 +30,28 @@ class SolverType(Enum):
 class ProblemType(Enum):
     GENERATED = 0
     FILE = 1
+    SCENARIO = 2
 
     @property
     def label(self):
         return {
             ProblemType.GENERATED: "Generated",
             ProblemType.FILE: "Uploaded",
+            ProblemType.SCENARIO: "Default Scenarios",
+        }[self]
+
+
+class ScenarioType(Enum):
+    ONE_FEW = 0
+    ONE_MANY = 1
+    TWO_FEW = 2
+    TWO_MANY = 3
+
+    @property
+    def label(self):
+        return {
+            ScenarioType.ONE_FEW: "One Bin - Few Cases",
+            ScenarioType.ONE_MANY: "One Bin - Many Cases",
+            ScenarioType.TWO_FEW: "Two Bins - Few Cases",
+            ScenarioType.TWO_MANY: "Two Bins - Many Cases",
         }[self]

@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import base64
+import json
 from typing import NamedTuple, Union
 
 import dash
@@ -68,6 +69,7 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
 @dash.callback(
     Output({"type": "generated-settings", "index": ALL}, "className"),
     Output("uploaded-settings", "className"),
+    Output("scenario-settings", "className"),
     inputs=[
         Input("problem-type", "value"),
         State({"type": "generated-settings", "index": ALL}, "children"),
@@ -88,9 +90,12 @@ def update_problem_type(
         str: The class name for the `Uploaded` ProblemType.
     """
     if problem_type is ProblemType.FILE.value:
-        return ["display-none"] * len(gen_settings), ""
+        return ["display-none"] * len(gen_settings), "", "display-none"
 
-    return [""] * len(gen_settings), "display-none"
+    if problem_type is ProblemType.SCENARIO.value:
+        return ["display-none"] * len(gen_settings), "display-none", ""
+
+    return [""] * len(gen_settings), "display-none", "display-none"
 
 
 @dash.callback(
@@ -137,7 +142,7 @@ def generate_data(
         problem-data-store: The data that was generated for the table.
         saved: The class name for the `Saved!` feedback.
     """
-    if ProblemType(problem_type) is ProblemType.FILE:
+    if ProblemType(problem_type) is not ProblemType.GENERATED:
         raise PreventUpdate
 
     rng = np.random.default_rng(RANDOM_SEED)
@@ -169,6 +174,53 @@ def generate_data(
         num_bins,
         f"{bin_length} * {bin_width} * {bin_height}",
         problem_data,
+        "display-none"
+    )
+
+
+@dash.callback(
+    Output("input", "children", allow_duplicate=True),
+    Output("max-bins", "children", allow_duplicate=True),
+    Output("bin-dims", "children", allow_duplicate=True),
+    Output("problem-data-store", "data", allow_duplicate=True),
+    Output("saved", "className", allow_duplicate=True),
+    inputs=[
+        Input("problem-type", "value"),
+        Input("scenario-select", "value"),
+    ],
+    prevent_initial_call=True,
+)
+def load_scenario(
+    problem_type: Union[ProblemType, int],
+    scenario: int,
+) -> tuple[list, int, str, dict, str]:
+    """Updates the input table when ProblemType is `Scenario` has changed.
+
+    Args:
+        problem_type: The input problem type. Either Generated or Uploaded.
+        scenario_select: The current value of the scenario dropdown.
+
+    Returns:
+        input: The input table.
+        max-bins: The maximum bins to display in the input UI.
+        bin-dimensions: The bin dimension string to display in the UI.
+        problem-data-store: The data that was generated for the table.
+        saved: The class name for the `Saved!` feedback.
+    """
+    if ProblemType(problem_type) is not ProblemType.SCENARIO:
+        raise PreventUpdate
+
+    scenarios = json.load(open("./src/data/scenarios.json", "r"))
+
+    scenario_data = scenarios[str(scenario)]
+
+    bin_length, bin_width, bin_height = scenario_data["bin_dimensions"]
+
+    return (
+        generate_table(scenario_data),
+        scenario_data["num_bins"],
+        f"{bin_length} * {bin_width} * {bin_height}",
+        scenario_data,
         "display-none"
     )
 
@@ -216,7 +268,7 @@ def read_input_file(
             filename: The name of the file that was uploaded to display in the UI.
             problem_data_store: The value to update the table data store.
     """
-    if ProblemType(problem_type) is ProblemType.GENERATED:
+    if ProblemType(problem_type) is not ProblemType.FILE:
         raise PreventUpdate
 
     if file_contents is not None:
@@ -330,6 +382,11 @@ def update_graph_colors(
         (Output("bin-length", "disabled"), True, False),
         (Output("bin-width", "disabled"), True, False),
         (Output("bin-height", "disabled"), True, False),
+        (Output("solver-type-select", "disabled"), True, False),
+        (Output("solver-time-limit", "disabled"), True, False),
+        (Output("scenario-select", "disabled"), True, False),
+        (Output("input-file", "disabled"), True, False),
+        (Output("save-solution", "disabled"), True, False),
     ],
     cancel=[Input("cancel-button", "n_clicks")],
     prevent_initial_call=True,
