@@ -7,9 +7,12 @@ workflows:
   version: 2.1
   tests:
     jobs:
-      - dwave/test-linux
-      - dwave/test-osx
-      - dwave/test-win
+      - dwave/test-linux-single-python:
+          python-version: 3.11.0
+      - dwave/test-win-single-python:
+          python-version: 3.11.0
+      - dwave/test-osx-single-python:
+          python-version: 3.11.0
 
   weekly:
     triggers:
@@ -21,6 +24,9 @@ workflows:
                 - master
                 - main
     jobs:
-      - dwave/test-linux
-      - dwave/test-osx
-      - dwave/test-win
+      - dwave/test-linux-single-python:
+          python-version: 3.11.0
+      - dwave/test-win-single-python:
+          python-version: 3.11.0
+      - dwave/test-osx-single-python:
+          python-version: 3.11.0
