@@ -151,12 +151,14 @@ and constraints to achieve this goal:
 **Objectives:** minimize the height of the packed cases and number of bins used.
 
 **Constraints:** the constraints for this problem fall into multiple categories.
-Orientation constraints focus on restricting cases to a single orientation. Case
-and bin assignment constraints ensure that each case is placed in exactly one
-bin, that the chosen bin is in use, and that there are no gaps between bins.
-Geometric constraints are used to make sure cases aren't assigned to positions
-that would cause an overlap with another case. Bin boundary constraints enforce
-that cases are placed completely inside their designated bin.
+- **Orientation constraints** focus on restricting cases to a single orientation.
+- **Case and bin assignment constraints** ensure that each case is placed in
+exactly one bin, that the chosen bin is in use, and that there are no gaps
+between bins.
+- **Geometric constraints** are used to make sure cases aren't assigned to
+positions that would cause an overlap with another case.
+- **Bin boundary constraints** enforce that cases are placed completely inside
+their designated bin.
 
 ## Model Overview
 
