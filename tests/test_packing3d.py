@@ -21,7 +21,7 @@ from unittest.mock import patch
 import dimod
 import numpy as np
 
-from mip_solver import MIPCQMSolver
+from src.scipy_solver import SciPyCQMSolver
 from packing3d import (
     Bins,
     Cases,
@@ -287,9 +287,9 @@ class TestPacking3d(unittest.TestCase):
         with patch("packing3d.LeapHybridCQMSampler") as mock:
             call_solver(cqm, time_limit=5, use_cqm_solver=True)
             mock.return_value.sample_cqm.assert_called_with(
-                cqm, time_limit=5, label="3d bin packing"
+                cqm, time_limit=5, label="Examples - 3D Bin Packing"
             )
 
-        with patch.object(MIPCQMSolver, "sample_cqm") as mock:
+        with patch.object(SciPyCQMSolver, "sample_cqm") as mock:
             call_solver(cqm, time_limit=5, use_cqm_solver=False)
             mock.assert_called_with(cqm, time_limit=5)

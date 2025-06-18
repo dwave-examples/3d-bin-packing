@@ -20,7 +20,7 @@ import numpy as np
 from dimod import Binary, ConstrainedQuadraticModel, Real, SampleSet, quicksum
 from dwave.system import LeapHybridCQMSampler
 
-from mip_solver import MIPCQMSolver
+from src.scipy_solver import SciPyCQMSolver
 from utils import plot_cuboids, print_cqm_stats, read_instance, write_solution_to_file
 
 
@@ -329,9 +329,9 @@ def call_solver(
     """
     if use_cqm_solver:
         sampler = LeapHybridCQMSampler()
-        res = sampler.sample_cqm(cqm, time_limit=time_limit, label="3d bin packing")
+        res = sampler.sample_cqm(cqm, time_limit=time_limit, label="Examples - 3D Bin Packing")
     else:
-        sampler = MIPCQMSolver()
+        sampler = SciPyCQMSolver()
         res = sampler.sample_cqm(cqm, time_limit=time_limit)
 
     res.resolve()
@@ -378,7 +378,7 @@ if __name__ == "__main__":
         "--use_cqm_solver",
         type=bool,
         nargs="?",
-        help="Flag to either use CQM or MIP solver",
+        help="Flag to either use CQM or HiGHS solver",
         default=True,
     )
 
