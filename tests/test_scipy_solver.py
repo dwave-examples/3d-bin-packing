@@ -16,13 +16,13 @@ import unittest
 
 import dimod
 
-from mip_solver import MIPCQMSolver
+from src.scipy_solver import SciPyCQMSolver
 
 
-class TestMIPCQMSolver(unittest.TestCase):
+class TestSciPyCQMSolver(unittest.TestCase):
     def test_empty(self):
         cqm = dimod.ConstrainedQuadraticModel()
-        sampleset = MIPCQMSolver().sample_cqm(cqm)
+        sampleset = SciPyCQMSolver().sample_cqm(cqm)
         self.assertEqual(len(sampleset), 0)
 
     def test_infease(self):
@@ -33,7 +33,7 @@ class TestMIPCQMSolver(unittest.TestCase):
         cqm.add_constraint(i - j <= -1)
         cqm.add_constraint(i - j >= +1)
 
-        sampleset = MIPCQMSolver().sample_cqm(cqm)
+        sampleset = SciPyCQMSolver().sample_cqm(cqm)
         self.assertEqual(len(sampleset), 0)
 
     def test_bounds(self):
@@ -42,11 +42,11 @@ class TestMIPCQMSolver(unittest.TestCase):
         i = dimod.Integer("i", lower_bound=-5, upper_bound=5)
 
         cqm.set_objective(i)
-        sampleset = MIPCQMSolver().sample_cqm(cqm)
+        sampleset = SciPyCQMSolver().sample_cqm(cqm)
         self.assertEqual(sampleset.first.sample["i"], -5)
 
         cqm.set_objective(-i)
-        sampleset = MIPCQMSolver().sample_cqm(cqm)
+        sampleset = SciPyCQMSolver().sample_cqm(cqm)
         self.assertEqual(sampleset.first.sample["i"], 5)
 
     def test_quadratic(self):
@@ -57,7 +57,7 @@ class TestMIPCQMSolver(unittest.TestCase):
         cqm.add_constraint(i * j <= 5)
 
         with self.assertRaises(ValueError):
-            MIPCQMSolver().sample_cqm(cqm)
+            SciPyCQMSolver().sample_cqm(cqm)
 
     def test_vartypes(self):
 
@@ -73,10 +73,10 @@ class TestMIPCQMSolver(unittest.TestCase):
         cqm.add_constraint(a <= 6.5)
         cqm.add_constraint(x <= 7.5)
 
-        sampleset = MIPCQMSolver().sample_cqm(cqm)
+        sampleset = SciPyCQMSolver().sample_cqm(cqm)
 
         self.assertEqual(sampleset.first.sample, {"i": 5, "a": 6.5, "x": 1})
 
         cqm.add_constraint(s <= 5)
         with self.assertRaises(ValueError):
-            MIPCQMSolver().sample_cqm(cqm)
+            SciPyCQMSolver().sample_cqm(cqm)

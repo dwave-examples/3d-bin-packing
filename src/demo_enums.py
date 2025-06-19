@@ -17,13 +17,13 @@ from enum import Enum
 
 class SolverType(Enum):
     CQM = 0
-    MIP = 1
+    HIGHS = 1
 
     @property
     def label(self):
         return {
             SolverType.CQM: "Quantum Hybrid (CQM)",
-            SolverType.MIP: "CBC (Python-MIP)",
+            SolverType.HIGHS: "Classical (HiGHS)",
         }[self]
 
 
