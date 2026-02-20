@@ -1,5 +1,5 @@
 dash[diskcache]~=3.0
 dwave-ocean-sdk~=9.3
 plotly~=6.5
-scipy~=1.17
+scipy~=1.15
 tabulate~=0.9
