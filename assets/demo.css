@@ -20,7 +20,7 @@ The following style rules can be altered or removed and any additional
 custom CSS can be added below.
 *******************************************************************/
 
-.tab-content-results {
+/* .tab-content-results {
     height: 100%;
     padding-right: 5rem;
     display: flex;
@@ -31,7 +31,7 @@ custom CSS can be added below.
 
 .tab-content-results > div:last-child {
     padding-left: 5rem;
-}
+} */
 
 table {
     margin-bottom: 0;
@@ -41,8 +41,12 @@ table {
     height: 100%;
 }
 
-.input-wrapper {
-    padding: 3rem 5rem;
+.tab-content-wrapper {
+    padding: 3rem 3rem 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
 }
 
 .input {
@@ -51,25 +55,25 @@ table {
     width: 100%;
 }
 
-.input h6 {
-    font-size: 1.6rem;
+.input h5  {
+    font-weight: 500;
 }
 
-.input h6 span {
+.input h5 span {
     font-weight: bold;
-    margin: 0 0.4rem 0 1rem;
+    margin: 0 0.25rem 0 0.5rem;
 }
 
 .input label {
-    margin-top: 6rem;
+    margin-top: 3rem;
 }
 
 .input > *:last-child {
-    margin-left: 5rem;
+    margin-left: 3.125rem;
 }
 
 .input > div:first-child {
-    height: calc(100vh - var(--banner-height) - 160px);  /* minus height of tabs and padding */
+    height: calc(100vh - var(--banner-height) - 10rem);  /* minus height of tabs and padding */
     overflow-y: auto;
 }
 
@@ -79,22 +83,29 @@ table {
 }
 
 #input-file {
+    font-size: 1rem;
     padding: 1rem;
     border: 1px dashed var(--grey-dark);
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     text-align: center;
+    cursor: pointer;
 }
 
 .display-flex-settings {
     display: flex;
     justify-content: space-between;
-    max-width: 24rem;
+    max-width: 16rem;
+}
+
+.display-flex-settings > div {
+    max-width: 5rem;
 }
 
 .display-flex-settings label {
     margin-top: 0;
-    font-weight: 400;
-    font-size: 1.2rem;
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
     text-transform: uppercase;
 }
 
@@ -102,47 +113,47 @@ table {
     color: var(--theme);
     letter-spacing: normal;
     text-transform: uppercase;
-    font-size: 1.3rem;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
+    border: none;
 }
 
-.details-collapse.advanced-settings .collapse-arrow {
-    margin-top: 2rem;
-    border-width: 3px;
+.advanced-settings .collapse-arrow {
     height: 1rem;
-    width: 1rem;
+    width: 1.5rem;
+    margin-top: 0.8rem;
 }
 
-.collapsed .details-collapse.advanced-settings .collapse-arrow {
-    margin-top: 1.8rem;
+.collapsed .advanced-settings .collapse-arrow {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.advanced-settings .collapse-arrow:before,
+.advanced-settings .collapse-arrow:after {
+    width: 1rem;
 }
 
 .advanced-collapse {
     background: white;
     padding: 0 1rem 1rem;
-    border: 1px solid var(--grey-light);
+    border-radius: 1rem;
 }
 
-.details-collapse-wrapper.collapsed .advanced-collapse {
+.advanced-settings-collapse-wrapper {
+    margin-top: 1rem;
+}
+
+.advanced-settings-collapse-wrapper.collapsed .advanced-collapse {
     padding-bottom: 0;
+    padding-top: 0;
     border-top: none;
     border-bottom: none;
 }
 
-.details-collapse-wrapper:not(.collapsed) .details-to-collapse.advanced-collapse {
+.advanced-settings-collapse-wrapper:not(.collapsed) .details-to-collapse.advanced-collapse {
     height: var(--advanced-settings-height) !important;
-}
-
-.range-slider > div {
-    padding-left: 6px !important;
-    padding-right: 6px !important;
-}
-
-th {
-    background-color: var(--blue-dark);
-    color: white;
-    font-weight: 500;
 }
 
 #input tr:nth-child(even) {
@@ -158,14 +169,8 @@ th {
     font-weight: 600;
 }
 
-#save-input-button {
+.button-small {
     margin-left: 0.5rem;
-    padding: 1.2rem 1.8rem;
-    font-size: 1.2rem;
-}
-
-#save-input-filename {
-    display: inline-block;
 }
 
 #saved {
@@ -173,9 +178,13 @@ th {
     margin-left: 0.8rem;
 }
 
-.checklist-wrapper {
+.checkbox-wrapper {
     position: absolute;
     z-index: 5;
-    right: 4rem;
-    top: 4rem;
+    right: 2.5rem;
+    top: 2.5rem;
+}
+
+.save-input-wrapper {
+    display: flex;
 }

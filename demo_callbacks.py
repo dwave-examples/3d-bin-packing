@@ -41,13 +41,14 @@ from utils import (
 
 @dash.callback(
     Output({"type": "to-collapse-class", "index": MATCH}, "className"),
+    Output({"type": "collapse-trigger", "index": MATCH}, "aria-expanded"),
     inputs=[
         Input({"type": "collapse-trigger", "index": MATCH}, "n_clicks"),
         State({"type": "to-collapse-class", "index": MATCH}, "className"),
     ],
     prevent_initial_call=True,
 )
-def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
+def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> tuple[str, str]:
     """Toggles a 'collapsed' class that hides and shows some aspect of the UI.
 
     Args:
@@ -57,13 +58,14 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
 
     Returns:
         str: The new class name of the thing to collapse.
+        str: The aria-expanded value.
     """
 
     classes = to_collapse_class.split(" ") if to_collapse_class else []
     if "collapsed" in classes:
         classes.remove("collapsed")
-        return " ".join(classes)
-    return to_collapse_class + " collapsed" if to_collapse_class else "collapsed"
+        return " ".join(classes), "true"
+    return to_collapse_class + " collapsed" if to_collapse_class else "collapsed", "false"
 
 
 @dash.callback(
@@ -76,9 +78,9 @@ def toggle_left_column(collapse_trigger: int, to_collapse_class: str) -> str:
     ],
 )
 def update_problem_type(
-    problem_type: Union[ProblemType, int],
+    problem_type: Union[ProblemType, str],
     gen_settings: list,
-) -> tuple[list[str], str]:
+) -> tuple[list[str], str, str]:
     """Updates the visible settings when the Problem Type is changed.
 
     Args:
@@ -86,13 +88,14 @@ def update_problem_type(
         gen_settings: The settings for the `Generated` ProblemType.
 
     Returns:
-        list[str]: The classe names for the settings for the `Generated` ProblemType.
+        list[str]: The class names for the settings for the `Generated` ProblemType.
         str: The class name for the `Uploaded` ProblemType.
+        str: The class name for the `Scenario` ProblemType.
     """
-    if problem_type is ProblemType.FILE.value:
+    if int(problem_type) is ProblemType.FILE.value:
         return ["display-none"] * len(gen_settings), "", "display-none"
 
-    if problem_type is ProblemType.SCENARIO.value:
+    if int(problem_type) is ProblemType.SCENARIO.value:
         return ["display-none"] * len(gen_settings), "display-none", ""
 
     return [""] * len(gen_settings), "display-none", "display-none"
@@ -115,7 +118,7 @@ def update_problem_type(
     ],
 )
 def generate_data(
-    problem_type: Union[ProblemType, int],
+    problem_type: Union[ProblemType, str],
     num_cases: int,
     case_size_range: list[int],
     num_bins: int,
@@ -142,7 +145,7 @@ def generate_data(
         problem-data-store: The data that was generated for the table.
         saved: The class name for the `Saved!` feedback.
     """
-    if ProblemType(problem_type) is not ProblemType.GENERATED:
+    if ProblemType(int(problem_type)) is not ProblemType.GENERATED:
         raise PreventUpdate
 
     rng = np.random.default_rng(RANDOM_SEED)
@@ -191,7 +194,7 @@ def generate_data(
     prevent_initial_call=True,
 )
 def load_scenario(
-    problem_type: Union[ProblemType, int],
+    problem_type: Union[ProblemType, str],
     scenario: int,
 ) -> tuple[list, int, str, dict, str]:
     """Updates the input table when ProblemType is `Scenario` has changed.
@@ -207,7 +210,7 @@ def load_scenario(
         problem-data-store: The data that was generated for the table.
         saved: The class name for the `Saved!` feedback.
     """
-    if ProblemType(problem_type) is not ProblemType.SCENARIO:
+    if ProblemType(int(problem_type)) is not ProblemType.SCENARIO:
         raise PreventUpdate
 
     scenarios = json.load(open("./src/data/scenarios.json", "r"))
@@ -250,7 +253,7 @@ class ReadInputFileReturn(NamedTuple):
 )
 def read_input_file(
     file_contents: str,
-    problem_type: Union[ProblemType, int],
+    problem_type: Union[ProblemType, str],
     filename: str,
 ) -> ReadInputFileReturn:
     """Reads input file and displays data in a table.
@@ -268,7 +271,7 @@ def read_input_file(
             filename: The name of the file that was uploaded to display in the UI.
             problem_data_store: The value to update the table data store.
     """
-    if ProblemType(problem_type) is not ProblemType.FILE:
+    if ProblemType(int(problem_type)) is not ProblemType.FILE:
         raise PreventUpdate
 
     if file_contents is not None:
@@ -370,10 +373,10 @@ def update_graph_colors(
         State("save-solution", "value"),
     ],
     running=[
-        (Output("cancel-button", "className"), "", "display-none"),  # Show/hide cancel button.
-        (Output("run-button", "className"), "display-none", ""),  # Hides run button while running.
+        (Output("cancel-button", "style"), {}, {"display": "none"}),  # Show/hide cancel button.
+        (Output("run-button", "style"), {"display": "none"}, {}),  # Hides run button while running.
         (Output("results-tab", "disabled"), True, False),  # Disables results tab while running.
-        (Output("results-tab", "label"), "Loading...", "Results"),
+        (Output("results-tab", "children"), "Loading...", "Results"),
         (Output("tabs", "value"), "input-tab", "input-tab"),  # Switch to input tab while running.
         (Output("problem-type", "disabled"), True, False),
         (Output("num-cases", "disabled"), True, False),

@@ -14,8 +14,10 @@
 
 """This file stores the Dash HTML layout for the app."""
 from __future__ import annotations
+from enum import EnumMeta
 
 from dash import dcc, html
+import dash_mantine_components as dmc
 
 from demo_configs import (
     COLOR_BY_CASE,
@@ -28,11 +30,12 @@ from demo_configs import (
     NUM_BINS,
     NUM_CASES,
     SOLVER_TIME,
-    THEME_COLOR_SECONDARY,
     THUMBNAIL,
 )
 from src.demo_enums import ProblemType, ScenarioType, SolverType
 from utils import TABLE_HEADERS
+
+THEME_COLOR = "#2d4376"
 
 
 def slider(label: str, id: str, config: dict) -> html.Div:
@@ -41,26 +44,52 @@ def slider(label: str, id: str, config: dict) -> html.Div:
     Args:
         label: The title that goes above the slider.
         id: A unique selector for this element.
-        config: A dictionary of slider configerations, see dcc.Slider Dash docs.
+        config: A dictionary of slider configurations, see dcc.Slider Dash docs.
     """
     return html.Div(
         className="slider-wrapper",
         children=[
-            html.Label(label),
-            dcc.Slider(
+            html.Label(label, htmlFor=id),
+            dmc.Slider(
                 id=id,
                 className="slider",
                 **config,
-                marks={
-                    config["min"]: str(config["min"]),
-                    config["max"]: str(config["max"]),
-                },
-                tooltip={
-                    "placement": "bottom",
-                    "always_visible": True,
-                },
+                marks=[
+                    {"value": config["min"], "label": f'{config["min"]}'},
+                    {"value": config["max"], "label": f'{config["max"]}'},
+                ],
+                labelAlwaysOn=True,
+                thumbLabel=f"{label} slider",
+                color=THEME_COLOR,
             ),
         ],
+    )
+
+
+def range_slider(label: str, id: str, config: dict) -> html.Div:
+    """Range slider element for value selection.
+
+    Args:
+        label: The title that goes above the range slider.
+        id: A unique selector for this element.
+        config: A dictionary of range slider configurations, see dmc.RangeSlider Dash Mantine docs.
+    """
+    return html.Div(
+        className="rangeslider-wrapper",
+        children=[
+            html.Label(label, htmlFor=id),
+            dmc.RangeSlider(
+                id=id,
+                className="slider",
+                **config,
+                marks=[
+                    {"value": config["min"], "label": f'{config["min"]}'},
+                    {"value": config["max"], "label": f'{config["max"]}'},
+                ],
+                labelAlwaysOn=True,
+                color=THEME_COLOR,
+            )
+        ]
     )
 
 
@@ -75,93 +104,46 @@ def dropdown(label: str, id: str, options: list) -> html.Div:
     return html.Div(
         className="dropdown-wrapper",
         children=[
-            html.Label(label),
-            dcc.Dropdown(
+            html.Label(label, htmlFor=id),
+            dmc.Select(
                 id=id,
-                options=options,
+                data=options,
                 value=options[0]["value"],
-                clearable=False,
-                searchable=False,
+                allowDeselect=False,
             ),
         ],
     )
 
 
-def checklist(label: str, id: str, options: list, values: list, inline: bool = True) -> html.Div:
-    """Checklist element for option selection.
+def checkbox(label: str, id: str, checked: bool) -> html.Div:
+    """Checkbox element.
 
     Args:
-        label: The title that goes above the checklist.
+        label: The title that goes above the checkbox.
         id: A unique selector for this element.
-        options: A list of dictionaries of labels and values.
-        values: A list of values that should be preselected in the checklist.
-        inline: Whether the options of the checklist are displayed beside or below each other.
+        checked: Whether the checkbox is checked or not.
     """
     return html.Div(
-        className="checklist-wrapper",
+        className="checkbox-wrapper",
         children=[
-            html.Label(label),
-            dcc.Checklist(
+            dmc.Checkbox(
                 id=id,
-                className=f"checklist{' checklist--inline' if inline else ''}",
-                inline=inline,
-                options=options,
-                value=values,
-            ),
+                label=label,
+                checked=checked,
+                color=THEME_COLOR,
+            )
         ],
     )
 
 
-def radio(label: str, id: str, options: list, value: int, inline: bool = True) -> html.Div:
-    """Radio element for option selection.
-
-    Args:
-        label: The title that goes above the radio.
-        id: A unique selector for this element.
-        options: A list of dictionaries of labels and values.
-        value: The value of the radio that should be preselected.
-        inline: Whether the options are displayed beside or below each other.
-    """
-    return html.Div(
-        className="radio-wrapper",
-        children=[
-            html.Label(label),
-            dcc.RadioItems(
-                id=id,
-                className=f"radio{' radio--inline' if inline else ''}",
-                inline=inline,
-                options=options,
-                value=value,
-            ),
-        ],
-    )
-
-
-def range_slider(label: str, id: str, config: dict) -> html.Div:
-    """Range slider element for value selection."""
-    return html.Div(
-        className="range-slider",
-        children=[
-            html.Label(label),
-            dcc.RangeSlider(
-                id=id,
-                **config,
-                marks={
-                    config["min"]: str(config["min"]),
-                    config["max"]: str(config["max"]),
-                },
-                tooltip={
-                    "placement": "bottom",
-                    "always_visible": True,
-                },
-            ),
-        ],
-    )
-
-
-def generate_options(options_list: list) -> list[dict]:
+def generate_options(options: list | EnumMeta) -> list[dict]:
     """Generates options for dropdowns, checklists, radios, etc."""
-    return [{"label": label, "value": i} for i, label in enumerate(options_list)]
+    if isinstance(options, EnumMeta):
+        return [
+            {"label": option.label, "value": f"{option.value}"} for option in options
+        ]
+
+    return [{"label": option, "value": f"{option}"} for option in options]
 
 
 def generate_settings_form() -> html.Div:
@@ -170,17 +152,9 @@ def generate_settings_form() -> html.Div:
     Returns:
         html.Div: A Div containing the settings for selecting the scenario, model, and solver.
     """
-    problem_type_options = [
-        {"label": problem_type.label, "value": problem_type.value} for problem_type in ProblemType
-    ]
-
-    solver_options = [
-        {"label": solver_type.label, "value": solver_type.value} for solver_type in SolverType
-    ]
-
-    scenario_options = [
-        {"label": scenario_type.label, "value": scenario_type.value} for scenario_type in ScenarioType
-    ]
+    problem_type_options = generate_options(ProblemType)
+    solver_options = generate_options(SolverType)
+    scenario_options = generate_options(ScenarioType)
 
     return html.Div(
         className="settings",
@@ -192,7 +166,7 @@ def generate_settings_form() -> html.Div:
             ),
             html.Div(
                 [
-                    html.Label("Problem File"),
+                    html.Label("Problem File", htmlFor="input-file"),
                     dcc.Upload(
                         id="input-file",
                         children=html.Div(
@@ -215,30 +189,27 @@ def generate_settings_form() -> html.Div:
                         [
                             html.Div(
                                 [
-                                    html.Label("Length"),
-                                    dcc.Input(
+                                    html.Label("Length", htmlFor="bin-length"),
+                                    dmc.NumberInput(
                                         id="bin-length",
-                                        type="number",
                                         **BIN_LENGTH,
                                     ),
                                 ]
                             ),
                             html.Div(
                                 [
-                                    html.Label("Width"),
-                                    dcc.Input(
+                                    html.Label("Width", htmlFor="bin-width"),
+                                    dmc.NumberInput(
                                         id="bin-width",
-                                        type="number",
                                         **BIN_WIDTH,
                                     ),
                                 ]
                             ),
                             html.Div(
                                 [
-                                    html.Label("Height"),
-                                    dcc.Input(
+                                    html.Label("Height", htmlFor="bin-height"),
+                                    dmc.NumberInput(
                                         id="bin-height",
-                                        type="number",
                                         **BIN_HEIGHT,
                                     ),
                                 ]
@@ -275,10 +246,9 @@ def generate_settings_form() -> html.Div:
                 "solver-type-select",
                 sorted(solver_options, key=lambda op: op["value"]),
             ),
-            html.Label("Solver Time Limit (seconds)"),
-            dcc.Input(
+            html.Label("Solver Time Limit (seconds)", htmlFor="solver-time-limit"),
+            dmc.NumberInput(
                 id="solver-time-limit",
-                type="number",
                 **SOLVER_TIME,
             ),
             html.Div(
@@ -286,7 +256,7 @@ def generate_settings_form() -> html.Div:
                     "type": "to-collapse-class",
                     "index": 3,
                 },
-                className="details-collapse-wrapper collapsed",
+                className="advanced-settings-collapse-wrapper collapsed",
                 children=[
                     html.Button(
                         id={
@@ -295,15 +265,15 @@ def generate_settings_form() -> html.Div:
                         },
                         className="details-collapse advanced-settings",
                         children=[
-                            html.Label("More settings"),
+                            html.Label("Advanced options", className="advanced-options"),
                             html.Div(className="collapse-arrow"),
                         ],
                     ),
                     html.Div(
                         className="details-to-collapse advanced-collapse",
                         children=[
-                            html.Label("Write Solution to File"),
-                            dcc.Input(id="save-solution", type="text", placeholder="File Name"),
+                            html.Label("Write Solution to File", htmlFor="save-solution"),
+                            dmc.TextInput(id="save-solution", placeholder="File Name"),
                         ],
                     ),
                 ],
@@ -317,12 +287,12 @@ def generate_run_buttons() -> html.Div:
     return html.Div(
         id="button-group",
         children=[
-            html.Button(id="run-button", children="Run Optimization", n_clicks=0, disabled=False),
+            html.Button("Run Optimization", id="run-button", className="button"),
             html.Button(
+                "Cancel Optimization",
                 id="cancel-button",
-                children="Cancel Optimization",
-                n_clicks=0,
-                className="display-none",
+                className="button",
+                style={"display": "none"},
             ),
         ],
     )
@@ -422,20 +392,25 @@ def problem_details(index: int) -> html.Div:
 
 def create_interface():
     """Set the application HTML."""
-    checklist_options = generate_options(COLOR_BY_CASE)
 
     return html.Div(
         id="app-container",
         children=[
+            html.A(  # Skip link for accessibility
+                "Skip to main content",
+                href="#main-content",
+                id="skip-to-main",
+                className="skip-link",
+                tabIndex=1,
+            ),
             # Below are any temporary storage items, e.g., for sharing data between callbacks.
             dcc.Store(id="problem-data-store"),
             dcc.Store(id="max-bins-store"),
             dcc.Store(id="bin-dimensions-store"),
-            # Header brand banner
-            html.Div(className="banner", children=[html.Img(src=THUMBNAIL)]),
             # Settings and results columns
-            html.Div(
+            html.Main(
                 className="columns-main",
+                id="main-content",
                 children=[
                     # Left column
                     html.Div(
@@ -448,21 +423,46 @@ def create_interface():
                                     html.Div(
                                         className="left-column-layer-2",  # Padding and content wrapper
                                         children=[
-                                            html.H1(MAIN_HEADER),
-                                            html.P(DESCRIPTION),
-                                            generate_settings_form(),
-                                            generate_run_buttons(),
+                                            html.Div(
+                                                [
+                                                    html.H1(MAIN_HEADER),
+                                                    html.P(DESCRIPTION),
+                                                ],
+                                                className="title-section",
+                                            ),
+                                            html.Div(
+                                                [
+                                                    html.Div(
+                                                        html.Div(
+                                                            [
+                                                                generate_settings_form(),
+                                                                generate_run_buttons(),
+                                                            ],
+                                                            className="settings-and-buttons",
+                                                        ),
+                                                        className="settings-and-buttons-wrapper",
+                                                    ),
+                                                    # Left column collapse button
+                                                    html.Div(
+                                                        html.Button(
+                                                            id={
+                                                                "type": "collapse-trigger",
+                                                                "index": 0,
+                                                            },
+                                                            className="left-column-collapse",
+                                                            title="Collapse sidebar",
+                                                            children=[
+                                                                html.Div(className="collapse-arrow")
+                                                            ],
+                                                            **{"aria-expanded": "true"},
+                                                        ),
+                                                    ),
+                                                ],
+                                                className="form-section",
+                                            ),
                                         ],
                                     )
                                 ],
-                            ),
-                            # Left column collapse button
-                            html.Div(
-                                html.Button(
-                                    id={"type": "collapse-trigger", "index": 0},
-                                    className="left-column-collapse",
-                                    children=[html.Div(className="collapse-arrow")],
-                                ),
                             ),
                         ],
                     ),
@@ -470,103 +470,119 @@ def create_interface():
                     html.Div(
                         className="right-column",
                         children=[
-                            dcc.Tabs(
+                            dmc.Tabs(
                                 id="tabs",
                                 value="input-tab",
-                                mobile_breakpoint=0,
+                                color="white",
                                 children=[
-                                    dcc.Tab(
-                                        label="Input",
-                                        id="input-tab",
-                                        value="input-tab",  # used for switching tabs programatically
-                                        className="tab",
+                                    html.Header(
+                                        className="banner",
                                         children=[
-                                            html.Div(
-                                                html.Div(
-                                                    className="input",
-                                                    children=[
-                                                        html.Div(
-                                                            html.Table(
-                                                                id="input",
-                                                                # add children dynamically using 'generate_table'
-                                                            )
-                                                        ),
-                                                        html.Div(
-                                                            [
-                                                                html.H6(
-                                                                    [
-                                                                        "Maximum bins: ",
-                                                                        html.Span(id="max-bins"),
-                                                                    ]
-                                                                ),
-                                                                html.H6(
-                                                                    [
-                                                                        "Bin dimensions: ",
-                                                                        html.Span(id="bin-dims"),
-                                                                        " (L*W*H)",
-                                                                    ]
-                                                                ),
-                                                                html.Div(
-                                                                    [
-                                                                        html.Label(
-                                                                            "Save Input Data to File"
-                                                                        ),
-                                                                        html.Div(
-                                                                            [
-                                                                                dcc.Input(
-                                                                                    id="save-input-filename",
-                                                                                    type="text",
-                                                                                    placeholder="File Name",
-                                                                                ),
-                                                                                html.Button(
-                                                                                    id="save-input-button",
-                                                                                    children="Save",
-                                                                                    n_clicks=0,
-                                                                                ),
-                                                                                html.P(
-                                                                                    "Saved to input folder",
-                                                                                    className="display-none",
-                                                                                    id="saved",
-                                                                                ),
-                                                                            ]
-                                                                        ),
-                                                                    ],
-                                                                    id={
-                                                                        "type": "generated-settings",
-                                                                        "index": 1,
-                                                                    },
-                                                                ),
-                                                            ]
-                                                        ),
-                                                    ],
-                                                ),
-                                                className="input-wrapper",
+                                            html.Nav(
+                                                [
+                                                    dmc.TabsList(
+                                                        [
+                                                            dmc.TabsTab("Input", value="input-tab"),
+                                                            dmc.TabsTab(
+                                                                "Results",
+                                                                value="results-tab",
+                                                                id="results-tab",
+                                                                disabled=True,
+                                                            ),
+                                                        ]
+                                                    ),
+                                                ]
                                             ),
+                                            html.Img(src=THUMBNAIL, alt="D-Wave logo"),
                                         ],
                                     ),
-                                    dcc.Tab(
-                                        label="Results",
-                                        id="results-tab",
-                                        className="tab",
-                                        disabled=True,
+                                    dmc.TabsPanel(
+                                        value="input-tab",
+                                        tabIndex="12",
                                         children=[
                                             html.Div(
-                                                className="tab-content-results",
+                                                className="tab-content-wrapper",
                                                 children=[
-                                                    checklist(
-                                                        "",
+                                                    html.Div(
+                                                        className="input",
+                                                        children=[
+                                                            html.Div(
+                                                                html.Table(
+                                                                    id="input",
+                                                                    # add children dynamically using 'generate_table'
+                                                                )
+                                                            ),
+                                                            html.Div(
+                                                                [
+                                                                    html.H5(
+                                                                        [
+                                                                            "Maximum bins: ",
+                                                                            html.Span(id="max-bins"),
+                                                                        ]
+                                                                    ),
+                                                                    html.H5(
+                                                                        [
+                                                                            "Bin dimensions: ",
+                                                                            html.Span(id="bin-dims"),
+                                                                            " (L*W*H)",
+                                                                        ]
+                                                                    ),
+                                                                    html.Div(
+                                                                        [
+                                                                            html.Label(
+                                                                                "Save Input Data to File"
+                                                                            ),
+                                                                            html.Div(
+                                                                                [
+                                                                                    html.Div([
+                                                                                        dmc.TextInput(
+                                                                                            id="save-input-filename",
+                                                                                            placeholder="File Name",
+                                                                                        ),
+                                                                                        html.Button(
+                                                                                            id="save-input-button",
+                                                                                            children="Save",
+                                                                                            n_clicks=0,
+                                                                                            className="button button-small",
+                                                                                        ),
+                                                                                    ], className="save-input-wrapper"),
+                                                                                    html.P(
+                                                                                        "Saved to input folder",
+                                                                                        className="display-none",
+                                                                                        id="saved",
+                                                                                    ),
+                                                                                ]
+                                                                            ),
+                                                                        ],
+                                                                        id={
+                                                                            "type": "generated-settings",
+                                                                            "index": 1,
+                                                                        },
+                                                                    ),
+                                                                ]
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ]
+                                            )
+                                        ],
+                                    ),
+                                    dmc.TabsPanel(
+                                        value="results-tab",
+                                        tabIndex="13",
+                                        children=[
+                                            html.Div(
+                                                className="tab-content-wrapper",
+                                                children=[
+                                                    checkbox(
+                                                        COLOR_BY_CASE,
                                                         "checklist",
-                                                        sorted(
-                                                            checklist_options,
-                                                            key=lambda op: op["value"],
-                                                        ),
-                                                        [],
+                                                        False,
                                                     ),
                                                     dcc.Loading(
                                                         parent_className="results",
                                                         type="circle",
-                                                        color=THEME_COLOR_SECONDARY,
-                                                        # A Dash callback (in app.py) will generate content in the Div below
+                                                        color=THEME_COLOR,
                                                         children=html.Div(
                                                             dcc.Graph(
                                                                 id="results",

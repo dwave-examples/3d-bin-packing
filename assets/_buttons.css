@@ -17,19 +17,34 @@ limitations under the License.
 /* Style rules for buttons */
 
 button {
-    font-size: 1.4rem;
-    line-height: 1.4rem;
-    padding: 1.8rem 3.6rem;
-    height: auto;
-    color: white;
-    transition: all 0.2s ease-in-out;
     border: none;
-    background-color: var(--theme);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.75;
+    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
 }
 
-button:hover {
-    filter: brightness(80%);
+.button {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.75;
+    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
     color: white;
+    text-transform: uppercase;
+    background: radial-gradient(61.22% 95.86% at 26.96% 100%, #4c71c6 0%, var(--blue-darker) 100%);
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: rgba(29, 30, 36, 0.19) 0px 5px 14px 0px;
+    border: 1px solid rgba(76, 113, 198, 0.4);
+}
+
+.button:hover {
+    background: radial-gradient(61.22% 95.86% at 26.96% 100%, var(--blue-darker) 0%, var(--blue-darker) 100%);
 }
 
 #run-button,
@@ -38,9 +53,24 @@ button:hover {
 }
 
 #cancel-button {
-    background-color: var(--red-light);
+    background: radial-gradient(61.22% 95.86% at 26.96% 100%, var(--red-light) 0%, var(--red-dark) 100%);
+    border: 1px solid rgb(245, 118, 119, 0.4);
 }
 
 #cancel-button:hover {
-    background-color: var(--red-dark);
+    background: radial-gradient(61.22% 95.86% at 26.96% 100%, var(--red-dark) 0%, var(--red-dark) 100%);
+}
+
+button:disabled {
+    cursor: not-allowed;
+    filter: brightness(70%);
+    opacity: 0.7;
+}
+
+button:focus-visible {
+    box-shadow: 0 0 0 4px var(--teal);
+}
+
+.button-small {
+    padding: 0.35rem 1rem;
 }

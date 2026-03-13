@@ -16,8 +16,6 @@ limitations under the License.
 
 /*
 Variable declarations for all CSS files.
-Some additional variables are generated automatically in app.py
-and stored in __generated_theme.css.
 
 Dash reads all css files contained in `/assets/` so no imports are necessary.
 */
@@ -26,21 +24,25 @@ Dash reads all css files contained in `/assets/` so no imports are necessary.
     --blue-bright: #03B8FF;
     --blue-light: #2A7DE1;
     --blue-dark: #074C91;
-    --red-light: #C70039;
-    --red-dark: #900C3F;
+    --blue-darker: #2d4376;;
+    --blue-darkest: #202239;
+    --red-light: #F57677;
+    --red-dark: #AA3A3C;
     --orange: #FF7006;
     --teal-light: #06ECDC;
+    --teal: #17BEBB;
     --teal-dark: #17BEBB;
     --teal-darker: #008C82;
-    --grey-lighter: #EEEEEE;
-    --grey-light: #DDDDDD;
+    --grey-lighter: #F5F7FB;
+    --grey-light: #DBDBDB;
     --grey: #AAAAAA;
-    --grey-medium: #777777;
+    --grey-medium: #737373;
     --grey-dark: #222222;
-    --font: "Helvetica Neue", sans-serif;
-    --banner-height: 5.5rem;
-    --left-col-width: 42rem;
-    --problem-details-height: 13.5rem;
-    --advanced-settings-height: 9rem;
-    /*** Add new variables here ***/
+    --box-shadow: 0 0 1rem rgba(66, 82, 121, 0.2);
+    --font: "proxima-nova", "Helvetica Neue", sans-serif;
+    --banner-height: 6.5rem;
+    --left-col-width: 26.25rem;
+    --problem-details-height: 8rem;
+    --title-section-height: 13.5rem;
+    --advanced-settings-height: 8rem;
 }
