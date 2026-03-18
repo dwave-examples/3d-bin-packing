@@ -184,7 +184,7 @@ def generate_settings_form() -> html.Div:
                         "num-bins",
                         NUM_BINS,
                     ),
-                    html.Label("Bin Dimensions"),
+                    html.Label("Bin Dimensions", htmlFor="display-flex-settings"),
                     html.Div(
                         [
                             html.Div(
@@ -216,6 +216,7 @@ def generate_settings_form() -> html.Div:
                             ),
                         ],
                         className="display-flex-settings",
+                        id="display-flex-settings",
                     ),
                     slider(
                         "Number of Cases",
@@ -265,9 +266,10 @@ def generate_settings_form() -> html.Div:
                         },
                         className="details-collapse advanced-settings",
                         children=[
-                            html.Label("Advanced options", className="advanced-options"),
+                            html.Label("Advanced options", className="advanced-options", htmlFor="save-solution"),
                             html.Div(className="collapse-arrow"),
                         ],
+                        **{"aria-expanded": "false"},
                     ),
                     html.Div(
                         className="details-to-collapse advanced-collapse",
@@ -510,7 +512,8 @@ def create_interface():
                                                                 html.Table(
                                                                     id="input",
                                                                     # add children dynamically using 'generate_table'
-                                                                )
+                                                                ),
+                                                                tabIndex="14",
                                                             ),
                                                             html.Div(
                                                                 [
@@ -530,7 +533,8 @@ def create_interface():
                                                                     html.Div(
                                                                         [
                                                                             html.Label(
-                                                                                "Save Input Data to File"
+                                                                                "Save Input Data to File",
+                                                                                htmlFor="save-input-filename",
                                                                             ),
                                                                             html.Div(
                                                                                 [
@@ -576,7 +580,7 @@ def create_interface():
                                                 children=[
                                                     checkbox(
                                                         COLOR_BY_CASE,
-                                                        "checklist",
+                                                        "color-by-case",
                                                         False,
                                                     ),
                                                     dcc.Loading(

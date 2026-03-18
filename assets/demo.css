@@ -181,10 +181,25 @@ table {
 .checkbox-wrapper {
     position: absolute;
     z-index: 5;
-    right: 2.5rem;
-    top: 2.5rem;
+    left: 3rem;
+    top: 1rem;
 }
 
 .save-input-wrapper {
     display: flex;
+}
+
+@media screen and (max-width: 800px) {
+    .tab-content-wrapper {
+        padding: 1rem 2rem 3rem;
+    }
+
+    .input {
+        flex-direction: column-reverse;
+    }
+
+    .input > div:last-child {
+        margin-left: 0;
+        margin-bottom: 2rem;
+    }
 }

@@ -339,25 +339,25 @@ def save_input_to_file(
 @dash.callback(
     Output("results", "figure", allow_duplicate=True),
     inputs=[
-        Input("checklist", "value"),
+        Input("color-by-case", "checked"),
         State("results", "figure"),
     ],
     prevent_initial_call=True,
 )
 def update_graph_colors(
-    checklist: list,
+    color_by_case: bool,
     fig: go.Figure,
 ) -> go.Figure:
     """Updates the colors of the figure when the value of the checklist changes.
 
     Args:
-        checklist: A list of the current values of the checklist.
+        color_by_case: Whether to color the figure by case.
         fig: The current figure that is displayed.
 
     Returns:
         go.Figure: The updated figure.
     """
-    return update_colors(fig, bool(checklist))
+    return update_colors(fig, color_by_case)
 
 
 @dash.callback(
@@ -369,7 +369,7 @@ def update_graph_colors(
         State("solver-type-select", "value"),
         State("solver-time-limit", "value"),
         State("problem-data-store", "data"),
-        State("checklist", "value"),
+        State("color-by-case", "checked"),
         State("save-solution", "value"),
     ],
     running=[
@@ -399,7 +399,7 @@ def run_optimization(
     solver_type: Union[SolverType, int],
     time_limit: float,
     problem_data: dict,
-    checklist: list,
+    color_by_case: bool,
     save_solution_filepath: str,
 ) -> tuple[go.Figure, list]:
     """Runs the optimization and updates UI accordingly.
@@ -414,7 +414,7 @@ def run_optimization(
         solver_type: The value of the Solver form field.
         time_limit: The value of the Solver Time Limit form field.
         problem_data: The stored generated data.
-        checklist: The current value of the checklist.
+        color_by_case: Whether to color the figure by case.
         save_solution_filepath: The filepath to save the solution to.
 
     Returns:
@@ -434,7 +434,7 @@ def run_optimization(
             save_solution_filepath, cqm, vars, best_feasible, cases, bins, effective_dimensions
         )
 
-    fig = plot_cuboids(best_feasible, vars, cases, bins, effective_dimensions, bool(checklist))
+    fig = plot_cuboids(best_feasible, vars, cases, bins, effective_dimensions, color_by_case)
 
     # Generates a list of table rows for the problem details table.
     problem_details_table = generate_table_rows(get_cqm_stats(cqm))

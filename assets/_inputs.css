@@ -14,6 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+input::placeholder {
+    color: var(--grey-medium) !important;
+}
+
 /* Style rules for the dmc.Slider element */
 .slider {
     margin-bottom: 2rem;
@@ -71,8 +75,9 @@ limitations under the License.
     border-bottom-color: white;
 }
 
-/* Style rules for the dmc.NumberInput element */
-.mantine-NumberInput-input:focus-visible {
+/* Style rules for the dmc.NumberInput and dmc.TextInput elements */
+.mantine-NumberInput-input:focus-visible,
+.mantine-TextInput-input:focus-visible {
     box-shadow: 0 0 0 2px var(--teal);
 }
 
