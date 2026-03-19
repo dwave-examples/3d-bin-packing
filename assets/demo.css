@@ -89,6 +89,7 @@ table {
     border-radius: 0.25rem;
     text-align: center;
     cursor: pointer;
+    background-color: white;
 }
 
 .display-flex-settings {
@@ -107,53 +108,6 @@ table {
     font-size: 0.875rem;
     font-weight: 600;
     text-transform: uppercase;
-}
-
-.advanced-settings label {
-    color: var(--theme);
-    letter-spacing: normal;
-    text-transform: uppercase;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-}
-
-.advanced-settings .collapse-arrow {
-    height: 1rem;
-    width: 1.5rem;
-    margin-top: 0.8rem;
-}
-
-.collapsed .advanced-settings .collapse-arrow {
-    margin-bottom: 0;
-    margin-top: 0;
-}
-
-.advanced-settings .collapse-arrow:before,
-.advanced-settings .collapse-arrow:after {
-    width: 1rem;
-}
-
-.advanced-collapse {
-    background: white;
-    padding: 0 1rem 1rem;
-    border-radius: 1rem;
-}
-
-.advanced-settings-collapse-wrapper {
-    margin-top: 1rem;
-}
-
-.advanced-settings-collapse-wrapper.collapsed .advanced-collapse {
-    padding-bottom: 0;
-    padding-top: 0;
-    border-top: none;
-    border-bottom: none;
-}
-
-.advanced-settings-collapse-wrapper:not(.collapsed) .details-to-collapse.advanced-collapse {
-    height: var(--advanced-settings-height) !important;
 }
 
 #input tr:nth-child(even) {
@@ -201,5 +155,11 @@ table {
     .input > div:last-child {
         margin-left: 0;
         margin-bottom: 2rem;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .details-collapse-wrapper {
+        display: none;
     }
 }

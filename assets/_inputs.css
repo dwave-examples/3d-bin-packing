@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 input::placeholder {
-    color: var(--grey-medium) !important;
+    color: #656565 !important;
 }
 
 /* Style rules for the dmc.Slider element */

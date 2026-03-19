@@ -49,6 +49,7 @@ CASE_DIM = {
     "max": 30,
     "step": 1,
     "value": [1, 5],
+    "minRange": 1,
 }
 
 BIN_LENGTH = {

@@ -87,6 +87,8 @@ def range_slider(label: str, id: str, config: dict) -> html.Div:
                     {"value": config["max"], "label": f'{config["max"]}'},
                 ],
                 labelAlwaysOn=True,
+                thumbFromLabel=f"{label} slider start",
+                thumbToLabel=f"{label} slider end",
                 color=THEME_COLOR,
             )
         ]
@@ -252,34 +254,8 @@ def generate_settings_form() -> html.Div:
                 id="solver-time-limit",
                 **SOLVER_TIME,
             ),
-            html.Div(
-                id={
-                    "type": "to-collapse-class",
-                    "index": 3,
-                },
-                className="advanced-settings-collapse-wrapper collapsed",
-                children=[
-                    html.Button(
-                        id={
-                            "type": "collapse-trigger",
-                            "index": 3,
-                        },
-                        className="details-collapse advanced-settings",
-                        children=[
-                            html.Label("Advanced options", className="advanced-options", htmlFor="save-solution"),
-                            html.Div(className="collapse-arrow"),
-                        ],
-                        **{"aria-expanded": "false"},
-                    ),
-                    html.Div(
-                        className="details-to-collapse advanced-collapse",
-                        children=[
-                            html.Label("Write Solution to File", htmlFor="save-solution"),
-                            dmc.TextInput(id="save-solution", placeholder="File Name"),
-                        ],
-                    ),
-                ],
-            ),
+            html.Label("Write Solution to File", htmlFor="save-solution"),
+            dmc.TextInput(id="save-solution", placeholder="File Name"),
         ],
     )
 
@@ -354,6 +330,7 @@ def problem_details(index: int) -> html.Div:
                     html.H5("Model Details"),
                     html.Div(className="collapse-arrow"),
                 ],
+                **{"aria-expanded": "true"},
             ),
             html.Div(
                 className="details-to-collapse",
