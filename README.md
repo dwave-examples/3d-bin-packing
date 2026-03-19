@@ -24,11 +24,11 @@ multi bin packing problem using a
 [constrained quadratic model](https://docs.dwavequantum.com/en/latest/concepts/models.html#constrained-quadratic-model) (CQM) that can be solved using a Leap hybrid
 CQM solver.
 
-![Demo Example](static/demo.png)
+![Demo Example](static/demo.png "Image of demo interface")
 
 Below is an example output of the program:
 <a id="plot"></a>
-![Example Solution](_static/sample_solution_plot.png)
+![Example Solution](static/demo2.png "Example solution output of cases in bins")
 
 ## Installation
 
@@ -133,7 +133,7 @@ multiple rows with same `case_id` as there are several items of the same size.
 The number under the `orientation` column shows the rotation of a case inside a
 bin as shown in the following figure.
 
-![Orientations](_static/orientations.png)
+![Orientations](static/orientations.png "Example orientations of cases")
 
 The [graphic](#plot) at the top of the README is a visualization of this
 solution.
@@ -206,7 +206,7 @@ Therefore `u_{0,0} = 1` and `u_{0,j} = 0` for any `j\ne 0`.
 
 We can also estimate a lower bound on the number of occupied bins:
 
-![jmin](_static/jmin.png)
+![jmin](static/jmin.png "Equation showing the lower bound on the number of occupied bins estimation")
 
 The first `jmin` bin variables `v_j` can therefore be set equal to 1 without
 loss of generality. In what follows, the set of bins `J` is `{jmin, ..., n}`.
@@ -227,17 +227,17 @@ Our objective contains three terms:
 The first term is to minimize the average height of the cases in a bin which
 ensures that cases are packed down.
 
-![eq1](_static/eq1.png)
+![eq1](static/eq1.png "Equation showing the first term: to minimize average height")
 
 The second term in the objective ensures that the height of the topmost case in
 each bin is minimized. This objective is weakly considered in the first
 objective term, but here is given more importance.
 
-![eq2](_static/eq2.png)
+![eq2](static/eq2.png "Equation showing second term: height of topmost case is minimized")
 
 Our third objective function minimizes the total number of the bins.
 
-![eq3](_static/eq3.png)
+![eq3](static/eq3.png "Equation showing third term: minimize total number of bins")
 
 Note that we multiplied this term by the height of the bins so its contribution
 to the objective has same weights as the first and second objective terms.
@@ -249,31 +249,31 @@ The total objective value is the summation of all these terms.
 
 Each case has exactly one orientation:
 
-![eq4](_static/eq4.png)
+![eq4](static/eq4.png "Equation showing 1 orientation per case")
 
 Orientation defines the effective length, width, and height of the cases along
 `x`, `y`, and `z` axes.
 
-![eq5](_static/eq5.png)
+![eq5](static/eq5.png "Equation showing the x axes length, width, and height")
 
-![eq6](_static/eq6.png)
+![eq6](static/eq6.png "Equation showing the y axes length, width, and height")
 
-![eq7](_static/eq7.png)
+![eq7](static/eq7.png "Equation showing the z axes length, width, and height")
 
 #### Case and Bin Assignment Constraints
 
 Each case goes to exactly one bin.
 
-![eq8](_static/eq8.png)
+![eq8](static/eq8.png "Equation showing 1 bin per case")
 
 Only assign cases to bins that are in use.
 
-![eq9](_static/eq9.png)
+![eq9](static/eq9.png "Equation showing restriction of cases to bins in use")
 
 Ensure that bins are added in order; i.e., bin `j` is in use
 before bin `j + 1`.
 
-![eq10](_static/eq10.png)
+![eq10](static/eq10.png "Equation showing that bins must be added in order")
 
 #### Geometric Constraints
 
@@ -286,43 +286,43 @@ least one of these situations occur:
 
 - case `i` is on the left of case `k` (`q = 0`):
 
-![eq11](_static/eq11.png)
+![eq11](static/eq11.png "Equation showing that case i is on the left of case k")
 
 - case `i` is behind case `k` (`q = 1`):
 
-![eq12](_static/eq12.png)
+![eq12](static/eq12.png "Equation showing that case i is behind case k")
 
 - case `i` is below case `k` (`q = 2`):
 
-![eq13](_static/eq13.png)
+![eq13](static/eq13.png "Equation showing that case i is below case k")
 
 - case `i` is on the right of case `k` (`q = 3`):
 
-![eq14](_static/eq14.png)
+![eq14](static/eq14.png "Equation showing that case i is on the right of case k")
 
 - case `i` is in front of case `k` (`q = 4`):
 
-![eq15](_static/eq15.png)
+![eq15](static/eq15.png "Equation showing that case i is in front of case k")
 
 - case `i` is above case `k` (`q = 5`):
 
-![eq16](_static/eq16.png)
+![eq16](static/eq16.png "Equation showing that case i is above case k")
 
 To enforce only one of the above constraints we also need:
 
-![eq17](_static/eq17.png)
+![eq17](static/eq17.png "Equation enforcing only one of the above")
 
 #### Bin Boundary Constraints:
 
 These sets of constraints ensure that case `i` is not placed outside the bins.
 
-![eq18](_static/eq18.png)
+![eq18](static/eq18.png "Equation to keep case i inside the bins")
 
-![eq19](_static/eq19.png)
+![eq19](static/eq19.png "Equation to keep case i inside the bins")
 
-![eq20](_static/eq20.png)
+![eq20](static/eq20.png "Equation to keep case i inside the bins")
 
-![eq21](_static/eq21.png)
+![eq21](static/eq21.png "Equation to keep case i inside the bins")
 
 When `u_{i,j}` is 0 these constraints are relaxed.
 
