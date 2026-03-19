@@ -396,7 +396,7 @@ def update_graph_colors(
 )
 def run_optimization(
     run_click: int,
-    solver_type: Union[SolverType, int],
+    solver_type: Union[SolverType, str],
     time_limit: float,
     problem_data: dict,
     color_by_case: bool,
@@ -427,9 +427,9 @@ def run_optimization(
 
     cqm, effective_dimensions = build_cqm(vars, bins, cases)
 
-    best_feasible = call_solver(cqm, time_limit, solver_type is SolverType.CQM.value)
+    best_feasible = call_solver(cqm, time_limit, int(solver_type) is SolverType.CQM.value)
 
-    if save_solution_filepath is not None:
+    if save_solution_filepath:
         write_solution_to_file(
             save_solution_filepath, cqm, vars, best_feasible, cases, bins, effective_dimensions
         )
