@@ -20,8 +20,9 @@ import dash
 import diskcache
 from dash import DiskcacheManager
 
-from demo_configs import APP_TITLE, THEME_COLOR, THEME_COLOR_SECONDARY
+from demo_configs import APP_TITLE
 from demo_interface import create_interface
+import dash_mantine_components as dmc
 
 # Essential for initializing callbacks. Do not remove.
 import demo_callbacks
@@ -51,6 +52,27 @@ app.title = APP_TITLE
 
 app.config.suppress_callback_exceptions = True
 
+app.index_string = """
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        <link rel="stylesheet" href="https://use.typekit.net/fyq0cum.css">
+        {%css%}
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+"""
+
 # Parse debug argument
 parser = argparse.ArgumentParser(description="Dash debug setting.")
 parser.add_argument(
@@ -65,26 +87,16 @@ DEBUG = args.debug
 print(f"\nDebug has been set to: {DEBUG}")
 if not DEBUG:
     print(
-        "The app will not show live code updates and the Dash debug menu will be hidden.",
-        "If editting code while the app is running, run the app with `python app.py --debug`.\n",
+        "Code changes will not be reflected in the app interface and the Dash debug menu will be hidden.",
+        "If editing code while the app is running, run the app with `python app.py --debug`.\n",
         sep="\n",
     )
-
-# Generates css file and variable using THEME_COLOR and THEME_COLOR_SECONDARY settings
-css = f"""/* Automatically generated theme settings css file, see app.py */
-:root {{
-    --theme: {THEME_COLOR};
-    --theme-secondary: {THEME_COLOR_SECONDARY};
-}}
-"""
-with open("assets/__generated_theme.css", "w") as f:
-    f.write(css)
 
 
 if __name__ == "__main__":
     # Imports the Dash HTML code and sets it in the app.
     # Creates the visual layout and app (see `demo_interface.py`)
-    app.layout = create_interface()
+    app.layout = dmc.MantineProvider(create_interface())
 
     # Run the server
     app.run(debug=DEBUG)

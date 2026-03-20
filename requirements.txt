@@ -1,4 +1,5 @@
-dash[diskcache]~=3.0
+dash[diskcache]~=4.0
+dash-mantine-components~=2.5
 dwave-ocean-sdk~=9.3
 plotly~=6.5
 scipy~=1.15

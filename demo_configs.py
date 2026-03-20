@@ -14,20 +14,14 @@
 
 """This file stores input parameters for the app."""
 
-# THEME_COLOR is used for the button, text, and banner and should be dark
-# and pass accessibility checks with white: https://webaim.org/resources/contrastchecker/
-# THEME_COLOR_SECONDARY can be light or dark and is used for sliders, loading icon, and tabs
-THEME_COLOR = "#074C91"  # D-Wave dark blue default #074C91
-THEME_COLOR_SECONDARY = "#2A7DE1"  # D-Wave blue default #2A7DE1
-
 THUMBNAIL = "static/dwave_logo.svg"
 
 APP_TITLE = "3D Bin Packing"
 MAIN_HEADER = "3D Bin Packing"
 DESCRIPTION = """\
-3D bin packing is an optimization problem where the goal is to use the minimum number of bins to
+Use the minimum number of bins to
 pack items with different dimensions, weights and properties. In this example, both items and bins
-are cuboids, and the sides of the items must be packed parallel to the sides of bins.
+are cuboids.
 """
 
 RANDOM_SEED = 42
@@ -55,6 +49,7 @@ CASE_DIM = {
     "max": 30,
     "step": 1,
     "value": [1, 5],
+    "minRange": 1,
 }
 
 BIN_LENGTH = {
@@ -79,7 +74,7 @@ BIN_HEIGHT = {
 }
 
 # checklist to color by case id or color each case separately
-COLOR_BY_CASE = ["Color by Case ID"]
+COLOR_BY_CASE = "Color by Case ID"
 
 # solver time limits in seconds (value means default)
 SOLVER_TIME = {

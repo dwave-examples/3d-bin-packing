@@ -16,41 +16,63 @@ limitations under the License.
 
 /* Style rules for tabs like the input and results tabs */
 
-.tab-container {
-    border-bottom: 3px solid var(--theme-secondary);
-    flex-direction: row;
-}
-
-.tab {
-    margin: 0 2rem;
-    border-top-left-radius: 0.6rem;
-    border-top-right-radius: 0.6rem;
-}
-
-div.tab.tab--selected {
-    border: 3px solid var(--theme-secondary) !important;
-    border-bottom: none !important;
-    cursor: default;
-    box-shadow: 0 6px 0 -3px white;
-}
-
-div.tab.tab--disabled {
-    cursor: not-allowed !important;
-}
-
-.tab:first-child {
-    margin-right: 1rem;
-}
-
-.tab:last-child {
-    margin-left: 1rem;
-}
-
-.tab-content,
-.tab-parent {
+nav {
     height: 100%;
 }
 
-.tab-content {
-    background-color: white;
+.mantine-Tabs-root {
+    height: 100%;
+}
+
+.mantine-Tabs-panel {
+    height: calc(100% - var(--banner-height));
+}
+
+.mantine-Tabs-list {
+    --tabs-list-gap: 1.5rem;
+    height: 100%;
+}
+
+.mantine-Tabs-list::before {
+    border: none;
+}
+
+.mantine-Tabs-tab {
+    font-size: 1.5rem;
+    font-weight: 400;
+    border-radius: 0;
+    border-bottom-width: 0;
+    border-top-width: 5px;
+    height: 100%;
+}
+
+button.mantine-Tabs-tab:disabled {
+    filter: unset;
+    opacity: 1;
+    color: #7E7F86;
+    border-color: transparent;
+}
+
+.mantine-Tabs-tab span {
+    color: #A0A1A5;
+    opacity: 1;
+    transition: color 0.2s ease-in-out;
+}
+
+.mantine-Tabs-tab:where([data-active]) span {
+    opacity: 1;
+    color: white;
+}
+
+.mantine-Tabs-tab:hover {
+    background-color: unset;
+}
+
+.mantine-Tabs-tab:hover:where(:not([data-active])) {
+    border-color: unset;
+}
+
+.mantine-Tabs-tab:hover:where(:not(:disabled)) span {
+    opacity: 1;
+    color: white;
 }

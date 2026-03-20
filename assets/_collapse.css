@@ -16,42 +16,82 @@ limitations under the License.
 
 /* Style rules for collapsible dropdowns like left-column-collapse and problem-details-collapse */
 
+.collapse-arrow {
+    height: 1.5rem;
+    position: relative;
+    width: 1.4rem;
+    transition: border-color 0.25s ease-in-out;
+}
+
+.collapse-arrow:before,
+.collapse-arrow:after {
+    content: "";
+    display: block;
+    position: absolute;
+    height: 0.25rem;
+    width: 1.5rem;
+    background: var(--blue-darker);
+    border-radius: 0.125rem;
+}
+
+.collapse-arrow:before {
+    rotate: -70deg;
+    top: 0;
+}
+
+.collapse-arrow:after {
+    rotate: 70deg;
+    bottom: 0;
+}
+
+.settings-and-buttons-wrapper {
+    height: calc(100vh - var(--title-section-height));
+    overflow-y: auto;
+    direction: rtl;
+}
+
+.settings-and-buttons {
+    direction: ltr;
+}
+
 .left-column .left-column-layer-1 {
     width: var(--left-col-width);
-    transition: width 0.6s ease-in-out;
-    overflow-x: hidden;
-    overflow-y: auto;
+    transition: width 0.5s ease-in-out;
     direction: rtl;
 }
 
 .details-to-collapse {
     height: var(--problem-details-height);
-    transition: height 0.6s ease-in-out;
+    transition: height 0.5s ease-in-out;
     overflow: hidden;
 }
 
 .left-column .left-column-layer-2 {
-    padding: 3rem 2rem 4rem;
     width: var(--left-col-width);
     box-sizing: border-box;
     direction: ltr;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .details-collapse-wrapper {
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
     overflow: hidden;
 }
 
-.left-column-collapse,
-.left-column-collapse:hover,
-.left-column-collapse:focus {
+.left-column-collapse {
     background: white;
-    border-right: 1px solid var(--grey-lighter);
+    border: none;
     height: 100%;
     border-radius: 0;
-    padding: 0 0 0 0.5rem;
-    filter: none;
+    padding: 0;
     display: block;
+}
+
+.left-column-collapse:hover,
+.left-column-collapse:focus {
+    background: var(--grey-lighter);
 }
 
 .details-collapse,
@@ -59,26 +99,18 @@ limitations under the License.
 .details-collapse:focus {
     background: none;
     display: flex;
-    padding: 0 2rem 0 0;
+    align-items: center;
+    padding: 0 1.25rem 0 0;
     text-transform: none;
-}
-
-.collapse-arrow {
-    border-right: 4px solid var(--grey-light);
-    border-bottom: 4px solid var(--grey-light);
-    transform: rotate(135deg) skew(165deg, 165deg);
-    height: 2rem;
-    width: 2rem;
-    margin-right: -0.3rem;
-    transition: border-color 0.25s ease-in-out;
+    color: var(--blue-dark);
 }
 
 .details-collapse .collapse-arrow {
-    transform: rotate(225deg) skew(165deg, 165deg);
-    margin: 1.5rem 0 0 1.5rem;
-    border-color: var(--theme);
-    height: 1.2rem;
-    width: 1.2rem;
+    transform: rotate(90deg);
+    width: 3rem;
+    margin-top: 1.5rem;
+    margin-left: 0.5rem;
+    color: var(--blue-darkest);
 }
 
 .left-column-collapse:hover .collapse-arrow {
@@ -86,18 +118,28 @@ limitations under the License.
 }
 
 .collapsed .left-column-collapse {
-    padding: 0 0.5rem 0 0;
+    padding: 0 0.25rem 0 0;
 }
 
 .collapsed .left-column-collapse .collapse-arrow {
-    margin-left: -0.3rem;
-    margin-right: 0;
-    transform: rotate(315deg) skew(165deg, 165deg);
+    margin-right: -4px;
+    transform: rotate(180deg);
+}
+
+.title-section {
+    transition: all 0.5s ease-in-out;
+}
+
+.collapsed .title-section {
+    height: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 .collapsed .details-collapse .collapse-arrow {
-    margin-top: 1rem;
-    transform: rotate(45deg) skew(165deg, 165deg);
+    margin-bottom: 1.5rem;
+    margin-top: 0;
+    transform: rotate(-90deg);
 }
 
 .collapsed .details-to-collapse {
@@ -105,5 +147,40 @@ limitations under the License.
 }
 
 .collapsed .left-column-layer-1 {
-    width: 0;
+    width: 1.5rem;
+}
+
+@media screen and (max-width: 1000px) {
+    .left-column {
+        height: auto;
+        width: 100%;
+    }
+
+    .left-column .left-column-layer-1,
+    .left-column .left-column-layer-2,
+    .left-column .left-column-collapse {
+        width: 100%;
+    }
+
+    .left-column-collapse .collapse-arrow {
+        transform: rotate(90deg);
+        margin: auto;
+    }
+
+    .collapsed .title-section {
+        height: 0;
+        overflow-y: hidden;
+    }
+
+    .collapsed .settings-and-buttons-wrapper {
+        height: 0;
+        flex: unset;
+        padding: 0;
+        overflow-y: hidden;
+    }
+
+    .collapsed .left-column-collapse .collapse-arrow {
+        margin-right: auto;
+        transform: rotate(-90deg);
+    }
 }

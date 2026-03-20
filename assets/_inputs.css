@@ -1,0 +1,117 @@
+/*
+Copyright 2024 D-Wave
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+input::placeholder {
+    color: #656565 !important;
+}
+
+/* Style rules for the dmc.Slider element */
+.slider {
+    margin-bottom: 2rem;
+}
+
+.mantine-Slider-label,
+.mantine-Slider-markLabel,
+.mantine-RangeSlider-label,
+.mantine-RangeSlider-markLabel {
+    font-family: var(--font);
+}
+
+.mantine-Slider-markLabel,
+.mantine-RangeSlider-markLabel {
+    color: #666666;
+}
+
+.mantine-Slider-label,
+.mantine-RangeSlider-label {
+    background-color: white;
+    color: var(--grey-dark);
+    border: 1px solid var(--grey);
+    border-radius: 2px;
+    top: auto;
+    bottom: calc(-2.25rem * var(--mantine-scale));
+    width: 1.5rem;
+    text-align: center;
+    padding: 0.15rem 0;
+}
+
+.mantine-Slider-label:before,
+.mantine-RangeSlider-label:before,
+.mantine-Slider-label:after,
+.mantine-RangeSlider-label:after {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.mantine-Slider-label:before,
+.mantine-RangeSlider-label:before {
+    left: 6px;
+    top: -13px;
+    border: 6px solid transparent;
+    border-bottom-color: var(--grey);
+}
+
+.mantine-Slider-label:after,
+.mantine-RangeSlider-label:after {
+    left: 7px;
+    top: -10px;
+    border: 5px solid transparent;
+    border-bottom-color: white;
+}
+
+/* Style rules for the dmc.NumberInput and dmc.TextInput elements */
+.mantine-NumberInput-input:focus-visible,
+.mantine-TextInput-input:focus-visible {
+    box-shadow: 0 0 0 2px var(--teal);
+}
+
+/* Style rules for the dmc.Select element */
+.mantine-Select-input:focus-visible {
+    box-shadow: 0 0 0 2px var(--teal);
+}
+
+.mantine-InputWrapper-label.mantine-RadioGroup-label,
+.mantine-InputWrapper-label.mantine-CheckboxGroup-label {
+    font-family: var(--font);
+    color: var(--blue-darkest);
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    margin: 1rem 0 0.5rem;
+    font-weight: 600;
+    display: block;
+}
+
+.radio label,
+.checklist label,
+label.mantine-Checkbox-label {
+    margin-top: 0.125rem;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1rem;
+}
+
+.radio--inline label:first-child,
+.checklist--inline label:first-child {
+    margin-right: 0.75rem;
+}
+
+.radio:not(.radio--inline) .mantine-Group-root,
+.checklist:not(.checklist--inline) .mantine-Group-root {
+    display: block;
+}

@@ -167,6 +167,7 @@ def _plot_cuboids(
     case_data = _get_all_cuboids(positions, sizes, color_coded, case_ids)
     fig = go.Figure(data=case_data)
     fig.update_layout(
+        margin=dict(l=0, r=0, t=0, b=0),
         scene=dict(
             xaxis=dict(range=[0, bin_length * 1.1]),
             yaxis=dict(range=[0, bin_width * 1.1]),
