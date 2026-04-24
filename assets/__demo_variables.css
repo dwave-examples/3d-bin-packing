@@ -24,7 +24,7 @@ Dash reads all css files contained in `/assets/` so no imports are necessary.
     --blue-bright: #03B8FF;
     --blue-light: #2A7DE1;
     --blue-dark: #074C91;
-    --blue-darker: #2d4376;;
+    --blue-darker: #2d4376;
     --blue-darkest: #202239;
     --red-light: #F57677;
     --red-dark: #AA3A3C;
