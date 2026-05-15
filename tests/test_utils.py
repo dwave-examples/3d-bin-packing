@@ -104,6 +104,22 @@ class TestUtils(unittest.TestCase):
         )
         self.assertEqual(data1, data)
 
+    def test_read_ecommerce_carton_sample(self):
+        data = read_instance(instance_path=project_dir + "/input/sample_data_ecommerce_cartons.txt")
+
+        self.assertEqual(
+            data,
+            {
+                "Case ID": [0, 1, 2, 3],
+                "Quantity": [2, 3, 2, 1],
+                "Length": [10, 8, 12, 16],
+                "Width": [6, 4, 5, 6],
+                "Height": [2, 3, 4, 4],
+                "num_bins": 2,
+                "bin_dimensions": [24, 10, 8],
+            },
+        )
+
     def test_write_solution_to_file(self):
         data = read_instance(instance_path=project_dir + "/tests/test_data_1.txt")
         cases = Cases(data)

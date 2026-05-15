@@ -81,6 +81,9 @@ typing:
     python packing3d.py --data_filepath <path to your problem file>
 
 There are several examples of problem instances under the `input` folder.
+The file `input/sample_data_ecommerce_cartons.txt` provides a small
+ecommerce-carton instance using the 24x10x8 carton dimensions from the public
+[Packrift packaging optimization benchmark corpus][packrift-corpus].
 
 ### Inputs
 
@@ -337,6 +340,8 @@ for the height constraints, however, here we want to track the bin height `s_j`.
 [1] Martello, Silvano, David Pisinger, and Daniele Vigo.
 "The three-dimensional bin packing problem."
 Operations research 48.2 (2000): 256-267.
+
+[packrift-corpus]: https://github.com/Packrift/packaging-optimization-benchmark-corpus/blob/main/examples/ortools-carton-selection/sample_cartons.csv
 
 ## License
 
